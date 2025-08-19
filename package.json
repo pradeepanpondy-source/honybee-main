@@ -7,9 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
-    "engines": {
-    "node": "20.x"}
+    "preview": "vite preview"}
 
   },
   "dependencies": {
