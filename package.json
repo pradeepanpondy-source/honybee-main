@@ -8,6 +8,10 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
+    "engines": {
+    "node": "18.x"
+}
+
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.12",
