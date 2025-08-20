@@ -2,14 +2,7 @@ import React from 'react';
 import { Trash2 } from 'lucide-react';
 
 const Cart: React.FC = () => {
-  const cartItems = [
-    {
-      id: 1,
-      name: 'Pure Honey',
-      price: 299,
-      quantity: 2,
-    },
-  ];
+  const cartItems = [];
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 

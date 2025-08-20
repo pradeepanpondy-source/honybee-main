@@ -8,7 +8,7 @@ import Cart from './components/Cart';
 import Seller from './components/Seller';
 import Profile from './components/Profile';
 
-type AppState = 'login' | 'name-collection' | 'home' | 'shop' | 'cart' | 'seller' | 'profile';
+type AppState = 'login' | 'name-collection' | 'home' | 'shop' | 'cart' | 'seller' | 'profile' | 'farms';
 
 interface User {
   name: string;
@@ -25,7 +25,7 @@ function App() {
 
   // Check for existing user session on app load
   useEffect(() => {
-    const savedUser = localStorage.getItem('honeyFinderUser');
+    const savedUser = localStorage.getItem('honeyBridgeUser');
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
@@ -33,7 +33,7 @@ function App() {
         setAppState('home');
       } catch (error) {
         console.error('Failed to parse saved user data:', error);
-        localStorage.removeItem('honeyFinderUser');
+        localStorage.removeItem('honeyBridgeUser');
       }
     }
   }, []);
@@ -48,14 +48,14 @@ function App() {
     const userData = { ...user, name } as User; // Update user with name
     setUser(userData);
     // Save to localStorage for persistence
-    localStorage.setItem('honeyFinderUser', JSON.stringify(userData));
+    localStorage.setItem('honeyBridgeUser', JSON.stringify(userData));
     setAppState('home');
   };
 
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('honeyFinderUser');
+    localStorage.removeItem('honeyBridgeUser');
     setAppState('login');
   };
 
@@ -69,7 +69,7 @@ function App() {
     case 'home':
       return user ? (
         <>
-          <Navigation activeTab="home" onTabChange={(tab) => setAppState(tab as AppState)} />
+          <Navigation activeTab="home" onTabChange={(tab: string) => setAppState(tab as AppState)} />
           <HomeScreen userName={user.name} onLogout={handleLogout} />
         </>
       ) : (
@@ -79,7 +79,7 @@ function App() {
     case 'shop':
       return user ? (
         <>
-          <Navigation activeTab="shop" onTabChange={(tab) => setAppState(tab as AppState)} />
+          <Navigation activeTab="shop" onTabChange={(tab: string) => setAppState(tab as AppState)} />
           <Shop />
         </>
       ) : (
@@ -89,7 +89,7 @@ function App() {
     case 'cart':
       return user ? (
         <>
-          <Navigation activeTab="cart" onTabChange={(tab) => setAppState(tab as AppState)} />
+          <Navigation activeTab="cart" onTabChange={(tab: string) => setAppState(tab as AppState)} />
           <Cart />
         </>
       ) : (
@@ -99,7 +99,7 @@ function App() {
     case 'seller':
       return user ? (
         <>
-          <Navigation activeTab="seller" onTabChange={(tab) => setAppState(tab as AppState)} />
+          <Navigation activeTab="seller" onTabChange={(tab: string) => setAppState(tab as AppState)} />
           <Seller />
         </>
       ) : (
@@ -111,6 +111,17 @@ function App() {
         <>
           <Navigation activeTab="profile" onTabChange={(tab) => setAppState(tab as AppState)} />
           <Profile />
+        </>
+      ) : (
+        <LoginScreen onLogin={handleLogin} />
+      );
+
+    case 'farms':
+      return user ? (
+        <>
+          <Navigation activeTab="farms" onTabChange={(tab) => setAppState(tab as AppState)} />
+          {/* For now, this will render the HomeScreen, which has the farms view logic */}
+          <HomeScreen userName={user.name} onLogout={handleLogout} />
         </>
       ) : (
         <LoginScreen onLogin={handleLogin} />

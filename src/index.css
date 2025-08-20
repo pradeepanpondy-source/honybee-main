@@ -102,11 +102,7 @@
   }
 }
 
-@keyframes honey-drip {
-  0% { transform: translateY(-10px) scaleY(0.8); }
-  50% { transform: translateY(0) scaleY(1.1); }
-  100% { transform: translateY(-10px) scaleY(0.8); }
-}
+@keyframes honey-drip {}
 
 .animate-sway {
   animation: sway 4s ease-in-out infinite;
@@ -156,9 +152,7 @@
   animation: fade-in-up 0.8s ease-out forwards;
 }
 
-.animate-honey-drip {
-  animation: honey-drip 2s ease-in-out infinite;
-}
+
 
 .animate-delay-100 { animation-delay: 0.1s; }
 .animate-delay-200 { animation-delay: 0.2s; }

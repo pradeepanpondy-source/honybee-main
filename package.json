@@ -1,4 +1,4 @@
-u{
+{
   "name": "vite-react-typescript-starter",
   "private": true,
   "version": "0.0.0",
@@ -16,6 +16,7 @@ u{
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.12",
+    "chokidar": "^4.0.3",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -40,4 +41,3 @@ u{
     "node": "18.x"
   }
 }
-

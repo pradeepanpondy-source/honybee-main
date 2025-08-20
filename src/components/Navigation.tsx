@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, ShoppingCart, Store, User, ShoppingBag } from 'lucide-react';
+import { Home, ShoppingCart, Store, User, ShoppingBag, Search } from 'lucide-react';
 
 interface NavigationProps {
   activeTab: string;
@@ -13,12 +13,13 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
     { id: 'cart', label: 'Cart', icon: ShoppingCart },
     { id: 'seller', label: 'Seller', icon: Store },
     { id: 'profile', label: 'Profile', icon: User },
+    { id: 'farms', label: 'Find Farms', icon: Search },
   ];
 
   return (
     <nav className="bg-amber-100 border-b border-amber-200 px-4 py-3">
       <div className="flex items-center justify-between max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-amber-800">HoneyBee</h1>
+        <h1 className="text-2xl font-bold text-amber-800">Honey Bridge</h1>
         <div className="flex space-x-6">
           {navItems.map((item) => {
             const Icon = item.icon;

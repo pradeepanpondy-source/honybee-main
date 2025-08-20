@@ -96,7 +96,7 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
                 <Navigation className="w-5 h-5 rotate-180" />
                 <span className="font-medium">Back to Home</span>
               </ClickEffect>
-              <h1 className="text-xl font-bold text-amber-900 animate-welcome-bounce">Nearby Farms</h1>
+              <h1 className="text-xl font-bold text-amber-900">Nearby Farms</h1>
               <ClickEffect
                 onClick={onLogout}
                 className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg"
@@ -109,7 +109,7 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
 
         {/* Search Bar */}
         <div className="max-w-6xl mx-auto px-4 py-6 relative z-10">
-          <div className="relative animate-fade-in-up">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
@@ -123,7 +123,7 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
         <div className="max-w-6xl mx-auto px-4 pb-8 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {mockFarms.map((farm) => (
-              <ClickEffect key={farm.id} className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow overflow-hidden animate-fade-in-up relative" style={{animationDelay: `${farm.id * 0.1}s`}}>
+            <ClickEffect key={farm.id} className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow overflow-hidden relative">
                 <img
                   src={farm.image}
                   alt={farm.name}
@@ -187,18 +187,18 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
         <div className="bg-white shadow-sm border-b border-amber-100 relative z-10">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 animate-fade-in-up">
-                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center animate-honey-drip">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-amber-900 animate-welcome-bounce">HoneyFinder</h1>
-                  <p className="text-sm text-amber-700 animate-fade-in-up animate-delay-300">Welcome, {userName}!</p>
+                  <h1 className="text-xl font-bold text-amber-900">Honey Bridge</h1>
+                  <p className="text-sm text-amber-700">Welcome, {userName}!</p>
                 </div>
               </div>
               <ClickEffect
                 onClick={onLogout}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors animate-fade-in-up animate-delay-500"
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Logout
               </ClickEffect>
@@ -208,41 +208,21 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
 
         {/* Welcome Section */}
         <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
-          <div className="text-center mb-12 animate-fade-in-up">
-            <h2 className="text-4xl font-bold text-amber-900 mb-4 animate-welcome-bounce animate-delay-200">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-amber-900 mb-4">
               Hello, {userName}! 🍯
             </h2>
-            <p className="text-xl text-amber-700 max-w-2xl mx-auto animate-fade-in-up animate-delay-500">
+            <p className="text-xl text-amber-700 max-w-2xl mx-auto">
               Discover the finest local honey farms in your area. Fresh, organic, and sustainably produced honey awaits you.
             </p>
           </div>
 
           {/* Main Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 animate-fade-in-up animate-delay-700">
-            {/* Find Farms Card */}
-            <ClickEffect className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow relative">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center mr-4 animate-honey-drip">
-                  <Search className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-2xl font-semibold text-gray-800">Find Farms</h3>
-              </div>
-              <p className="text-gray-600 mb-6">
-                Locate honey farms near you and discover their unique honey varieties, visiting hours, and contact information.
-              </p>
-              <ClickEffect
-                onClick={handleFindFarms}
-                className="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center group relative"
-              >
-                <MapPin className="w-5 h-5 mr-2 group-hover:animate-pulse" />
-                Find Nearby Farms
-              </ClickEffect>
-            </ClickEffect>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             {/* Favorites Card */}
             <ClickEffect className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow relative">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center mr-4 animate-honey-drip animate-delay-300">
+                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center mr-4">
                   <Star className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-800">Your Favorites</h3>
@@ -257,9 +237,9 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
           </div>
 
           {/* Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up animate-delay-1000">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <ClickEffect className="bg-white rounded-xl shadow-md p-6 text-center relative">
-              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-3 animate-honey-drip">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                 <Clock className="w-5 h-5 text-amber-600" />
               </div>
               <h4 className="font-semibold text-gray-800 mb-2">Real-time Hours</h4>
@@ -267,7 +247,7 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
             </ClickEffect>
             
             <ClickEffect className="bg-white rounded-xl shadow-md p-6 text-center relative">
-              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-3 animate-honey-drip animate-delay-200">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                 <Navigation className="w-5 h-5 text-amber-600" />
               </div>
               <h4 className="font-semibold text-gray-800 mb-2">GPS Directions</h4>
@@ -275,7 +255,7 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
             </ClickEffect>
             
             <ClickEffect className="bg-white rounded-xl shadow-md p-6 text-center relative">
-              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-3 animate-honey-drip animate-delay-400">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                 <Phone className="w-5 h-5 text-amber-600" />
               </div>
               <h4 className="font-semibold text-gray-800 mb-2">Direct Contact</h4>
