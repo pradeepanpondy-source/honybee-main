@@ -1,4 +1,4 @@
-{
+u{
   "name": "vite-react-typescript-starter",
   "private": true,
   "version": "0.0.0",
@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "git-auto": "node scripts/git-auto.mjs",
+    "git-auto:start": "npm run git-auto",
+    "git-auto:install": "npm install chokidar",
+    "git:push": "git add . && git commit -m 'Manual commit' && git push origin main",
+    "git:status": "git status"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.1.12",
@@ -23,7 +28,7 @@
     "autoprefixer": "^10.4.18",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
-    "eslint-plugin-react-refresh": "^0.4.11",
+    "eslint-plugin-react-refresh": "0.4.11",
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.17",
