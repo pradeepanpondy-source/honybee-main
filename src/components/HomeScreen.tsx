@@ -218,7 +218,23 @@ export default function HomeScreen({ userName, onLogout }: HomeScreenProps) {
           </div>
 
           {/* Main Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 animate-fade-in-up animate-delay-700">
+            {/* Find Farms Card */}
+            <ClickEffect onClick={handleFindFarms} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow relative">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center mr-4">
+                  <MapPin className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-800">Find Nearby Farms</h3>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Explore a curated list of honey farms close to your current location. Get directions, contact info, and more.
+              </p>
+              <ClickEffect onClick={handleFindFarms} className="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-colors relative">
+                <Search className="w-5 h-5 mr-2" />
+                Find Farms Now
+              </ClickEffect>
+            </ClickEffect>
             {/* Favorites Card */}
             <ClickEffect className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow relative">
               <div className="flex items-center mb-4">
