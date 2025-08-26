@@ -11,7 +11,7 @@ const Seller: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">Total Products</h3>
-              <p className="text-3xl font-bold text-amber-600">12</p>
+              <p className="text-3xl font-bold text-amber-600">-</p>
             </div>
             <Package className="w-12 h-12 text-amber-500" />
           </div>
@@ -21,7 +21,7 @@ const Seller: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">Total Sales</h3>
-              <p className="text-3xl font-bold text-green-600">₹15,420</p>
+              <p className="text-3xl font-bold text-green-600">-</p>
             </div>
             <Store className="w-12 h-12 text-green-500" />
           </div>
@@ -31,7 +31,7 @@ const Seller: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">Orders</h3>
-              <p className="text-3xl font-bold text-blue-600">28</p>
+              <p className="text-3xl font-bold text-blue-600">-</p>
             </div>
             <PlusCircle className="w-12 h-12 text-blue-500" />
           </div>
