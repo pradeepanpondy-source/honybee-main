@@ -7,8 +7,9 @@ import Shop from './components/Shop';
 import Cart from './components/Cart';
 import Seller from './components/Seller';
 import Profile from './components/Profile';
+import Subscription from './components/Subscription';
 
-type AppState = 'login' | 'name-collection' | 'home' | 'shop' | 'cart' | 'seller' | 'profile' | 'farms';
+type AppState = 'login' | 'name-collection' | 'home' | 'shop' | 'cart' | 'seller' | 'profile' | 'farms' | 'subscription';
 
 interface User {
   name: string;
@@ -17,6 +18,8 @@ interface User {
   location?: string;
   address?: string;
   pincode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 function App() { 
@@ -38,9 +41,13 @@ function App() {
     }
   }, []);
 
-  const handleLogin = (provider: string) => {
+  const handleLogin = (provider: string, coords?: GeolocationCoordinates) => {
     console.log(`Logged in with ${provider}`);
-    setUser({ name: '', provider });
+    if (coords) {
+      setUser({ name: '', provider, latitude: coords.latitude, longitude: coords.longitude });
+    } else {
+      setUser({ name: '', provider });
+    }
     setAppState('name-collection');
   };
 
@@ -70,7 +77,7 @@ function App() {
       return user ? (
         <>
           <Navigation activeTab="home" onTabChange={(tab: string) => setAppState(tab as AppState)} />
-          <HomeScreen userName={user.name} onLogout={handleLogout} />
+          <HomeScreen userName={user.name} onLogout={handleLogout} latitude={user.latitude} longitude={user.longitude} />
         </>
       ) : (
         <LoginScreen onLogin={handleLogin} />
@@ -106,6 +113,16 @@ function App() {
         <LoginScreen onLogin={handleLogin} />
       );
 
+    case 'subscription':
+      return user ? (
+        <>
+          <Navigation activeTab="subscription" onTabChange={(tab) => setAppState(tab as AppState)} />
+          <Subscription />
+        </>
+      ) : (
+        <LoginScreen onLogin={handleLogin} />
+      );
+
     case 'profile':
       return user ? (
         <>
@@ -121,7 +138,7 @@ function App() {
         <>
           <Navigation activeTab="farms" onTabChange={(tab) => setAppState(tab as AppState)} />
           {/* For now, this will render the HomeScreen, which has the farms view logic */}
-          <HomeScreen userName={user.name} onLogout={handleLogout} />
+          <HomeScreen userName={user.name} onLogout={handleLogout} latitude={user.latitude} longitude={user.longitude} />
         </>
       ) : (
         <LoginScreen onLogin={handleLogin} />

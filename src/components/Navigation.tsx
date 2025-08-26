@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, ShoppingCart, Store, User, ShoppingBag, Search } from 'lucide-react';
+import { Home, ShoppingCart, Store, User, ShoppingBag, Search, CreditCard } from 'lucide-react';
 
 interface NavigationProps {
   activeTab: string;
@@ -12,6 +12,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
     { id: 'shop', label: 'Shop', icon: ShoppingBag },
     { id: 'cart', label: 'Cart', icon: ShoppingCart },
     { id: 'seller', label: 'Seller', icon: Store },
+    { id: 'subscription', label: 'Subscription', icon: CreditCard },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'farms', label: 'Find Farms', icon: Search },
   ];
