@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import LoginScreen from './components/LoginScreen';
 import NameCollection from './components/NameCollection';
 import Navigation from './components/Navigation';
@@ -8,6 +8,7 @@ import Cart from './components/Cart';
 import Seller from './components/Seller';
 import Profile from './components/Profile';
 import Subscription from './components/Subscription';
+import PageLayout from './components/PageLayout';
 
 type AppState = 'login' | 'name-collection' | 'home' | 'shop' | 'cart' | 'seller' | 'profile' | 'farms' | 'subscription';
 
@@ -32,6 +33,7 @@ function App() {
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
+        console.log('User data retrieved:', userData); // Log user data
         setUser(userData);
         setAppState('home');
       } catch (error) {
@@ -59,7 +61,6 @@ function App() {
     setAppState('home');
   };
 
-
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('honeyBridgeUser');
@@ -75,71 +76,70 @@ function App() {
 
     case 'home':
       return user ? (
-        <>
-          <Navigation activeTab="home" onTabChange={(tab: string) => setAppState(tab as AppState)} />
-          <HomeScreen userName={user.name} onLogout={handleLogout} latitude={user.latitude} longitude={user.longitude} />
-        </>
+        <PageLayout>
+          <Navigation activeTab="home" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />
+          <HomeScreen userName={user.name} latitude={user.latitude} longitude={user.longitude} />
+        </PageLayout>
       ) : (
         <LoginScreen onLogin={handleLogin} />
       );
 
     case 'shop':
       return user ? (
-        <>
-          <Navigation activeTab="shop" onTabChange={(tab: string) => setAppState(tab as AppState)} />
+        <PageLayout>
+          <Navigation activeTab="shop" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />
           <Shop />
-        </>
+        </PageLayout>
       ) : (
         <LoginScreen onLogin={handleLogin} />
       );
 
     case 'cart':
       return user ? (
-        <>
-          <Navigation activeTab="cart" onTabChange={(tab: string) => setAppState(tab as AppState)} />
+        <PageLayout>
+          <Navigation activeTab="cart" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />
           <Cart />
-        </>
+        </PageLayout>
       ) : (
         <LoginScreen onLogin={handleLogin} />
       );
 
     case 'seller':
       return user ? (
-        <>
-          <Navigation activeTab="seller" onTabChange={(tab: string) => setAppState(tab as AppState)} />
+        <PageLayout>
+          <Navigation activeTab="seller" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />
           <Seller />
-        </>
+        </PageLayout>
       ) : (
         <LoginScreen onLogin={handleLogin} />
       );
 
     case 'subscription':
       return user ? (
-        <>
-          <Navigation activeTab="subscription" onTabChange={(tab) => setAppState(tab as AppState)} />
+        <PageLayout>
+          <Navigation activeTab="subscription" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />
           <Subscription />
-        </>
+        </PageLayout>
       ) : (
         <LoginScreen onLogin={handleLogin} />
       );
 
     case 'profile':
       return user ? (
-        <>
-          <Navigation activeTab="profile" onTabChange={(tab) => setAppState(tab as AppState)} />
+        <PageLayout>
+          <Navigation activeTab="profile" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />
           <Profile />
-        </>
+        </PageLayout>
       ) : (
         <LoginScreen onLogin={handleLogin} />
       );
 
     case 'farms':
       return user ? (
-        <>
-          <Navigation activeTab="farms" onTabChange={(tab) => setAppState(tab as AppState)} />
-          {/* For now, this will render the HomeScreen, which has the farms view logic */}
-          <HomeScreen userName={user.name} onLogout={handleLogout} latitude={user.latitude} longitude={user.longitude} />
-        </>
+        <PageLayout>
+          <Navigation activeTab="farms" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />
+          <HomeScreen userName={user.name} latitude={user.latitude} longitude={user.longitude} />
+        </PageLayout>
       ) : (
         <LoginScreen onLogin={handleLogin} />
       );

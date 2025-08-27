@@ -8,40 +8,44 @@ const Cart: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-amber-800 mb-6">Shopping Cart</h2>
+      <h2 className="text-3xl font-bold text-white mb-6">Shopping Cart</h2>
       
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        {cartItems.length === 0 ? (
-          <p className="text-center text-gray-500">Your cart is empty</p>
-        ) : (
-          <>
-            <div className="space-y-4">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between border-b pb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{item.name}</h3>
-                    <p className="text-gray-600">₹{item.price} x {item.quantity}</p>
+      <div className="group"> {/* Added group here */}
+        <div className="bg-white rounded-lg shadow-lg animate-card-hover p-6"> {/* Moved animate-card-hover here */}
+          {cartItems.length === 0 ? (
+            <p className="text-center text-gray-500">Your cart is empty</p>
+          ) : (
+            <>
+              <div className="space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between border-b border-gray-200 pb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
+                      <p className="text-gray-600">₹{item.price} x {item.quantity}</p>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <span className="text-lg font-semibold text-gray-800">₹{item.price * item.quantity}</span>
+                      <button className="text-red-500 hover:text-red-700">
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <span className="text-lg font-semibold">₹{item.price * item.quantity}</span>
-                    <button className="text-red-500 hover:text-red-700">
-                      <Trash2 size={20} />
+                ))}
+              </div>
+              
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-xl font-bold text-gray-800">Total: ₹{total}</span>
+                  <div className="group"> {/* Added group here */}
+                    <button className="bg-purple-600 text-white px-6 py-2 rounded-md animate-button-hover"> {/* Moved animate-button-hover here */}
+                      Checkout
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="mt-6 pt-4 border-t">
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-bold">Total: ₹{total}</span>
-                <button className="bg-amber-500 text-white px-6 py-2 rounded-md hover:bg-amber-600 transition-colors">
-                  Checkout
-                </button>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

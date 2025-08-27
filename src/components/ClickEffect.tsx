@@ -25,9 +25,8 @@ export default function ClickEffect({ children, className = '', onClick, disable
     <div
       className={`
         ${className}
-        ${isClicked ? 'animate-pop-click' : ''}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-        transition-all duration-200 hover:scale-105 active:scale-95
+        transition-all duration-200
       `}
       onClick={handleClick}
     >
@@ -36,7 +35,7 @@ export default function ClickEffect({ children, className = '', onClick, disable
       {/* Ripple effect */}
       {isClicked && (
         <div className="absolute inset-0 rounded-inherit overflow-hidden pointer-events-none">
-          <div className="absolute inset-0 bg-amber-300 opacity-30 animate-ripple rounded-inherit" />
+          <div className="absolute inset-0 bg-amber-300 opacity-30 rounded-inherit" />
         </div>
       )}
     </div>
