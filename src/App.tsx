@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import LoginScreen from './components/LoginScreen';
-import NameCollection from './components/NameCollection';
 import Navigation from './components/Navigation';
 import HomeScreen from './components/HomeScreen';
 import Shop from './components/Shop';
@@ -9,8 +8,9 @@ import Seller from './components/Seller';
 import Profile from './components/Profile';
 import Subscription from './components/Subscription';
 import PageLayout from './components/PageLayout';
+import SignUpScreen from './components/SignUpScreen';
 
-type AppState = 'login' | 'name-collection' | 'home' | 'shop' | 'cart' | 'seller' | 'profile' | 'farms' | 'subscription';
+type AppState = 'login' | 'home' | 'shop' | 'cart' | 'seller' | 'profile' | 'farms' | 'subscription' | 'signup';
 
 interface User {
   name: string;
@@ -50,16 +50,10 @@ function App() {
     } else {
       setUser({ name: '', provider });
     }
-    setAppState('name-collection');
-  };
-
-  const handleNameSubmit = (name: string) => {
-    const userData = { ...user, name } as User; // Update user with name
-    setUser(userData);
-    // Save to localStorage for persistence
-    localStorage.setItem('honeyBridgeUser', JSON.stringify(userData));
     setAppState('home');
   };
+
+  // Remove NameCollection and SignUpScreen from appState switch to directly go from login to home
 
   const handleLogout = () => {
     setUser(null);
@@ -69,83 +63,90 @@ function App() {
 
   switch (appState) {
     case 'login':
-      return <LoginScreen onLogin={handleLogin} />;
+      return <LoginScreen onLogin={handleLogin as (provider: string, coords?: GeolocationCoordinates) => void} onNavigateToSignUp={() => setAppState('signup')} />;
     
-    case 'name-collection':
-      return <NameCollection onNameSubmit={handleNameSubmit} />;
+    case 'signup':
+      return <SignUpScreen onSignUp={handleLogin} onNavigateToLogin={() => setAppState('login')} />;
 
     case 'home':
       return user ? (
-        <PageLayout>
-          <Navigation activeTab="home" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />
+        <PageLayout
+          navigation={<Navigation activeTab="home" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />}
+        >
           <HomeScreen userName={user.name} latitude={user.latitude} longitude={user.longitude} />
         </PageLayout>
       ) : (
-        <LoginScreen onLogin={handleLogin} />
+        <LoginScreen onLogin={handleLogin} onNavigateToSignUp={() => setAppState('signup')} />
       );
 
     case 'shop':
       return user ? (
-        <PageLayout>
-          <Navigation activeTab="shop" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />
+        <PageLayout
+          navigation={<Navigation activeTab="shop" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />}
+        >
           <Shop />
         </PageLayout>
       ) : (
-        <LoginScreen onLogin={handleLogin} />
+        <LoginScreen onLogin={handleLogin} onNavigateToSignUp={() => setAppState('signup')} />
       );
 
     case 'cart':
       return user ? (
-        <PageLayout>
-          <Navigation activeTab="cart" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />
+        <PageLayout
+          navigation={<Navigation activeTab="cart" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />}
+        >
           <Cart />
         </PageLayout>
       ) : (
-        <LoginScreen onLogin={handleLogin} />
+        <LoginScreen onLogin={handleLogin as (provider: string, coords?: GeolocationCoordinates) => void} onNavigateToSignUp={() => setAppState('signup')} />
       );
 
     case 'seller':
       return user ? (
-        <PageLayout>
-          <Navigation activeTab="seller" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />
+        <PageLayout
+          navigation={<Navigation activeTab="seller" onTabChange={(tab: string) => setAppState(tab as AppState)} onLogout={handleLogout} />}
+        >
           <Seller />
         </PageLayout>
       ) : (
-        <LoginScreen onLogin={handleLogin} />
+        <LoginScreen onLogin={handleLogin} onNavigateToSignUp={() => setAppState('signup')} />
       );
 
     case 'subscription':
       return user ? (
-        <PageLayout>
-          <Navigation activeTab="subscription" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />
+        <PageLayout
+          navigation={<Navigation activeTab="subscription" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />}
+        >
           <Subscription />
         </PageLayout>
       ) : (
-        <LoginScreen onLogin={handleLogin} />
+        <LoginScreen onLogin={handleLogin} onNavigateToSignUp={() => setAppState('signup')} />
       );
 
     case 'profile':
       return user ? (
-        <PageLayout>
-          <Navigation activeTab="profile" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />
+        <PageLayout
+          navigation={<Navigation activeTab="profile" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />}
+        >
           <Profile />
         </PageLayout>
       ) : (
-        <LoginScreen onLogin={handleLogin} />
+        <LoginScreen onLogin={handleLogin} onNavigateToSignUp={() => setAppState('signup')} />
       );
 
     case 'farms':
       return user ? (
-        <PageLayout>
-          <Navigation activeTab="farms" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />
+        <PageLayout
+          navigation={<Navigation activeTab="farms" onTabChange={(tab) => setAppState(tab as AppState)} onLogout={handleLogout} />}
+        >
           <HomeScreen userName={user.name} latitude={user.latitude} longitude={user.longitude} />
         </PageLayout>
       ) : (
-        <LoginScreen onLogin={handleLogin} />
+        <LoginScreen onLogin={handleLogin} onNavigateToSignUp={() => setAppState('signup')} />
       );
 
     default:
-      return <LoginScreen onLogin={handleLogin} />;
+      return <LoginScreen onLogin={handleLogin} onNavigateToSignUp={() => setAppState('signup')} />;
   }
 }
 

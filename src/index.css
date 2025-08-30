@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 38 92% 50%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --background: 60 100% 97%;
+    --foreground: 0 0% 0%;
+    --card: 60 100% 97%;
+    --card-foreground: 0 0% 0%;
+    --popover: 60 100% 97%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 51 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 0%;
+    --secondary-foreground: 60 100% 97%;
+    --muted: 60 100% 95%;
+    --muted-foreground: 25 75% 47%;
+    --accent: 39 100% 50%;
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 38 92% 50%;
+    --destructive-foreground: 60 100% 97%;
+    --border: 60 100% 90%;
+    --input: 60 100% 90%;
+    --ring: 51 100% 50%;
     --radius: 0.5rem;
   }
 
@@ -89,8 +89,8 @@
 /* New button hover styles */
 .group:hover .animate-button-hover {
   transform: scale(1.1);
-  background-image: linear-gradient(to right, #3b82f6, #8b5cf6);
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
+  background-image: linear-gradient(to right, #FFD700, #FFA500);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
   transition: transform 0.3s ease, background-image 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -115,4 +115,198 @@ button {
 
 .hover-scale:hover {
   transform: scale(1.05);
+}
+
+/* Card flip animations */
+@keyframes flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+.rotate-y-180 {
+  animation: flip 0.6s ease-out forwards;
+}
+
+/* Card hover effects */
+.card-container {
+  perspective: 1000px;
+}
+
+.card {
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease, box-shadow 0.3s ease;
+}
+
+.card-front,
+.card-back {
+  backface-visibility: hidden;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+}
+
+/* Letter wave animation - original */
+@keyframes letter-wave {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.letter-wave {
+  animation: letter-wave 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+/* New letter wave fade animation - sequential left-to-right fade */
+@keyframes letter-wave-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.letter-wave-fade {
+  animation: letter-wave-fade 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.fade-in {
+  animation: fade-in 1s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Enhanced card styling for modern look */
+.card-container {
+  perspective: 1200px;
+}
+
+.card {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
+              0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card:hover {
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15), 
+              0 10px 20px -8px rgba(0, 0, 0, 0.1);
+}
+
+.card-front,
+.card-back {
+  backface-visibility: hidden;
+  border-radius: 0.75rem;
+}
+
+.card-front {
+  background: linear-gradient(135deg, #FFFACD 0%, #FFFFE0 100%);
+}
+
+.dark .card-front {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.card-back {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  transform: rotateY(180deg);
+}
+
+.dark .card-back {
+  background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+}
+
+/* Animated Bee Styles */
+.animated-bee-container {
+  position: relative;
+  width: 100px;
+  height: 80px;
+}
+
+.animated-bee {
+  animation: bee-hover 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+}
+
+@keyframes bee-hover {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  10% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+  20% {
+    transform: translateY(0) rotate(0deg);
+  }
+  30% {
+    transform: translateX(-20px) translateY(-3px) rotate(-5deg);
+  }
+  40% {
+    transform: translateX(20px) translateY(-3px) rotate(5deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  60% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+  70% {
+    transform: translateX(-15px) translateY(-2px) rotate(-3deg);
+  }
+  80% {
+    transform: translateX(15px) translateY(-2px) rotate(3deg);
+  }
+  90% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.wing-left, .wing-right {
+  animation: wing-flap 0.2s ease-in-out infinite alternate;
+}
+
+@keyframes wing-flap {
+  0% {
+    transform: rotate(0deg) scaleY(1);
+    filter: blur(0px);
+  }
+  100% {
+    transform: rotate(10deg) scaleY(0.8);
+    filter: blur(1px);
+  }
+}
+
+.bee-body {
+  animation: body-shine 4s ease-in-out infinite;
+}
+
+@keyframes body-shine {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
 }

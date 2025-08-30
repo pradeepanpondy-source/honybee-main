@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Search, Star, Clock, Phone, Navigation } from 'lucide-react';
+import { MapPin, Search, Star, Phone } from 'lucide-react';
 import ClickEffect from './ClickEffect';
 import LocationPermission from './LocationPermission';
-
-interface HomeScreenProps {
-  userName: string;
-  latitude?: number;
-  longitude?: number;
-  onLogout: () => void;
-}
+import HomeCards from './HomeCards';
+import AnimatedBee from './AnimatedBee';
 
 interface Farm {
   id: number;
@@ -22,6 +17,13 @@ interface Farm {
   honeyTypes: string[];
   lat: number;
   lng: number;
+}
+
+interface HomeScreenProps {
+  userName: string;
+  latitude?: number;
+  longitude?: number;
+  onLogout?: () => void;
 }
 
 const mockFarms: Farm[] = [
@@ -84,7 +86,14 @@ const deg2rad = (deg: number) => {
   return deg * (Math.PI / 180);
 };
 
-export default function HomeScreen({ userName, latitude, longitude, onLogout }: HomeScreenProps) {
+interface HomeScreenProps {
+  userName: string;
+  latitude?: number;
+  longitude?: number;
+  onLogout?: () => void;
+}
+
+export default function HomeScreen({ userName, latitude, longitude }: HomeScreenProps) {
   const [currentView, setCurrentView] = useState<'home' | 'farms'>('home');
   const [sortedFarms, setSortedFarms] = useState<Farm[]>(mockFarms);
   const [userCoords, setUserCoords] = useState<{latitude: number, longitude: number} | null>(null);
@@ -121,15 +130,16 @@ export default function HomeScreen({ userName, latitude, longitude, onLogout }: 
             <input
               type="text"
               placeholder="Search for honey farms..."
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-500"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
 
         {/* Welcome Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4 animate-float animate-pulse-slow">Bee Bridge</h2>
-          <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+          <div className="text-center mb-12 relative">
+          <h2 className="text-9xl font-extrabold text-black mb-4 animate-float animate-pulse-slow" style={{ fontSize: '10rem' }}>Bee Bridge</h2>
+          <AnimatedBee />
+          <p className="text-xl text-black max-w-2xl mx-auto">
             The global decline of pollinators is a growing threat to agriculture, biodiversity, and food security. Farmers struggle to maintain effective pollination, while consumers demand sustainable and traceable produce. The Bee Bridge Platform offers a web-based solution that connects farmers, beekeepers, and urban supporters in a collaborative ecosystem for sustainable pollination.
           </p>
         </div>
@@ -154,7 +164,7 @@ export default function HomeScreen({ userName, latitude, longitude, onLogout }: 
                         </div>
                       </div>
                       
-                      <div className="flex items-center text-purple-600 mb-3">
+                      <div className="flex items-center text-primary mb-3">
                         <MapPin className="w-4 h-4 mr-1" />
                         <span className="text-sm font-medium">{farm.distance} away</span>
                       </div>
@@ -165,7 +175,7 @@ export default function HomeScreen({ userName, latitude, longitude, onLogout }: 
                         {farm.honeyTypes.map((type) => (
                           <span
                             key={type}
-                            className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full"
+                            className="px-2 py-1 bg-accent/10 text-accent text-xs rounded-full"
                           >
                             {type}
                           </span>
@@ -183,7 +193,7 @@ export default function HomeScreen({ userName, latitude, longitude, onLogout }: 
                         </div>
                       </div>
 
-                      <ClickEffect className="w-full mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium animate-button-hover">
+                      <ClickEffect className="w-full mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium animate-button-hover">
                         Get Directions
                       </ClickEffect>
                     </div>
@@ -199,50 +209,20 @@ export default function HomeScreen({ userName, latitude, longitude, onLogout }: 
   return (
     <>
       <div className="relative">
-          {/* Welcome Section */}
+        {/* Welcome Section */}
           <div className="max-w-6xl mx-auto px-4 py-12 relative z-10">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4 animate-pulse-slow">
-              Hello, {userName}! 🍯
+            <h2 className="text-4xl font-bold text-black mb-4 animate-pulse-slow">
+              Hello {userName}
             </h2>
-            <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+            <p className="text-xl text-black max-w-2xl mx-auto">
               Discover the finest local honey farms in your area. Fresh, organic, and sustainably produced honey awaits you.
             </p>
           </div>
-
-          {/* Feature Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="group">
-                <div className="bg-white rounded-xl shadow-md p-6 text-center animate-card-hover">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Clock className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Real-time Hours</h4>
-                  <p className="text-sm text-gray-600">Check current operating hours and availability</p>
-                </div>
-            </div>
-            
-            <div className="group">
-                <div className="bg-white rounded-xl shadow-md p-6 text-center animate-card-hover">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Navigation className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-800 mb-2">GPS Directions</h4>
-                  <p className="text-sm text-gray-600">Get turn-by-turn directions to any farm</p>
-                </div>
-            </div>
-            
-            <div className="group">
-                <div className="bg-white rounded-xl shadow-md p-6 text-center animate-card-hover">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Phone className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Direct Contact</h4>
-                  <p className="text-sm text-gray-600">Call or visit farms directly from the app</p>
-                </div>
-            </div>
-          </div>
         </div>
+        
+        {/* Interactive Cards Section */}
+        <HomeCards />
       </div>
     </>
   );
