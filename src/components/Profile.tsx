@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Button from './Button';
 
 
 interface ProfileData {
@@ -15,7 +16,7 @@ const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData>({
     name: '',
     age: '',
-    c: '',
+    location: '',
     address: '',
     pincode: '',
     email: '',
@@ -132,12 +133,13 @@ const Profile: React.FC = () => {
           </div>
           
           <div className="group">
-            <button
-              onClick={handleSave}
-              className="w-full bg-purple-600 text-white py-2 px-4 rounded-md animate-button-hover"
-            >
-              Save Profile
-            </button>
+              <Button
+                onClick={handleSave}
+                className="w-full"
+                variant="primary"
+              >
+                Save Profile
+              </Button>
           </div>
         </div>
       </div>

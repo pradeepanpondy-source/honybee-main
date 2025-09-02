@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Camera } from 'lucide-react';
+import Button from './Button';
 
 const Seller: React.FC = () => {
   const [isSeller, setIsSeller] = useState(false);
@@ -10,12 +11,9 @@ const Seller: React.FC = () => {
         <h2 className="text-3xl font-bold text-white mb-4">Become a Seller</h2>
         <p className="text-gray-300 mb-8">Join our community of honey sellers and reach a wider audience.</p>
         <div className="group">
-          <button 
-            onClick={() => setIsSeller(true)} 
-            className="bg-purple-600 text-white px-8 py-3 rounded-md animate-button-hover"
-          >
+          <Button onClick={() => setIsSeller(true)} variant="primary" className="px-8">
             Become a Seller
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -35,9 +33,9 @@ const Seller: React.FC = () => {
                     <Camera className="h-full w-full text-gray-300" />
                   </span>
                   <div className="group">
-                    <button type="button" className="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 animate-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    <Button type="button" className="ml-5 py-2 px-3 text-gray-700 shadow-sm text-sm leading-4 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-honeybee-accent" variant="secondary">
                       Upload Photo
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -64,9 +62,9 @@ const Seller: React.FC = () => {
             </div>
             <div className="mt-6">
               <div className="group">
-                <button type="submit" className="w-full bg-purple-600 text-white px-4 py-2 rounded-md animate-button-hover">
+                <Button type="submit" className="w-full" variant="primary">
                   Submit Application
-                </button>
+                </Button>
               </div>
             </div>
           </form>

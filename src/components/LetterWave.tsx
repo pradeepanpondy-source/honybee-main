@@ -8,7 +8,7 @@ interface LetterWaveProps {
 
 const LetterWave: React.FC<LetterWaveProps> = ({ text, className = '', animationDelayStep = 0.1 }) => {
   return (
-    <h2 className={`font-extrabold ${className}`}>
+    <span className={`font-extrabold ${className}`} style={{ display: 'block' }}>
       {text.split('').map((char, index) => (
         <span
           key={index}
@@ -18,7 +18,7 @@ const LetterWave: React.FC<LetterWaveProps> = ({ text, className = '', animation
           {char === ' ' ? '\u00A0' : char}
         </span>
       ))}
-    </h2>
+    </span>
   );
 };
 

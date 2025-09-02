@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import Button from './Button';
 
 const Cart: React.FC = () => {
   const cartItems = [];
@@ -25,9 +26,9 @@ const Cart: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-4">
                       <span className="text-lg font-semibold text-gray-800">₹{item.price * item.quantity}</span>
-                      <button className="text-red-500 hover:text-red-700">
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700">
                         <Trash2 size={20} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -37,9 +38,9 @@ const Cart: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-xl font-bold text-gray-800">Total: ₹{total}</span>
                   <div className="group"> {/* Added group here */}
-                    <button className="bg-purple-600 text-white px-6 py-2 rounded-md animate-button-hover"> {/* Moved animate-button-hover here */}
+                    <Button variant="primary">
                       Checkout
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

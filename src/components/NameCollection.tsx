@@ -57,30 +57,23 @@ export default function NameCollection({ onNameSubmit }: NameCollectionProps) {
                 />
               </div>
 
-              {/* FIXED: Wrap ClickEffect inside button */}
-              <button
+              <ClickEffect
                 type="submit"
                 disabled={!name.trim() || isSubmitting}
-                className="w-full"
+                className="group w-full flex items-center justify-center px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-honeybee-accent bg-honeybee-primary hover:bg-honeybee-dark text-white"
               >
-                <div className="group">
-                  <ClickEffect
-                    className="w-full flex items-center justify-center px-6 py-3 bg-purple-600 text-white rounded-xl font-medium animate-button-hover"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Setting up...
-                      </>
-                    ) : (
-                      <>
-                        Continue
-                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </ClickEffect>
-                </div>
-              </button>
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Setting up...
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </ClickEffect>
             </form>
 
             <div className="mt-6 text-center">

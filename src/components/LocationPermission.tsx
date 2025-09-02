@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
+import Button from './Button';
 
 interface LocationPermissionProps {
   onLocationGranted: (coords: { latitude: number; longitude: number }) => void;
@@ -25,12 +26,9 @@ const LocationPermission: React.FC<LocationPermissionProps> = ({ onLocationGrant
         <h2 className="text-2xl font-bold text-white mb-2">Find Farms Near You</h2>
         <p className="text-gray-300 mb-6">Please allow location access to find honey farms in your area.</p>
         <div className="group">
-          <button
-            onClick={handleAllowLocation}
-            className="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium animate-button-hover"
-          >
+          <Button onClick={handleAllowLocation} variant="primary">
             Allow Location Access
-          </button>
+          </Button>
         </div>
       </div>
     </div>

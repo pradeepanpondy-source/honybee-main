@@ -31,7 +31,7 @@ const DarkModeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleDarkMode}
-      className="p-2 rounded-lg bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-700 transition-colors"
+      className="p-2 rounded-lg bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-700 transition-colors duration-300 ease-out"
       aria-label="Toggle dark mode"
     >
       {isDark ? (
