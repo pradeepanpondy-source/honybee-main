@@ -1,8 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
-.bg-cream {
-  background-color: #fff9e6;
-}
+/* Import Tailwind's base styles */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 :root {
   --background: 60 100% 97%;
@@ -50,6 +51,23 @@
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
   --ring: 38 92% 50%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #FFFBF2;
+  color: #2D2B29;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+}
+
+.honey-glow {
+  filter: drop-shadow(0 0 8px rgba(233, 184, 36, 0.6));
 }
 
 /* Dripping Honey Animations */
@@ -109,23 +127,15 @@
   white-space: nowrap;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #FFFBF2;
-  color: #2D2B29;
+@keyframes subtle-glow {
+  0%, 100% {
+    text-shadow: 0 0 4px rgba(255, 193, 7, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(255, 193, 7, 0.8);
+  }
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Playfair Display', serif;
-}
-
-.honey-glow {
-  filter: drop-shadow(0 0 8px rgba(233, 184, 36, 0.6));
+.animate-subtle-glow {
+  animation: subtle-glow 3s ease-in-out infinite;
 }

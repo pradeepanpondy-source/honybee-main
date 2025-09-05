@@ -1,38 +1,47 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Button from './Button';
+import { useCart } from '../context/CartContext';
 
 const products = [
   {
     id: 1,
     name: 'Wildflower Honey',
-    price: '$12.99',
-    image: 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    price: '₹399',
+    image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Pure organic honey from wildflower meadows'
   },
   {
     id: 2,
     name: 'Acacia Honey',
-    price: '$14.99',
-    image: 'https://images.unsplash.com/photo-1555211652-5c6222f9cf62?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    price: '₹499',
+    image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Light and delicate honey with subtle floral notes'
   },
   {
     id: 3,
     name: 'Manuka Honey',
-    price: '$24.99',
-    image: 'https://images.unsplash.com/photo-1589827577276-3cd7c3dc1591?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    price: '₹599',
+    image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Premium therapeutic honey from New Zealand'
   },
   {
     id: 4,
     name: 'Honeycomb',
-    price: '$18.99',
-    image: 'https://images.unsplash.com/photo-1563245370-bd55e5963611?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    price: '₹799',
+    image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Raw honeycomb straight from our sustainable apiaries'
   }
 ];
 
 export default function HomeCards() {
+  const { cartItems, addToCart, updateQuantity } = useCart();
+
+  const getQuantity = (id: number) => {
+    const item = cartItems.find(i => i.id === id);
+    return item ? item.quantity : 0;
+  };
+
   return (
     <div className="bg-honeybee-light py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,29 +53,56 @@ export default function HomeCards() {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-              <div className="h-56 overflow-hidden">
-                <img 
-                  src={product.image} 
-                  alt={product.name} 
-                  className="w-full h-full object-cover transform hover:scale-105 transition duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-lg font-medium text-honeybee-secondary">{product.name}</h3>
-                <p className="text-honeybee-dark-brown mt-2 text-sm">{product.description}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-honeybee-primary font-bold">{product.price}</span>
-                  <Button variant="primary" size="icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </Button>
+          {products.map((product) => {
+            const quantity = getQuantity(product.id);
+            return (
+              <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+                <div className="h-56 overflow-hidden">
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-cover transform hover:scale-105 transition duration-500"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-medium text-honeybee-secondary">{product.name}</h3>
+                  <p className="text-honeybee-dark-brown mt-2 text-sm">{product.description}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="text-black font-bold">{product.price}</span>
+                    {quantity === 0 ? (
+                      <Button 
+                        variant="primary" 
+                        size="icon" 
+                        onClick={() => addToCart(product)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </Button>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => updateQuantity(product.id, quantity - 1)}
+                        >
+                          -
+                        </Button>
+                        <span className="font-semibold">{quantity}</span>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => updateQuantity(product.id, quantity + 1)}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         
         <div className="mt-12 text-center">

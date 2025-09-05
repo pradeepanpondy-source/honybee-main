@@ -36,10 +36,6 @@ const Contact: React.FC = () => {
 
           <div className="space-y-8">
             <div>
-              <h3 className="text-xl font-serif font-bold mb-2">Visit Our Shop</h3>
-              <p>123 Honey Lane, Beeton, ON L0G 1A0</p>
-            </div>
-            <div>
               <h3 className="text-xl font-serif font-bold mb-2">Email Us</h3>
               <p>info@botanicahoney.com</p>
             </div>

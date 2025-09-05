@@ -16,13 +16,14 @@ const LoginScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 flex items-center justify-center px-4">
-      <div className="max-w-4xl w-full bg-white rounded-lg shadow-lg flex overflow-hidden">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg flex overflow-hidden">
         {/* Left side - form */}
-        <div className="w-full md:w-1/2 p-8">
+        <div className="w-full p-8">
+          <h1 className="text-4xl font-serif font-bold text-honeybee-secondary mb-6 text-center">
+            Bee Bridge
+          </h1>
+          <p className="text-center mb-6">Welcome to Bee Bridge. Please log in or sign up to continue.</p>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <h1 className="text-4xl font-serif font-bold text-honeybee-secondary mb-6 text-center">
-              <LetterWave text="Log In" animationDelayStep={0.1} />
-            </h1>
             <div>
               <label htmlFor="email" className="block text-honeybee-dark-brown font-medium mb-2">
                 Email Address
@@ -58,38 +59,32 @@ const LoginScreen: React.FC = () => {
               Log In
             </button>
           </form>
-          <div className="mt-6 flex justify-center space-x-4">
+          <div className="mt-6 flex flex-col space-y-4">
             <button
-              onClick={() => alert('Google login not implemented yet')}
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+              onClick={() => navigate('/signup')}
+              className="w-full border border-honeybee-primary text-honeybee-primary font-semibold py-3 rounded-md hover:bg-honeybee-primary hover:text-white transition duration-300"
             >
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" alt="Google" className="w-5 h-5" />
-              <span>Google</span>
+              Sign Up
             </button>
-            <button
-              onClick={() => alert('Facebook login not implemented yet')}
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
-            >
-              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54v-2.89h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.772-1.63 1.562v1.875h2.773l-.443 2.89h-2.33v6.987C18.343 21.128 22 16.991 22 12z"/></svg>
-              <span>Facebook</span>
-            </button>
-          </div>
-          <div className="mt-6 text-center">
             <button
               onClick={() => navigate('/home')}
-              className="text-sm text-honeybee-primary hover:underline"
+              className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-md hover:bg-gray-200 transition duration-300"
             >
-              Continue as Guest
+              Login as Guest
+            </button>
+            <button
+              onClick={() => alert('Google login not implemented yet')}
+              className="w-full bg-red-600 text-white font-semibold py-3 rounded-md hover:bg-red-700 transition duration-300 flex items-center justify-center space-x-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 48 48">
+                <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 7.053 29.523 5 24 5 12.954 5 4 13.954 4 25s8.954 20 20 20c11.046 0 20-8.954 20-20 0-1.341-.138-2.65-.389-3.917z"/>
+                <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 19.832 12 25.999 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 7.053 29.523 5 24 5 16.318 5 9.656 9.64 6.306 14.691z"/>
+                <path fill="#4CAF50" d="M24 43c5.421 0 10.287-2.184 13.928-5.732l-6.57-5.417C29.211 33.555 26.715 34 24 34c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.799 43 24 43z"/>
+                <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-1.025 2.893-3.64 5.166-6.657 6.021v-6.021H24v8c4.418 0 8-3.582 8-8 0-.341-.027-.675-.072-1H43.611z"/>
+              </svg>
+              <span>Continue with Google</span>
             </button>
           </div>
-        </div>
-        {/* Right side - image */}
-        <div className="hidden md:block md:w-1/2">
-          <img
-            src="https://images.unsplash.com/photo-1526403226900-0a7a7a7a7a7a?auto=format&fit=crop&w=800&q=80"
-            alt="Fitness"
-            className="h-full w-full object-cover"
-          />
         </div>
       </div>
     </div>
