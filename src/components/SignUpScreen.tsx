@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const SignUpScreen: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { signInWithGoogle } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +66,14 @@ const SignUpScreen: React.FC = () => {
           </div>
           <div className="flex justify-center space-x-6">
             <button
-              onClick={() => alert('Google login not implemented yet')}
+              onClick={async () => {
+                try {
+                  await signInWithGoogle();
+                  navigate('/home');
+                } catch (error) {
+                  alert('Google login failed. Please try again.');
+                }
+              }}
               className="p-3 rounded-lg shadow-md bg-white hover:shadow-lg transition duration-300"
             >
               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/250px-Google_Favicon_2025.svg.png" alt="Google" className="w-6 h-6" />
@@ -90,7 +99,7 @@ const SignUpScreen: React.FC = () => {
           <img
             src="https://media.istockphoto.com/id/1281435234/vector/honey-in-glass-jar-cartoon-bee-honeycombs-flowers-and-flowing-honey-on-wooden-dipper.jpg?s=612x612&w=0&k=20&c=5oaKRbsa7YGOnEiTSYKt1dJU1jrtkmGzxP381yXeF9w="
             alt="Honey Store Illustration"
-            className="h-full w-full object-cover object-left object-top"
+            className="h-full w-full object-cover object-left"
           />
         </div>
       </div>
