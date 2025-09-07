@@ -15,19 +15,22 @@ import Settings from "./components/Settings";
 import PageLayout from "./components/PageLayout";
 import LoginScreen from "./components/LoginScreen";
 import SignUpScreen from "./components/SignUpScreen";
-import LandingPage from "./components/LandingPage";
 import { CartProvider } from "./context/CartContext";
+
+import RoamingBee from "./components/RoamingBee";
 
 function App() {
   return (
     <CartProvider>
+      <RoamingBee />
       <Router>
         <Routes>
+          <Route path="/" element={<LoginScreen />} />
           <Route path="/login" element={<LoginScreen />} />
           <Route path="/signup" element={<SignUpScreen />} />
-          <Route path="/" element={<LandingPage />} />
           <Route path="/*" element={
             <PageLayout>
+              <RoamingBee />
               <Routes>
                 <Route path="/home" element={<HomeScreen />} />
                 <Route path="/about" element={<About />} />

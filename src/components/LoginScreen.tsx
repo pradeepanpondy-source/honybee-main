@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LetterWave from './LetterWave';
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -15,74 +15,121 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg flex overflow-hidden">
+    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-4">
+      <div className="max-w-5xl w-full bg-gray-50 rounded-3xl shadow-2xl flex overflow-hidden">
         {/* Left side - form */}
-        <div className="w-full p-8">
-          <h1 className="text-4xl font-serif font-bold text-honeybee-secondary mb-6 text-center">
-            Bee Bridge
-          </h1>
-          <p className="text-center mb-6">Welcome to Bee Bridge. Please log in or sign up to continue.</p>
+        <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">Hello Again!</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-honeybee-dark-brown font-medium mb-2">
-                Email Address
-              </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="Email"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
+            />
+            <div className="relative">
               <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-2 border border-honeybee-dark rounded-md focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-honeybee-dark-brown font-medium mb-2">
-                Password
-              </label>
-              <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-honeybee-dark rounded-md focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
-                placeholder="Enter your password"
+                placeholder="Password"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4-9-7s4-7 9-7a9.956 9.956 0 014.875 1.325M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <div className="text-right text-xs text-gray-500 mb-4 cursor-pointer hover:underline">
+              Recovery Password
             </div>
             <button
               type="submit"
-              className="w-full bg-honeybee-primary hover:bg-honeybee-accent text-honeybee-secondary font-semibold py-3 rounded-md transition duration-300"
+              className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3 rounded-lg shadow-lg transition duration-300"
             >
-              Log In
+              Sign In
             </button>
           </form>
-          <div className="mt-6 flex flex-col space-y-4">
-            <button
-              onClick={() => navigate('/signup')}
-              className="w-full border border-honeybee-primary text-honeybee-primary font-semibold py-3 rounded-md hover:bg-honeybee-primary hover:text-white transition duration-300"
-            >
-              Sign Up
-            </button>
-            <button
-              onClick={() => navigate('/home')}
-              className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-md hover:bg-gray-200 transition duration-300"
-            >
-              Login as Guest
-            </button>
+          <button
+            onClick={() => navigate('/home')}
+            className="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg shadow-md transition duration-300"
+          >
+            Continue as Guest
+          </button>
+          <div className="mt-4 text-center">
+            <span className="text-gray-600 text-sm">
+              Don't have an account?{' '}
+              <button
+                onClick={() => navigate('/signup')}
+                className="text-rose-600 hover:underline font-semibold"
+              >
+                Sign Up
+              </button>
+            </span>
+          </div>
+          <div className="flex items-center my-6">
+            <hr className="flex-grow border-gray-300" />
+            <span className="mx-4 text-gray-400 text-sm">Or continue with</span>
+            <hr className="flex-grow border-gray-300" />
+          </div>
+          <div className="flex justify-center space-x-6">
             <button
               onClick={() => alert('Google login not implemented yet')}
-              className="w-full bg-red-600 text-white font-semibold py-3 rounded-md hover:bg-red-700 transition duration-300 flex items-center justify-center space-x-2"
+              className="p-3 rounded-lg shadow-md bg-white hover:shadow-lg transition duration-300"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 48 48">
-                <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 7.053 29.523 5 24 5 12.954 5 4 13.954 4 25s8.954 20 20 20c11.046 0 20-8.954 20-20 0-1.341-.138-2.65-.389-3.917z"/>
-                <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 19.832 12 25.999 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 7.053 29.523 5 24 5 16.318 5 9.656 9.64 6.306 14.691z"/>
-                <path fill="#4CAF50" d="M24 43c5.421 0 10.287-2.184 13.928-5.732l-6.57-5.417C29.211 33.555 26.715 34 24 34c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.799 43 24 43z"/>
-                <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-1.025 2.893-3.64 5.166-6.657 6.021v-6.021H24v8c4.418 0 8-3.582 8-8 0-.341-.027-.675-.072-1H43.611z"/>
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/250px-Google_Favicon_2025.svg.png" alt="Google" className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => alert('Apple login not implemented yet')}
+              className="p-3 rounded-lg shadow-md bg-white hover:shadow-lg transition duration-300"
+            >
+              <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => alert('Facebook login not implemented yet')}
+              className="p-3 rounded-lg shadow-md bg-white hover:shadow-lg transition duration-300"
+            >
+              <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54v-2.89h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.772-1.63 1.562v1.875h2.773l-.443 2.89h-2.33v6.987C18.343 21.128 22 16.991 22 12z"/></svg>
+            </button>
+          </div>
+        </div>
+        {/* Right side - image and overlay */}
+        <div className="hidden md:flex md:w-1/2 relative rounded-r-3xl overflow-hidden border-8 border-white shadow-lg">
+          <img
+            src="https://media.istockphoto.com/id/1281435234/vector/honey-in-glass-jar-cartoon-bee-honeycombs-flowers-and-flowing-honey-on-wooden-dipper.jpg?s=612x612&w=0&k=20&c=5oaKRbsa7YGOnEiTSYKt1dJU1jrtkmGzxP381yXeF9w="
+            alt="Honey Store Illustration"
+            className="h-full w-full object-cover object-left object-top"
+          />
+          {/* Removed the text div as per user request */}
+          <div className="absolute bottom-10 right-10 flex space-x-4">
+            <button aria-label="Previous" className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:bg-white hover:text-rose-600 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span>Continue with Google</span>
+            </button>
+            <button aria-label="Next" className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:bg-white hover:text-rose-600 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
         </div>
