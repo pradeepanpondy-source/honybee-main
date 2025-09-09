@@ -64,25 +64,19 @@ const SignUpScreen: React.FC = () => {
             <span className="mx-4 text-gray-400 text-sm">Or continue with</span>
             <hr className="flex-grow border-gray-300" />
           </div>
-          <div className="flex justify-center space-x-6">
+          <div className="flex justify-center">
             <button
               onClick={async () => {
                 try {
                   await signInWithGoogle();
                   navigate('/home');
-                } catch (_error) {
+                } catch {
                   alert('Google login failed. Please try again.');
                 }
               }}
               className="p-3 rounded-lg shadow-md bg-white hover:shadow-lg transition duration-300"
             >
               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/250px-Google_Favicon_2025.svg.png" alt="Google" className="w-6 h-6" />
-            </button>
-            <button
-              onClick={() => alert('Facebook login not implemented yet')}
-              className="p-3 rounded-lg shadow-md bg-white hover:shadow-lg transition duration-300"
-            >
-              <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54v-2.89h2.54V9.845c0-2.507 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.772-1.63 1.562v1.875h2.773l-.443 2.89h-2.33v6.987C18.343 21.128 22 16.991 22 12z"/></svg>
             </button>
           </div>
           <div className="mt-6 text-center">

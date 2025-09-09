@@ -5,42 +5,42 @@ const products = [
   {
     id: 1,
     name: 'Wildflower Honey',
-    price: '$399',
+    price: '₹399',
     image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Pure organic honey from wildflower meadows'
   },
   {
     id: 2,
     name: 'Acacia Honey',
-    price: '$499',
+    price: '₹499',
     image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Light and delicate honey with subtle floral notes'
   },
   {
     id: 3,
     name: 'Manuka Honey',
-    price: '$599',
+    price: '₹599',
     image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Premium therapeutic honey from New Zealand'
   },
   {
     id: 4,
     name: 'Honeycomb',
-    price: '$799',
+    price: '₹799',
     image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Raw honeycomb straight from our sustainable apiaries'
   },
     {
     id: 5,
     name: 'Clover Honey',
-    price: '$399',
+    price: '₹399',
     image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'A classic, mild honey perfect for everyday use.'
   },
   {
     id: 6,
     name: 'Lavender Honey',
-    price: '$499',
+    price: '₹499',
     image: 'https://unblast.com/wp-content/uploads/2019/03/Honey-Jar-Mockup-1.jpg',
     description: 'Infused with the calming aroma of lavender blossoms.'
   },
