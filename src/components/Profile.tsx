@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
-
+import { auth, db } from '../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface ProfileData {
   name: string;
@@ -23,11 +24,31 @@ const Profile: React.FC = () => {
     phone: '',
   });
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    }
+    const fetchProfile = async () => {
+      if (auth.currentUser) {
+        const docRef = doc(db, 'users', auth.currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProfile(docSnap.data() as ProfileData);
+        } else {
+          // Initialize with empty profile if no data exists
+          setProfile({
+            name: '',
+            age: '',
+            location: '',
+            address: '',
+            pincode: '',
+            email: '',
+            phone: '',
+          });
+        }
+      }
+      setLoading(false);
+    };
+    fetchProfile();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -35,17 +56,32 @@ const Profile: React.FC = () => {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    localStorage.setItem('userProfile', JSON.stringify(profile));
-    alert('Profile saved successfully!');
+  const handleSave = async () => {
+    if (!auth.currentUser) {
+      alert('User not authenticated');
+      return;
+    }
+    try {
+      const docRef = doc(db, 'users', auth.currentUser.uid);
+      console.log('Saving profile data:', profile);
+      await setDoc(docRef, profile, { merge: true });
+      alert('Profile saved successfully!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile.');
+    }
   };
+
+  if (loading) {
+    return <div>Loading profile...</div>;
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-3xl font-bold text-white mb-6">Profile</h2>
       
       <div className="group">
-        <div className="bg-white rounded-lg shadow-lg animate-card-hover p-6 space-y-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
@@ -54,7 +90,7 @@ const Profile: React.FC = () => {
                 name="name"
                 value={profile.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 placeholder="Enter your name"
               />
             </div>
@@ -66,7 +102,7 @@ const Profile: React.FC = () => {
                 name="age"
                 value={profile.age}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 placeholder="Enter your age"
               />
             </div>
@@ -78,7 +114,7 @@ const Profile: React.FC = () => {
                 name="location"
                 value={profile.location}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 placeholder="Enter your location"
               />
             </div>
@@ -90,7 +126,7 @@ const Profile: React.FC = () => {
                 name="pincode"
                 value={profile.pincode}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 placeholder="Enter your pincode"
               />
             </div>
@@ -102,7 +138,7 @@ const Profile: React.FC = () => {
                 name="email"
                 value={profile.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 placeholder="Enter your email"
               />
             </div>
@@ -114,7 +150,7 @@ const Profile: React.FC = () => {
                 name="phone"
                 value={profile.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 placeholder="Enter your phone number"
               />
             </div>
@@ -126,7 +162,7 @@ const Profile: React.FC = () => {
                 value={profile.address}
                 onChange={handleChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                 placeholder="Enter your full address"
               />
             </div>

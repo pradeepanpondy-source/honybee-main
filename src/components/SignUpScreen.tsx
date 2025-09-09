@@ -70,7 +70,7 @@ const SignUpScreen: React.FC = () => {
                 try {
                   await signInWithGoogle();
                   navigate('/home');
-                } catch (error) {
+                } catch (_error) {
                   alert('Google login failed. Please try again.');
                 }
               }}
@@ -90,7 +90,7 @@ const SignUpScreen: React.FC = () => {
               onClick={() => navigate('/home')}
               className="text-sm text-rose-600 hover:underline"
             >
-              Continue as Guest
+
             </button>
           </div>
         </div>

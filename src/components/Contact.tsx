@@ -37,7 +37,7 @@ const Contact: React.FC = () => {
           <div className="space-y-8">
             <div>
               <h3 className="text-xl font-serif font-bold mb-2">Email Us</h3>
-              <p>info@botanicahoney.com</p>
+              <p>beebridgeshop@gmail.com</p>
             </div>
             <div>
               <h3 className="text-xl font-serif font-bold mb-2">Call Us</h3>

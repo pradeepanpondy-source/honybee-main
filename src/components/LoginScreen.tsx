@@ -99,7 +99,7 @@ const LoginScreen: React.FC = () => {
                 try {
                   await signInWithGoogle();
                   navigate('/home');
-                } catch (error) {
+                } catch (_error) {
                   alert('Google login failed. Please try again.');
                 }
               }}
