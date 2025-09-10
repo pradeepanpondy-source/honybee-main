@@ -23,7 +23,7 @@ export default function Navigation() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="font-serif text-2xl font-bold text-honeybee-primary animate-subtle-glow">Bee Bridge</span>
+              <span className="font-serif text-2xl font-bold text-honeybee-primary">Bee Bridge</span>
             </Link>
           </div>
           

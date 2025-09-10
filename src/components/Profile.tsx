@@ -28,6 +28,8 @@ const Profile: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(true);
+  const [tempProfile, setTempProfile] = useState<ProfileData>(profile);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -35,7 +37,10 @@ const Profile: React.FC = () => {
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setProfile(docSnap.data() as ProfileData);
+          const data = docSnap.data() as ProfileData;
+          setProfile(data);
+          setTempProfile(data);
+          setIsEditing(false);
         } else {
           // Initialize with empty profile if no data exists
           setProfile({
@@ -47,6 +52,16 @@ const Profile: React.FC = () => {
             email: '',
             phone: '',
           });
+          setTempProfile({
+            name: '',
+            age: '',
+            location: '',
+            address: '',
+            pincode: '',
+            email: '',
+            phone: '',
+          });
+          setIsEditing(true);
         }
       }
       setLoading(false);
@@ -56,7 +71,7 @@ const Profile: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setTempProfile((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
@@ -74,13 +89,25 @@ const Profile: React.FC = () => {
 
     try {
       const docRef = doc(db, 'users', user.uid);
-      console.log('Saving profile data:', profile);
-      await setDoc(docRef, profile, { merge: true });
+      console.log('Saving profile data:', tempProfile);
+      await setDoc(docRef, tempProfile, { merge: true });
+      setProfile(tempProfile);
+      setIsEditing(false);
       alert('Profile saved successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);
       alert('Failed to save profile.');
     }
+  };
+
+  const handleEdit = () => {
+    setTempProfile(profile);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setTempProfile(profile);
+    setIsEditing(false);
   };
 
   if (loading) {
@@ -106,7 +133,7 @@ const Profile: React.FC = () => {
             Profile access is only available for Google users.
           </p>
         </div>
-      ) : (
+      ) : isEditing ? (
         <div className="group">
           <div className="bg-white rounded-lg shadow-lg p-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -115,7 +142,7 @@ const Profile: React.FC = () => {
                 <input
                   type="text"
                   name="name"
-                  value={profile.name}
+                  value={tempProfile.name}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                   placeholder="Enter your name"
@@ -127,7 +154,7 @@ const Profile: React.FC = () => {
                 <input
                   type="number"
                   name="age"
-                  value={profile.age}
+                  value={tempProfile.age}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                   placeholder="Enter your age"
@@ -139,7 +166,7 @@ const Profile: React.FC = () => {
                 <input
                   type="text"
                   name="location"
-                  value={profile.location}
+                  value={tempProfile.location}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                   placeholder="Enter your location"
@@ -151,7 +178,7 @@ const Profile: React.FC = () => {
                 <input
                   type="text"
                   name="pincode"
-                  value={profile.pincode}
+                  value={tempProfile.pincode}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                   placeholder="Enter your pincode"
@@ -163,7 +190,7 @@ const Profile: React.FC = () => {
                 <input
                   type="email"
                   name="email"
-                  value={profile.email}
+                  value={tempProfile.email}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                   placeholder="Enter your email"
@@ -175,7 +202,7 @@ const Profile: React.FC = () => {
                 <input
                   type="tel"
                   name="phone"
-                  value={profile.phone}
+                  value={tempProfile.phone}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                   placeholder="Enter your phone number"
@@ -186,7 +213,7 @@ const Profile: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                 <textarea
                   name="address"
-                  value={profile.address}
+                  value={tempProfile.address}
                   onChange={handleChange}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
@@ -203,8 +230,54 @@ const Profile: React.FC = () => {
                 >
                   Save Profile
                 </Button>
+                <button
+                  onClick={handleCancel}
+                  className="w-full mt-2 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-lg p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700">Name</h3>
+              <p className="text-gray-900">{profile.name}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700">Age</h3>
+              <p className="text-gray-900">{profile.age}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700">Location</h3>
+              <p className="text-gray-900">{profile.location}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700">Pincode</h3>
+              <p className="text-gray-900">{profile.pincode}</p>
+            </div>
+            <div className="md:col-span-2">
+              <h3 className="text-sm font-semibold text-gray-700">Email</h3>
+              <p className="text-gray-900">{profile.email}</p>
+            </div>
+            <div className="md:col-span-2">
+              <h3 className="text-sm font-semibold text-gray-700">Phone</h3>
+              <p className="text-gray-900">{profile.phone}</p>
+            </div>
+            <div className="md:col-span-2">
+              <h3 className="text-sm font-semibold text-gray-700">Address</h3>
+              <p className="text-gray-900">{profile.address}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleEdit}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
+            aria-label="Edit Profile"
+          >
+            Edit Profile
+          </button>
         </div>
       )}
     </div>

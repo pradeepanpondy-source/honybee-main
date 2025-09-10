@@ -1,5 +1,6 @@
 import React from 'react';
 import Navigation from './Navigation';
+import Footer from './Footer';
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -7,9 +8,10 @@ interface PageLayoutProps {
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   return (
-    <div>
+    <div className="grid grid-rows-[auto_1fr_auto] min-h-screen">
       <Navigation />
       <main>{children}</main>
+      <Footer />
     </div>
   );
 };
