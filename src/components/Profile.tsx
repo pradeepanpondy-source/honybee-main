@@ -3,6 +3,7 @@ import Button from './Button';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../hooks/useAuth';
+import { motion } from 'framer-motion';
 
 interface ProfileData {
   name: string;
@@ -118,7 +119,12 @@ const Profile: React.FC = () => {
   const isGoogleUser = user && user.providerData.some(provider => provider.providerId === 'google.com');
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <motion.div 
+      className="max-w-2xl mx-auto p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <h2 className="text-3xl font-bold text-white mb-6">Profile</h2>
 
       {!user ? (
@@ -280,7 +286,7 @@ const Profile: React.FC = () => {
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from './Button';
 import LetterWave from './LetterWave';
+import { motion } from 'framer-motion';
 
 interface HomeProps {
   onGoToShop: () => void;
@@ -18,7 +19,12 @@ const Home: React.FC<HomeProps> = ({ onGoToShop }) => {
         <img src="data:image/svg+xml,%3csvg width='1440' height='320' viewBox='0 0 1440 320' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0C48 32 96 64 144 64C192 64 240 32 288 32C336 32 384 64 432 64C480 64 528 32 576 32C624 32 672 64 720 64C768 64 816 32 864 32C912 32 960 64 1008 64C1056 64 1104 32 1152 32C1200 32 1248 64 1296 64C1344 64 1392 32 1440 32L1440 320L0 320Z' fill='%23FFD700'/%3e%3c/svg%3e" alt="Honey Drip" className="w-96 h-auto" />
       </div>
 
-      <div className="relative z-10 max-w-7xl w-full flex flex-col md:flex-row items-center justify-between">
+      <motion.div
+        className="relative z-10 max-w-7xl w-full flex flex-col md:flex-row items-center justify-between"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
         <div className="text-left max-w-lg">
           <h1 className="text-6xl font-bold text-honeybee-dark-brown mb-6 leading-tight font-serif">
             <LetterWave text="Nature’s sweetest treat" className="text-6xl font-serif font-bold leading-tight" />
@@ -31,14 +37,19 @@ const Home: React.FC<HomeProps> = ({ onGoToShop }) => {
           </Button>
         </div>
 
-        <div className="relative w-80 h-80 md:w-96 md:h-96 mt-12 md:mt-0">
+        <motion.div
+          className="relative w-80 h-80 md:w-96 md:h-96 mt-12 md:mt-0"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+        >
           <img
             src="https://img.freepik.com/free-vector/cute-bees-flying-around-honey-jar-yellow-background_1308-102497.jpg"
             alt="Honey Jar"
             className="w-full h-full object-contain rounded-full shadow-2xl"
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

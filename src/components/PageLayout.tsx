@@ -8,9 +8,9 @@ interface PageLayoutProps {
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] min-h-screen">
+    <div className="min-h-screen">
       <Navigation />
-      <main>{children}</main>
+      <main className="pb-40">{children}</main>
       <Footer />
     </div>
   );

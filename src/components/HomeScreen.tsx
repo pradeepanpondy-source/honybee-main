@@ -2,10 +2,11 @@ import HomeCards from './HomeCards';
 import { Link } from 'react-router-dom';
 import fndImage from '../assets/fnd.png';
 import LetterWave from './LetterWave';
+import { motion } from 'framer-motion';
 
 export default function HomeScreen() {
   return (
-    <>
+    <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
       <div className="relative min-h-screen" style={{ backgroundColor: '#FFF8E7' }}>
         <div className="relative z-20 pt-[80px]">
           {/* Hero Section */}
@@ -47,6 +48,6 @@ export default function HomeScreen() {
           <HomeCards />
         </div>
       </div>
-    </>
+    </motion.div>
   );
 }

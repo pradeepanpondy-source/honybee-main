@@ -1,5 +1,7 @@
 import React from 'react';
 import Button from './Button';
+import { CreditCard, MapPin, ShoppingCart } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface CheckoutSummaryProps {
   nextStep: () => void;
@@ -10,12 +12,12 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ nextStep, prevStep })
   return (
     <div className="bg-yellow-50 min-h-screen p-8 max-w-6xl mx-auto flex flex-col md:flex-row justify-between">
       {/* Left order summary */}
-      <div className="w-full md:w-1/2">
+      <motion.div className="w-full md:w-1/2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
         <div className="mb-6">
           <div className="flex space-x-4 text-amber-900 mb-4">
-            <div>Address</div>
-            <div>Payment</div>
-            <div className="font-semibold">Place Order</div>
+            <div className="flex items-center space-x-1"><MapPin size={16} /> Address</div>
+            <div className="flex items-center space-x-1"><CreditCard size={16} /> Payment</div>
+            <div className="flex items-center space-x-1 font-semibold"><ShoppingCart size={16} /> Place Order</div>
           </div>
         </div>
         <h2 className="text-2xl font-bold text-amber-900 mb-6">Checkout</h2>
@@ -50,10 +52,10 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ nextStep, prevStep })
           Place Order
         </Button>
         <p className="text-sm text-gray-600 mt-4">Order will be delivered within 2 days</p>
-      </div>
+      </motion.div>
 
       {/* Right product summary */}
-      <div className="w-full md:w-1/3 bg-yellow-100 rounded-lg p-6 flex flex-col items-center">
+      <motion.div className="w-full md:w-1/3 bg-yellow-100 rounded-lg p-6 flex flex-col items-center" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
         <img
           src="/honey-jar.png"
           alt="Bee Bridge"
@@ -63,7 +65,7 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ nextStep, prevStep })
         <p className="text-amber-900 mb-1">Pure</p>
         <p className="text-amber-900 font-bold text-xl">₹200</p>
         <p className="text-amber-900">250g</p>
-      </div>
+      </motion.div>
       <div className="flex justify-between mt-8">
         <Button onClick={prevStep} variant="secondary">
           Back

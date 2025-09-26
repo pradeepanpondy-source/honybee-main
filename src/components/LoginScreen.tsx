@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import Button from './Button';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,75 +20,102 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-4">
+    <motion.div 
+      className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="max-w-5xl w-full bg-gray-50 rounded-3xl shadow-2xl flex overflow-hidden">
         {/* Left side - form */}
         <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Hello Again!</h1>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="Email"
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
-            />
-            <div className="relative">
+          <motion.form
+            onSubmit={handleSubmit}
+            className="space-y-6"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+          >
+            <motion.div
+              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+            >
               <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="Password"
+                placeholder="Email"
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4-9-7s4-7 9-7a9.956 9.956 0 014.875 1.325M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            <div className="text-right text-xs text-gray-500 mb-4 cursor-pointer hover:underline">
-              Recovery Password
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3 rounded-lg shadow-lg transition duration-300"
+            </motion.div>
+            <motion.div
+              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
             >
-              Sign In
-            </button>
-          </form>
-          <button
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Password"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                </button>
+              </div>
+            </motion.div>
+            <motion.div
+              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+            >
+              <div className="text-right text-xs text-gray-500 mb-4 cursor-pointer hover:underline">
+                Recovery Password
+              </div>
+            </motion.div>
+            <motion.div
+              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+            >
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold"
+              >
+                Sign In
+              </Button>
+            </motion.div>
+          </motion.form>
+          <Button
             onClick={() => navigate('/home')}
-            className="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg shadow-md transition duration-300"
+            variant="secondary"
+            className="mt-4 w-full"
           >
             Continue as Guest
-          </button>
+          </Button>
           <div className="mt-4 text-center">
             <span className="text-gray-600 text-sm">
               Don't have an account?{' '}
-              <button
+              <Button
                 onClick={() => navigate('/signup')}
-                className="text-rose-600 hover:underline font-semibold"
+                variant="ghost"
+                className="text-rose-600 hover:underline font-semibold p-0"
               >
                 Sign Up
-              </button>
+              </Button>
             </span>
           </div>
           <div className="flex items-center my-6">
@@ -94,7 +124,7 @@ const LoginScreen: React.FC = () => {
             <hr className="flex-grow border-gray-300" />
           </div>
           <div className="flex justify-center">
-            <button
+            <Button
               onClick={async () => {
                 try {
                   await signInWithGoogle();
@@ -103,10 +133,12 @@ const LoginScreen: React.FC = () => {
                   alert('Google login failed. Please try again.');
                 }
               }}
-              className="p-3 rounded-lg shadow-md bg-white hover:shadow-lg transition duration-300"
+              variant="light"
+              size="icon"
+              className="p-3 shadow-md bg-white hover:shadow-lg"
             >
               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/250px-Google_Favicon_2025.svg.png" alt="Google" className="w-6 h-6" />
-            </button>
+            </Button>
           </div>
         </div>
         {/* Right side - image and overlay */}
@@ -118,20 +150,26 @@ const LoginScreen: React.FC = () => {
           />
           {/* Removed the text div as per user request */}
           <div className="absolute bottom-10 right-10 flex space-x-4">
-            <button aria-label="Previous" className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:bg-white hover:text-rose-600 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button aria-label="Next" className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:bg-white hover:text-rose-600 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            <Button
+              aria-label="Previous"
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:bg-white hover:text-rose-600 p-0"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <Button
+              aria-label="Next"
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:bg-white hover:text-rose-600 p-0"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

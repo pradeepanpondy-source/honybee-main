@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Button from './Button';
 import { useCart } from '../context/CartContext';
+import { motion } from 'framer-motion';
+import { Plus, Minus } from 'lucide-react';
 
 const products = [
   {
@@ -52,11 +54,11 @@ export default function HomeCards() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }} initial="hidden" animate="visible">
           {products.map((product) => {
             const quantity = getQuantity(product.id);
             return (
-              <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+              <motion.div key={product.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
                 <div className="h-56 overflow-hidden">
                   <img 
                     src={product.image} 
@@ -75,9 +77,7 @@ export default function HomeCards() {
                         size="icon" 
                         onClick={() => addToCart(product)}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
+                        <Plus size={20} />
                       </Button>
                     ) : (
                       <div className="flex items-center space-x-2">
@@ -86,7 +86,7 @@ export default function HomeCards() {
                           size="icon" 
                           onClick={() => updateQuantity(product.id, quantity - 1)}
                         >
-                          -
+                          <Minus size={16} />
                         </Button>
                         <span className="font-semibold">{quantity}</span>
                         <Button 
@@ -94,16 +94,16 @@ export default function HomeCards() {
                           size="icon" 
                           onClick={() => updateQuantity(product.id, quantity + 1)}
                         >
-                          +
+                          <Plus size={16} />
                         </Button>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
         
         <div className="mt-12 text-center">
           <Link 

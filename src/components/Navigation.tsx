@@ -59,6 +59,12 @@ export default function Navigation() {
             >
               Seller
             </Link>
+            <Link
+              to="/subscription"
+              className={`font-medium ${location.pathname === '/subscription' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+            >
+              Subscription
+            </Link>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -147,6 +153,13 @@ export default function Navigation() {
               onClick={() => setIsMenuOpen(false)}
             >
               Seller
+            </Link>
+            <Link
+              to="/subscription"
+              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/subscription' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Subscription
             </Link>
             <Link
               to="/settings"

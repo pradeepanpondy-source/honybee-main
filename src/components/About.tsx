@@ -1,8 +1,14 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const About: React.FC = () => {
   return (
-    <div className="bg-honeybee-background text-honeybee-secondary">
+    <motion.div 
+      className="bg-honeybee-background text-honeybee-secondary"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="text-center">
           <h1 className="text-4xl font-serif font-bold text-honeybee-primary">About Bee Bridge</h1>
@@ -48,7 +54,7 @@ const About: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
