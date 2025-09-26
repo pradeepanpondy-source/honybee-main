@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import Button from './Button';
-import { motion } from 'framer-motion';
 import congratsGif from '../assets/congratulation.gif';
 import successGif from '../assets/success confetti.gif';
 
@@ -55,15 +54,10 @@ const Checkout: React.FC = () => {
   if (orderPlaced) {
     return (
       <>
-        <motion.div
-          className="max-w-4xl mx-auto p-6 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div className="max-w-4xl mx-auto p-6 text-center">
           <h2 className="text-3xl font-bold text-honeybee-primary mb-6">Thank you for your order!</h2>
           <p>Your order has been placed successfully.</p>
-        </motion.div>
+        </div>
         {showSuccess && (
           <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
             <img src={successGif} alt="Success" className="w-64 h-64 object-cover" />
@@ -75,19 +69,10 @@ const Checkout: React.FC = () => {
 
   return (
     <>
-      <motion.div
-        className="max-w-4xl mx-auto p-6 bg-honeybee-background text-honeybee-secondary rounded-lg shadow-lg"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="max-w-4xl mx-auto p-6 bg-honeybee-background text-honeybee-secondary rounded-lg shadow-lg">
         <h2 className="text-3xl font-bold text-honeybee-primary mb-6">Checkout</h2>
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.2 } } }}
-        >
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="mb-4">
+        <div>
+          <div className="mb-4">
             <h3 className="font-semibold mb-2">Order Summary</h3>
             {cartItems.map(item => (
               <div key={item.id} className="flex justify-between mb-2">
@@ -111,8 +96,8 @@ const Checkout: React.FC = () => {
                 <span>₹{discountedTotal.toFixed(2)}</span>
               </div>
             )}
-          </motion.div>
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="mb-4">
+          </div>
+          <div className="mb-4">
             <label htmlFor="coupon" className="block font-semibold mb-1">Have a coupon?</label>
             <input
               id="coupon"
@@ -131,14 +116,14 @@ const Checkout: React.FC = () => {
                 <img src={congratsGif} alt="Congratulations" className="w-full h-full object-contain" />
               </div>
             )}
-          </motion.div>
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+          </div>
+          <div>
             <Button onClick={handlePlaceOrder} variant="primary" className="w-full">
               Place Order
             </Button>
-          </motion.div>
-        </motion.div>
-      </motion.div>
+          </div>
+        </div>
+      </div>
       {showSuccess && (
         <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
           <img src={successGif} alt="Success" className="w-64 h-64 object-cover" />

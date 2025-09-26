@@ -2,9 +2,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  useLocation,
 } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
 import HomeScreen from "./components/HomeScreen";
 import About from "./components/About";
 import Contact from "./components/Contact";
@@ -20,32 +18,23 @@ import LoginScreen from "./components/LoginScreen";
 import SignUpScreen from "./components/SignUpScreen";
 import { CartProvider } from "./context/CartContext";
 
-function AnimatedRoutes() {
-  const location = useLocation();
+function AppRoutes() {
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<LoginScreen />} />
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/signup" element={<SignUpScreen />} />
-        <Route path="/*" element={
-          <PageLayout>
-            <Routes>
-              <Route path="/home" element={<HomeScreen />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/seller" element={<Seller />} />
-              <Route path="/subscription" element={<Subscription />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </PageLayout>
-        } />
-      </Routes>
-    </AnimatePresence>
+    <Routes>
+      <Route path="/" element={<LoginScreen />} />
+      <Route path="/login" element={<LoginScreen />} />
+      <Route path="/signup" element={<SignUpScreen />} />
+      <Route path="/home" element={<PageLayout><HomeScreen /></PageLayout>} />
+      <Route path="/about" element={<PageLayout><About /></PageLayout>} />
+      <Route path="/contact" element={<PageLayout><Contact /></PageLayout>} />
+      <Route path="/shop" element={<PageLayout><Shop /></PageLayout>} />
+      <Route path="/cart" element={<PageLayout><Cart /></PageLayout>} />
+      <Route path="/checkout" element={<PageLayout><Checkout /></PageLayout>} />
+      <Route path="/profile" element={<PageLayout><Profile /></PageLayout>} />
+      <Route path="/seller" element={<PageLayout><Seller /></PageLayout>} />
+      <Route path="/subscription" element={<PageLayout><Subscription /></PageLayout>} />
+      <Route path="/settings" element={<PageLayout><Settings /></PageLayout>} />
+    </Routes>
   );
 }
 
@@ -53,7 +42,7 @@ function App() {
   return (
     <CartProvider>
       <Router>
-        <AnimatedRoutes />
+        <AppRoutes />
       </Router>
     </CartProvider>
   );
