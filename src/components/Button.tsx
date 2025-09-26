@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
 
-interface ButtonProps extends Omit<HTMLMotionProps<"button">, "size"> {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'accent' | 'ghost' | 'light';
   size?: 'default' | 'icon';
 }
@@ -50,14 +49,9 @@ const Button: React.FC<ButtonProps> = ({
   };
 
   return (
-    <motion.button
+    <button
       className={`relative overflow-hidden rounded-lg shadow-lg transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) focus:outline-none focus:ring-4 focus:ring-honeybee-accent ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       onClick={handleClick}
-      whileHover={{
-        scale: 1.05,
-        boxShadow: "0 0 20px rgba(255, 193, 7, 0.5)",
-      }}
-      whileTap={{ scale: 0.95 }}
       {...props}
     >
       {children as React.ReactNode}
@@ -67,7 +61,7 @@ const Button: React.FC<ButtonProps> = ({
           style={rippleStyle}
         />
       )}
-    </motion.button>
+    </button>
   );
 };
 

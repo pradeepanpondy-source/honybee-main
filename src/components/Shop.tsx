@@ -1,6 +1,5 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
-import { motion } from 'framer-motion';
 
 const products = [
   {
@@ -55,12 +54,7 @@ const Shop: React.FC = () => {
   };
 
   return (
-    <motion.div 
-      className="bg-honeybee-background text-honeybee-secondary"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="bg-honeybee-background text-honeybee-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="text-center">
           <h1 className="text-4xl font-serif font-bold text-honeybee-primary">Our Honey Selection</h1>
@@ -69,9 +63,9 @@ const Shop: React.FC = () => {
           </p>
         </div>
 
-        <motion.div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }} initial="hidden" animate="visible">
+        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((product) => (
-            <motion.div key={product.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} whileHover={{ scale: 1.05, y: -10 }} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+            <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
               <div className="h-56 overflow-hidden">
                 <img
                   src={product.image}
@@ -94,11 +88,11 @@ const Shop: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
