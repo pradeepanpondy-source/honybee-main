@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from './Button';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+
+
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,8 +16,6 @@ const LoginScreen: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    // On successful login, redirect to home page
     navigate('/home');
   };
 
@@ -93,7 +93,7 @@ const LoginScreen: React.FC = () => {
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold"
+                className="w-full font-semibold"
               >
                 Sign In
               </Button>
@@ -101,7 +101,7 @@ const LoginScreen: React.FC = () => {
           </motion.form>
           <Button
             onClick={() => navigate('/home')}
-            variant="secondary"
+            variant="primary"
             className="mt-4 w-full"
           >
             Continue as Guest
@@ -112,7 +112,7 @@ const LoginScreen: React.FC = () => {
               <Button
                 onClick={() => navigate('/signup')}
                 variant="ghost"
-                className="text-rose-600 hover:underline font-semibold p-0"
+                className="text-honeybee-primary hover:underline font-semibold p-0"
               >
                 Sign Up
               </Button>
@@ -137,36 +137,18 @@ const LoginScreen: React.FC = () => {
               size="icon"
               className="p-3 shadow-md bg-white hover:shadow-lg"
             >
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/250px-Google_Favicon_2025.svg.png" alt="Google" className="w-6 h-6" />
+              <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5" />
             </Button>
           </div>
         </div>
-        {/* Right side - image and overlay */}
+        {/* Right side - animation and overlay */}
         <div className="hidden md:flex md:w-1/2 relative rounded-r-3xl overflow-hidden border-8 border-white shadow-lg">
-          <img
-            src="https://media.istockphoto.com/id/1281435234/vector/honey-in-glass-jar-cartoon-bee-honeycombs-flowers-and-flowing-honey-on-wooden-dipper.jpg?s=612x612&w=0&k=20&c=5oaKRbsa7YGOnEiTSYKt1dJU1jrtkmGzxP381yXeF9w="
-            alt="Honey Store Illustration"
-            className="h-full w-full object-cover object-left"
-          />
-          {/* Removed the text div as per user request */}
-          <div className="absolute bottom-10 right-10 flex space-x-4">
-            <Button
-              aria-label="Previous"
-              variant="ghost"
-              size="icon"
-              className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:bg-white hover:text-rose-600 p-0"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <Button
-              aria-label="Next"
-              variant="ghost"
-              size="icon"
-              className="w-8 h-8 rounded-full border border-white flex items-center justify-center hover:bg-white hover:text-rose-600 p-0"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          </div>
+          {React.createElement('dotlottie-wc', {
+            src: 'https://lottie.host/415db1e3-d9d5-4073-b9fe-099abfe8c66c/XtpXv9SgcE.lottie',
+            style: { width: '100%', height: '100%' },
+            autoplay: true,
+            loop: true
+          })}
         </div>
       </div>
     </motion.div>

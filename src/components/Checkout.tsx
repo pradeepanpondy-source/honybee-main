@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import Button from './Button';
-import congratsGif from '../assets/congratulation.gif';
 import successGif from '../assets/success confetti.gif';
 
 const validCoupons: Record<string, number> = {
@@ -16,7 +15,6 @@ const Checkout: React.FC = () => {
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [showCongrats, setShowCongrats] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const total = getTotal();
@@ -36,11 +34,9 @@ const Checkout: React.FC = () => {
     if (validCoupons[upperCoupon]) {
       setDiscount(validCoupons[upperCoupon]);
       setCouponError('');
-      setShowCongrats(true);
     } else {
       setDiscount(0);
       setCouponError('Invalid coupon code');
-      setShowCongrats(false);
     }
   };
 
@@ -111,11 +107,6 @@ const Checkout: React.FC = () => {
             <Button onClick={handleApplyCoupon} variant="accent" className="mt-2">
               Apply Coupon
             </Button>
-            {showCongrats && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCongrats(false)}>
-                <img src={congratsGif} alt="Congratulations" className="w-full h-full object-contain" />
-              </div>
-            )}
           </div>
           <div>
             <Button onClick={handlePlaceOrder} variant="primary" className="w-full">

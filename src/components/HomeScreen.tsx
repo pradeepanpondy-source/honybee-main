@@ -1,11 +1,30 @@
+
+import React, { useState, useEffect } from 'react';
 import HomeCards from './HomeCards';
 import { Link } from 'react-router-dom';
 import fndImage from '../assets/fnd.png';
 import LetterWave from './LetterWave';
 
 export default function HomeScreen() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div>
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-none">
+          {React.createElement('dotlottie-wc', {
+            src: 'https://lottie.host/81653027-58d6-47e3-9de5-491db6a527a5/TWNyD5vQVe.lottie',
+            style: { width: '150px', height: '150px', opacity: 0.3 },
+            autoplay: true,
+            loop: true
+          })}
+        </div>
+      )}
       <div className="relative min-h-screen" style={{ backgroundColor: '#FFF8E7' }}>
         <div className="relative z-20 pt-[80px]">
           {/* Hero Section */}
@@ -15,7 +34,7 @@ export default function HomeScreen() {
                 <LetterWave text="Bee Bridge" animationDelayStep={0.1} />
               </h2>
               <p className="text-lg text-honeybee-dark-brown max-w-2xl mx-auto mb-10">
-              We're the bridge between the farmer's field, the beekeeper's hive, to the honey in your home. 
+                We're the bridge between the farmer's field, the beekeeper's hive, to the honey in your home. 
               </p>
               <div className="flex justify-center gap-6">
                 <Link to="/shop" className="bg-honeybee-primary hover:bg-honeybee-accent text-honeybee-secondary font-medium py-3 px-8 rounded-full transition duration-300 ease-out">
@@ -37,8 +56,8 @@ export default function HomeScreen() {
                 alt="Farmers and Consumers"
                 className="w-full md:w-1/2 rounded-lg shadow-lg"
               />
-              <p className="text-lg text-honeybee-dark-brown max-w-xl">l
-                Our platform bridges the gap between farmers and consumers, ensuring fresh, organic produce reaches your table directly from the source or become a seller through our marketplace and sell/rent the bee coloines.
+              <p className="text-lg text-honeybee-dark-brown max-w-xl">
+                Our platform bridges the gap between farmers and consumers, ensuring fresh, organic produce reaches your table directly from the source or become a seller through our marketplace and sell/rent the bee colonies.
               </p>
             </div>
           </div>

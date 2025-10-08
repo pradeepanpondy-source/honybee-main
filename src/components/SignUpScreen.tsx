@@ -10,15 +10,30 @@ const SignUpScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { signInWithGoogle } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    // On successful signup, redirect to home page
-    navigate('/home');
+    setLoading(true);
+    setTimeout(() => {
+      navigate('/home');
+    }, 2500);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center">
+        {React.createElement('dotlottie-wc', {
+          src: 'https://lottie.host/81653027-58d6-47e3-9de5-491db6a527a5/TWNyD5vQVe.lottie',
+          style: { width: '300px', height: '300px' },
+          autoplay: true,
+          loop: true
+        })}
+      </div>
+    );
+  }
 
   return (
     <motion.div 
@@ -102,7 +117,7 @@ const SignUpScreen: React.FC = () => {
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold"
+                className="w-full font-semibold"
               >
                 Sign Up
               </Button>
@@ -118,7 +133,8 @@ const SignUpScreen: React.FC = () => {
               onClick={async () => {
                 try {
                   await signInWithGoogle();
-                  navigate('/home');
+                  setLoading(true);
+                  setTimeout(() => navigate('/home'), 2500);
                 } catch {
                   alert('Google login failed. Please try again.');
                 }
@@ -127,38 +143,40 @@ const SignUpScreen: React.FC = () => {
               size="icon"
               className="p-3 shadow-md bg-white hover:shadow-lg"
             >
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/250px-Google_Favicon_2025.svg.png" alt="Google" className="w-6 h-6" />
+              <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5" />
             </Button>
           </div>
-          <div className="mt-6 text-center">
-            <Button
-              onClick={() => navigate('/home')}
-              variant="ghost"
-              className="text-sm text-rose-600 hover:underline p-0"
-            >
-              Continue as Guest
-            </Button>
-          </div>
+          <Button
+            onClick={() => {
+              setLoading(true);
+              setTimeout(() => navigate('/home'), 2500);
+            }}
+            variant="primary"
+            className="mt-6 w-full"
+          >
+            Continue as Guest
+          </Button>
           <div className="mt-4 text-center">
             <span className="text-gray-600 text-sm">
               Already have an account?{' '}
               <Button
                 onClick={() => navigate('/login')}
                 variant="ghost"
-                className="text-rose-600 hover:underline font-semibold p-0"
+                className="text-honeybee-primary hover:underline font-semibold p-0"
               >
                 Sign In
               </Button>
             </span>
           </div>
         </div>
-        {/* Right side - image */}
+        {/* Right side - animation */}
         <div className="hidden md:block md:w-1/2 relative rounded-r-3xl overflow-hidden border-8 border-white shadow-lg">
-          <img
-            src="https://media.istockphoto.com/id/1281435234/vector/honey-in-glass-jar-cartoon-bee-honeycombs-flowers-and-flowing-honey-on-wooden-dipper.jpg?s=612x612&w=0&k=20&c=5oaKRbsa7YGOnEiTSYKt1dJU1jrtkmGzxP381yXeF9w="
-            alt="Honey Store Illustration"
-            className="h-full w-full object-cover object-left"
-          />
+          {React.createElement('dotlottie-wc', {
+            src: 'https://lottie.host/415db1e3-d9d5-4073-b9fe-099abfe8c66c/XtpXv9SgcE.lottie',
+            style: { width: '100%', height: '100%' },
+            autoplay: true,
+            loop: true
+          })}
         </div>
       </div>
     </motion.div>
