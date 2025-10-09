@@ -42,7 +42,6 @@ const Seller: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   // Removed unused selectedOption state to fix eslint error
   const [showVideo, setShowVideo] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -120,16 +119,12 @@ const Seller: React.FC = () => {
   };
 
   const renderOptionButtons = () => (
-    <div className={`max-w-4xl mx-auto p-6 text-center transition-opacity duration-500 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+    <div className="max-w-4xl mx-auto p-6 text-center">
       <h2 className="text-3xl font-bold text-honeybee-primary mb-8">Choose an option</h2>
       <div className="flex justify-center gap-8">
         <button
           onClick={() => {
-            setIsTransitioning(true);
-            setTimeout(() => {
-              setShowVideo(true);
-              setIsTransitioning(false);
-            }, 500);
+            setShowVideo(true);
           }}
           className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105"
         >
@@ -137,11 +132,7 @@ const Seller: React.FC = () => {
         </button>
         <button
           onClick={() => {
-            setIsTransitioning(true);
-            setTimeout(() => {
-              setShowVideo(true);
-              setIsTransitioning(false);
-            }, 500);
+            setShowVideo(true);
           }}
           className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105"
         >
@@ -395,11 +386,12 @@ const Seller: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <h1 className="text-center font-semibold text-lg mb-4">Register as a Seller</h1>
       {showVideo ? (
-        <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 transition-opacity duration-500 opacity-100">
           <video
             src={videoSrc}
             autoPlay
             muted
+            preload="auto"
             ref={video => {
               if (video) {
                 video.playbackRate = 0.7;
