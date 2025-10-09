@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from './Button';
 
@@ -36,35 +35,15 @@ const SignUpScreen: React.FC = () => {
   }
 
   return (
-    <motion.div 
-      className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="max-w-5xl w-full bg-gray-50 rounded-3xl shadow-2xl flex overflow-hidden">
+    <div className="min-h-screen gradient-bg-warm flex items-center justify-center px-4">
+      <div className="max-w-5xl w-full glass-effect rounded-3xl modern-shadow flex overflow-hidden">
         {/* Left side - form */}
         <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-6 text-center">
+          <h1 className="text-4xl font-bold vibrant-text mb-6 text-center">
             Create Account
           </h1>
-          <motion.form
-            onSubmit={handleSubmit}
-            className="space-y-6"
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.1
-                }
-              }
-            }}
-          >
-            <motion.div
-              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
               <input
                 type="text"
                 id="name"
@@ -74,10 +53,8 @@ const SignUpScreen: React.FC = () => {
                 placeholder="Your full name"
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
               />
-            </motion.div>
-            <motion.div
-              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            >
+            </div>
+            <div>
               <input
                 type="email"
                 id="email"
@@ -87,10 +64,8 @@ const SignUpScreen: React.FC = () => {
                 placeholder="Email"
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
               />
-            </motion.div>
-            <motion.div
-              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            >
+            </div>
+            <div>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -110,10 +85,8 @@ const SignUpScreen: React.FC = () => {
                   {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
-            </motion.div>
-            <motion.div
-              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            >
+            </div>
+            <div>
               <Button
                 type="submit"
                 variant="primary"
@@ -121,8 +94,8 @@ const SignUpScreen: React.FC = () => {
               >
                 Sign Up
               </Button>
-            </motion.div>
-          </motion.form>
+            </div>
+          </form>
           <div className="flex items-center my-6">
             <hr className="flex-grow border-gray-300" />
             <span className="mx-4 text-gray-400 text-sm">Or continue with</span>
@@ -179,7 +152,7 @@ const SignUpScreen: React.FC = () => {
           })}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

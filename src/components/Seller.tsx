@@ -1,164 +1,428 @@
+
 import React, { useState } from 'react';
 import Button from './Button';
-import { motion } from 'framer-motion';
+
+type FormData = {
+  email: string;
+  name: string;
+  password: string;
+  confirmPassword: string;
+  country: string;
+  profileUrl: string;
+  acceptTerms: boolean;
+  city: string;
+  state: string;
+  zip: string;
+  countryCode: string;
+  formattedEmail: string;
+  phone: string;
+  websiteUrl: string;
+};
+
+const initialFormData: FormData = {
+  email: '',
+  name: '',
+  password: '',
+  confirmPassword: '',
+  country: '',
+  profileUrl: '',
+  acceptTerms: false,
+  city: '',
+  state: '',
+  zip: '',
+  countryCode: '',
+  formattedEmail: '',
+  phone: '',
+  websiteUrl: '',
+};
 
 const Seller: React.FC = () => {
-  const [step, setStep] = useState<'options' | 'sellHoney' | 'sellBeeHive'>('options');
-  const [formData, setFormData] = useState({
-    photo: null as File | null,
-    name: '',
-    contact: '',
-    address: '',
-    pincode: '',
-    city: '',
-    idProof: null as File | null,
-  });
+  const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  // Removed unused selectedOption state to fix eslint error
+  const [showVideo, setShowVideo] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'photo' | 'idProof') => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFormData(prev => ({ ...prev, [field]: e.target.files![0] }));
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const nextStep = () => {
+    if (step < 4) setStep(step + 1);
   };
 
-  const renderOptions = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-4xl mx-auto p-6 text-center"
-    >
+  const prevStep = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you can add form validation and submission logic
+    nextStep();
+  };
+
+  const renderProgress = () => {
+    const steps = ['Personal Information', 'Address', 'Contact', 'Finish'];
+    return (
+      <div className="flex justify-center space-x-8 mb-8">
+        {steps.map((label, index) => {
+          const current = index + 1;
+          const isActive = current === step;
+          const isCompleted = current < step;
+          return (
+            <div key={label} className="flex flex-col items-center text-center">
+              <div
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  isActive || isCompleted ? 'border-purple-700' : 'border-gray-300'
+                }`}
+              >
+                {isCompleted ? (
+                  <svg
+                    className="w-4 h-4 text-purple-700"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                ) : (
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      isActive ? 'bg-purple-700' : 'bg-gray-300'
+                    }`}
+                  />
+                )}
+              </div>
+              <span
+                className={`mt-1 text-xs font-semibold ${
+                  isActive || isCompleted ? 'text-purple-700' : 'text-gray-400'
+                }`}
+              >
+                {label.split(' ').map((word, i) => (
+                  <React.Fragment key={i}>
+                    {word}
+                    <br />
+                  </React.Fragment>
+                ))}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderOptionButtons = () => (
+    <div className={`max-w-4xl mx-auto p-6 text-center transition-opacity duration-500 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
       <h2 className="text-3xl font-bold text-honeybee-primary mb-8">Choose an option</h2>
       <div className="flex justify-center gap-8">
-        <Button
-          variant="primary"
-          className="px-8 py-6 text-xl rounded-lg shadow-lg hover:shadow-xl transition"
-          onClick={() => setStep('sellHoney')}
+        <button
+          onClick={() => {
+            setIsTransitioning(true);
+            setTimeout(() => {
+              setShowVideo(true);
+              setIsTransitioning(false);
+            }, 500);
+          }}
+          className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105"
         >
           Sell Honey
-        </Button>
-        <Button
-          variant="secondary"
-          className="px-8 py-6 text-xl rounded-lg shadow-lg hover:shadow-xl transition"
-          onClick={() => setStep('sellBeeHive')}
+        </button>
+        <button
+          onClick={() => {
+            setIsTransitioning(true);
+            setTimeout(() => {
+              setShowVideo(true);
+              setIsTransitioning(false);
+            }, 500);
+          }}
+          className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105"
         >
           Sell Bee Hive
-        </Button>
+        </button>
       </div>
-    </motion.div>
+    </div>
   );
 
-  const renderForm = (title: string) => (
-    <motion.div
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg"
-    >
-      <h2 className="text-3xl font-serif font-bold text-honeybee-dark mb-6">{title} Application</h2>
-      <form>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="col-span-2">
-            <label htmlFor="photo" className="block text-sm font-medium text-gray-700 mb-2">Photo</label>
-            <input
-              type="file"
-              id="photo"
-              accept="image/*"
-              onChange={(e) => handleFileChange(e, 'photo')}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-honeybee-primary file:text-white hover:file:bg-honeybee-accent"
-            />
-          </div>
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-            <input
-              type="text"
-              name="name"
-              id="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="mt-1 focus:ring-honeybee-primary focus:border-honeybee-primary block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label htmlFor="contact" className="block text-sm font-medium text-gray-700">Contact</label>
-            <input
-              type="text"
-              name="contact"
-              id="contact"
-              value={formData.contact}
-              onChange={handleInputChange}
-              className="mt-1 focus:ring-honeybee-primary focus:border-honeybee-primary block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-            />
-          </div>
-          <div className="col-span-2">
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
-            <input
-              type="text"
-              name="address"
-              id="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              className="mt-1 focus:ring-honeybee-primary focus:border-honeybee-primary block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label htmlFor="pincode" className="block text-sm font-medium text-gray-700">Pincode</label>
-            <input
-              type="text"
-              name="pincode"
-              id="pincode"
-              value={formData.pincode}
-              onChange={handleInputChange}
-              className="mt-1 focus:ring-honeybee-primary focus:border-honeybee-primary block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
-            <input
-              type="text"
-              name="city"
-              id="city"
-              value={formData.city}
-              onChange={handleInputChange}
-              className="mt-1 focus:ring-honeybee-primary focus:border-honeybee-primary block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-            />
-          </div>
-          <div className="col-span-2">
-            <label htmlFor="idProof" className="block text-sm font-medium text-gray-700 mb-2">ID Proof</label>
-            <input
-              type="file"
-              id="idProof"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, 'idProof')}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-honeybee-primary file:text-white hover:file:bg-honeybee-accent"
-            />
-          </div>
-        </div>
-        <div className="mt-6">
-          <Button type="submit" className="w-full" variant="primary">
-            Submit Application
-          </Button>
-        </div>
-      </form>
-      <div className="mt-4 text-center">
-        <Button variant="ghost" onClick={() => setStep('options')}>
-          Back to Options
+  const renderPersonalInfo = () => (
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded shadow">
+      <h2 className="text-xl font-bold mb-6">Personal Information</h2>
+      <label className="block mb-2 text-sm font-medium text-gray-700">Your Email</label>
+      <input
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">Your Name</label>
+      <input
+        type="text"
+        name="name"
+        placeholder="e.g. John Doe"
+        value={formData.name}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">Password</label>
+      <input
+        type="password"
+        name="password"
+        value={formData.password}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">Confirm Password</label>
+      <input
+        type="password"
+        name="confirmPassword"
+        value={formData.confirmPassword}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">Country</label>
+      <input
+        type="text"
+        name="country"
+        placeholder="Country..."
+        value={formData.country}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="blockmb-2 text-sm font-medium text-gray-700 flex items-center">
+        Profile URL
+        <svg
+          className="ml-1 w-4 h-4 text-blue-400"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 010 5.656m-1.414-1.414a4 4 0 015.656 0M15 12h.01M9 12h.01M12 15v.01M12 9v.01"></path>
+        </svg>
+      </label>
+      <input
+        type="text"
+        name="profileUrl"
+        placeholder="Unique Seller Profile URL handler.."
+        value={formData.profileUrl}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="inline-flex items-center mb-4">
+        <input
+          type="checkbox"
+          name="acceptTerms"
+          checked={formData.acceptTerms}
+          onChange={handleChange}
+          required
+          className="form-checkbox text-purple-700"
+        />
+        <span className="ml-2 text-sm text-gray-700">I Accept Terms & Conditions</span>
+      </label>
+      <div className="flex justify-between items-center">
+          <button
+            type="button"
+            onClick={() => {
+              setStep(0);
+              // Removed setSelectedOption call as it no longer exists
+            }}
+            className="text-purple-700 underline"
+          >
+            Back to Options
+          </button>
+        <Button type="submit" variant="primary" className="flex items-center space-x-2">
+          <span>Next</span>
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"></path>
+          </svg>
         </Button>
       </div>
-    </motion.div>
+    </form>
   );
 
-  if (step === 'options') {
-    return renderOptions();
-  } else if (step === 'sellHoney') {
-    return renderForm('Sell Honey');
-  } else {
-    return renderForm('Sell Bee Hive');
-  }
+  const renderAddress = () => (
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded shadow">
+      <h2 className="text-xl font-bold mb-6">Address</h2>
+      <label className="block mb-2 text-sm font-medium text-gray-700">City</label>
+      <input
+        type="text"
+        name="city"
+        value={formData.city}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">State</label>
+      <input
+        type="text"
+        name="state"
+        value={formData.state}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">Zip</label>
+      <input
+        type="text"
+        name="zip"
+        value={formData.zip}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">Country Code</label>
+      <input
+        type="text"
+        name="countryCode"
+        value={formData.countryCode}
+        onChange={handleChange}
+        required
+        className="w-full mb-6 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <div className="flex justify-between items-center">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="text-purple-700 underline"
+        >
+          Back
+        </button>
+        <Button type="submit" variant="primary" className="flex items-center space-x-2">
+          <span>Next</span>
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </Button>
+      </div>
+    </form>
+  );
+
+  const renderContact = () => (
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded shadow">
+      <h2 className="text-xl font-bold mb-6">Contact</h2>
+      <label className="block mb-2 text-sm font-medium text-gray-700">Formatted Email</label>
+      <input
+        type="email"
+        name="formattedEmail"
+        value={formData.formattedEmail}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">Phone</label>
+      <input
+        type="text"
+        name="phone"
+        value={formData.phone}
+        onChange={handleChange}
+        required
+        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <label className="block mb-2 text-sm font-medium text-gray-700">Website URL</label>
+      <input
+        type="url"
+        name="websiteUrl"
+        value={formData.websiteUrl}
+        onChange={handleChange}
+        required
+        className="w-full mb-6 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+      />
+      <div className="flex justify-between items-center">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="text-purple-700 underline"
+        >
+          Back
+        </button>
+        <Button type="submit" variant="primary">
+          Sign up
+        </Button>
+      </div>
+    </form>
+  );
+
+  const renderFinish = () => (
+    <div className="max-w-md mx-auto bg-white p-8 rounded shadow text-center">
+      <svg
+        className="mx-auto mb-6 w-16 h-16 text-green-500"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <h2 className="text-2xl font-bold mb-2">Successfully Submitted</h2>
+      <p className="mb-4">Your form has been successfully submitted.</p>
+      <a href="/profile" className="text-purple-700 underline">
+        Click here to view your profile.
+      </a>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <h1 className="text-center font-semibold text-lg mb-4">Register as a Seller</h1>
+      {showVideo ? (
+        <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
+          <video
+            src="/src/assets/last.mp4"
+            autoPlay
+            muted
+            ref={video => {
+              if (video) {
+                video.playbackRate = 0.7;
+              }
+            }}
+            onEnded={() => {
+              setShowVideo(false);
+              setStep(1);
+            }}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ) : (
+        <>
+          {step === 0 && renderOptionButtons()}
+          {step > 0 && renderProgress()}
+          {step === 1 && renderPersonalInfo()}
+          {step === 2 && renderAddress()}
+          {step === 3 && renderContact()}
+          {step === 4 && renderFinish()}
+        </>
+      )}
+    </div>
+  );
 };
 
 export default Seller;

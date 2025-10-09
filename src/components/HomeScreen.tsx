@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import HomeCards from './HomeCards';
 import { Link } from 'react-router-dom';
 import fndImage from '../assets/fnd.png';
 import LetterWave from './LetterWave';
@@ -25,22 +24,22 @@ export default function HomeScreen() {
           })}
         </div>
       )}
-      <div className="relative min-h-screen" style={{ backgroundColor: '#FFF8E7' }}>
+      <div className="relative min-h-screen gradient-bg-warm">
         <div className="relative z-20 pt-[80px]">
           {/* Hero Section */}
           <div className="max-w-6xl mx-auto px-4 py-12">
             <div className="text-center mb-16 px-6">
-              <h2 className="text-3xl font-serif text-honeybee-dark mb-8">
+              <h2 className="text-5xl font-serif vibrant-text mb-8 font-bold">
                 <LetterWave text="Bee Bridge" animationDelayStep={0.1} />
               </h2>
-              <p className="text-lg text-honeybee-dark-brown max-w-2xl mx-auto mb-10">
-                We're the bridge between the farmer's field, the beekeeper's hive, to the honey in your home. 
+              <p className="text-xl text-honeybee-dark max-w-2xl mx-auto mb-10 font-medium">
+                We're the bridge between the farmer's field, the beekeeper's hive, to the honey in your home.
               </p>
               <div className="flex justify-center gap-6">
-                <Link to="/shop" className="bg-honeybee-primary hover:bg-honeybee-accent text-honeybee-secondary font-medium py-3 px-8 rounded-full transition duration-300 ease-out">
+                <Link to="/shop" className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105">
                   Shop Now
                 </Link>
-                <Link to="/about" className="border-2 border-honeybee-primary text-honeybee-secondary hover:bg-honeybee-light font-medium py-3 px-8 rounded-full transition duration-300 ease-out">
+                <Link to="/about" className="glass-effect bright-border text-honeybee-dark hover:bg-honeybee-primary hover:text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105">
                   Learn More
                 </Link>
               </div>
@@ -62,8 +61,7 @@ export default function HomeScreen() {
             </div>
           </div>
 
-          {/* Interactive Cards Section */}
-          <HomeCards />
+
         </div>
       </div>
     </div>

@@ -5,15 +5,18 @@ export default {
     extend: {
       colors: {
         honeybee: {
-          primary: '#E9B824', // Golden honey
-          secondary: '#2D2B29', // Dark charcoal
-          accent: '#F0A04B', // Warm amber
-          background: '#FFFBF2', // Cream white
-          dark: '#5F4B32', // Rich brown
-          'dark-brown': '#3C2A21',
-          light: '#FFF8E6', // Light cream
+          primary: '#FFD700', // Bright golden yellow
+          secondary: '#1a1a1a', // Deep black for contrast
+          accent: '#FF6B35', // Vibrant coral orange
+          background: '#FFFFFF', // Pure white for brightness
+          dark: '#2D3748', // Modern dark gray
+          'dark-brown': '#4A5568', // Medium gray
+          light: '#FEFCF3', // Warm light cream
+          'bright-yellow': '#FFE55C', // Bright yellow accent
+          'vibrant-orange': '#FF8C42', // Vibrant orange
+          'sunny-yellow': '#FFD23F', // Sunny yellow
         },
-      cream: '#FFFBF2',
+      cream: '#FEFCF3',
       },
       fontFamily: {
         sans: ['Montserrat', 'sans-serif'],

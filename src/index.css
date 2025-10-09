@@ -26,9 +26,12 @@
   --input: 60 100% 90%;
   --ring: 51 100% 50%;
   --radius: 0.5rem;
-  /* Honeybee theme colors */
-  --honeybee-primary: 45 100% 51%; /* Golden yellow */
-  --honeybee-accent: 25 100% 50%; /* Orange */
+  /* Honeybee theme colors - Bright and Modern */
+  --honeybee-primary: 51 100% 50%; /* Bright golden yellow */
+  --honeybee-accent: 15 100% 55%; /* Vibrant coral orange */
+  --honeybee-secondary: 0 0% 10%; /* Deep black */
+  --honeybee-background: 0 0% 100%; /* Pure white */
+  --honeybee-light: 45 100% 97%; /* Warm light cream */
 }
 
 .dark {
@@ -58,8 +61,8 @@ body {
   font-family: 'Montserrat', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #FFFBF2;
-  color: #2D2B29;
+  background-color: #FFFFFF;
+  color: #1a1a1a;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -178,4 +181,47 @@ h1, h2, h3, h4, h5, h6 {
 /* Global Smooth Scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* Modern Design Enhancements */
+.gradient-bg-primary {
+  background: linear-gradient(135deg, #FFD700 0%, #FFE55C 100%);
+}
+
+.gradient-bg-accent {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+}
+
+.gradient-bg-warm {
+  background: linear-gradient(135deg, #FEFCF3 0%, #FFFFFF 100%);
+}
+
+.modern-shadow {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modern-shadow-hover {
+  transition: all 0.3s ease;
+}
+
+.modern-shadow-hover:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.bright-border {
+  border: 2px solid #FFD700;
+}
+
+.vibrant-text {
+  background: linear-gradient(135deg, #FFD700 0%, #FF6B35 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

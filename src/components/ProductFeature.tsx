@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Button from './Button';
-import { motion } from 'framer-motion';
 
 interface ProductFeatureProps {
   nextStep: () => void;
@@ -53,20 +52,20 @@ const ProductFeature: React.FC<ProductFeatureProps> = ({ nextStep, prevStep }) =
       </div>
 
       {/* Benefits */}
-      <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.2 } } }} initial="hidden" animate="visible">
-        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="bg-amber-900 text-yellow-50 rounded-lg p-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-amber-900 text-yellow-50 rounded-lg p-4">
           <h3 className="font-semibold mb-2">Loaded with antioxidant</h3>
           <p className="text-sm">Lorem ipsum dolor sit amet consectetur. Convallis scelerisque</p>
-        </motion.div>
-        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="bg-amber-900 text-yellow-50 rounded-lg p-4">
+        </div>
+        <div className="bg-amber-900 text-yellow-50 rounded-lg p-4">
           <h3 className="font-semibold mb-2">Remedy for sore throat</h3>
           <p className="text-sm">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip</p>
-        </motion.div>
-        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="bg-amber-900 text-yellow-50 rounded-lg p-4">
+        </div>
+        <div className="bg-amber-900 text-yellow-50 rounded-lg p-4">
           <h3 className="font-semibold mb-2">No added sugar</h3>
           <p className="text-sm">Lorem ipsum dolor sit amet consectetur. Sit a fames tempus tincidunt in morbi ris.</p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       <div className="flex justify-between mt-8">
         <Button onClick={prevStep} variant="secondary">

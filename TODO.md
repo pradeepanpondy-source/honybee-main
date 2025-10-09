@@ -2,6 +2,10 @@
 - [x] Create options page with "Sell Honey" and "Sell Bee Hive" buttons
 - [x] Create application form for honey selling
 - [x] Create application form for beehive selling
-- [x] Add photo upload, name, contact, address, pincode, city, id proof fields
 - [x] Implement file upload functionality
-- [x] Add modern animations using framer-motion
+- [x] Remove framer-motion dependency and replace animations with plain CSS
+- [x] Update color scheme to bright and modern palette
+- [x] Add gradient backgrounds and modern design elements
+- [x] Enhance HomeScreen with vibrant styling and improved buttons
+- [x] Update SignUpScreen with glass effect and modern shadows
+- [x] Modernize Button component with gradients and hover effects

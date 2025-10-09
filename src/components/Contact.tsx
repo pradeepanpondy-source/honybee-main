@@ -1,15 +1,9 @@
 import React from 'react';
 import Button from './Button';
-import { motion } from 'framer-motion';
 
 const Contact: React.FC = () => {
   return (
-    <motion.div 
-      className="bg-honeybee-background text-honeybee-secondary"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="bg-honeybee-background text-honeybee-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="text-center">
           <h1 className="text-4xl font-serif font-bold text-honeybee-primary">Contact Us</h1>
@@ -52,7 +46,7 @@ const Contact: React.FC = () => {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

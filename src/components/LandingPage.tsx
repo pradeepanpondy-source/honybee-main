@@ -1,18 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import LetterWave from './LetterWave';
-import { motion } from 'framer-motion';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <motion.div 
-      className="min-h-screen bg-honeybee-background flex items-center justify-center px-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="min-h-screen bg-honeybee-background flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
         <h1 className="text-4xl font-serif font-bold text-honeybee-secondary mb-6">
           <LetterWave text="Bee Bridge" animationDelayStep={0.1} />
@@ -20,32 +14,32 @@ const LandingPage: React.FC = () => {
         <p className="text-honeybee-dark-brown mb-8">
           Welcome to Bee Bridge. Please log in or sign up to continue.
         </p>
-        <motion.div className="space-y-4" initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+        <div className="space-y-4">
+          <div>
             <button
               onClick={() => navigate('/login')}
               className="w-full bg-honeybee-primary hover:bg-honeybee-accent text-honeybee-secondary font-semibold py-3 rounded-md transition duration-300"
             >
               Log In
             </button>
-          </motion.div>
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+          </div>
+          <div>
             <button
               onClick={() => navigate('/signup')}
               className="w-full border-2 border-honeybee-primary text-honeybee-primary hover:bg-honeybee-light font-semibold py-3 rounded-md transition duration-300"
             >
               Sign Up
             </button>
-          </motion.div>
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+          </div>
+          <div>
             <button
               onClick={() => navigate('/home')}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-md transition duration-300"
             >
               Login as Guest
             </button>
-          </motion.div>
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+          </div>
+          <div>
             <button
               onClick={() => alert('Google login not implemented yet')}
               className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-md transition duration-300 flex items-center justify-center"
@@ -58,10 +52,10 @@ const LandingPage: React.FC = () => {
               </svg>
               Continue with Google
             </button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
