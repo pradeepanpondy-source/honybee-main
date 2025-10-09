@@ -10,7 +10,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen">
       <Navigation />
-      <main className="pb-40">{children}</main>
+      <main className="pt-16 pb-40">{children}</main>
       <Footer />
     </div>
   );
