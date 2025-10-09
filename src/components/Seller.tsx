@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import Button from './Button';
+import videoSrc from '../assets/last.mp4';
 
 type FormData = {
   email: string;
@@ -396,7 +397,7 @@ const Seller: React.FC = () => {
       {showVideo ? (
         <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
           <video
-            src="/src/assets/last.mp4"
+            src={videoSrc}
             autoPlay
             muted
             ref={video => {
