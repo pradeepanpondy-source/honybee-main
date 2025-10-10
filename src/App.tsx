@@ -18,6 +18,8 @@ import LoginScreen from "./components/LoginScreen";
 import SignUpScreen from "./components/SignUpScreen";
 import { CartProvider } from "./context/CartContext";
 
+const sellerBackground = 'https://media.istockphoto.com/id/1669258600/vector/illustration-of-delicious-melted-chocolate-on-white-background.jpg?s=612x612&w=0&k=20&c=oykGVJHBjHuevHVi2GE8jFmCe0EpX2unEfhMPCFFeik=';
+
 function AppRoutes() {
   return (
     <Routes>
@@ -31,7 +33,7 @@ function AppRoutes() {
       <Route path="/cart" element={<PageLayout><CartPage /></PageLayout>} />
       <Route path="/checkout" element={<PageLayout><Checkout /></PageLayout>} />
       <Route path="/profile" element={<PageLayout><Profile /></PageLayout>} />
-      <Route path="/seller" element={<PageLayout><Seller /></PageLayout>} />
+      <Route path="/seller" element={<PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout>} />
       <Route path="/subscription" element={<PageLayout><Subscription /></PageLayout>} />
       <Route path="/settings" element={<PageLayout><Settings /></PageLayout>} />
     </Routes>

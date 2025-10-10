@@ -72,13 +72,7 @@ const CartPage: React.FC = () => {
     }));
   };
 
-  const renderExpressCheckout = () => (
-    <div className="flex space-x-4 mb-6">
-      <button className="flex-1 bg-purple-700 text-white py-3 rounded hover:bg-purple-800 transition">Shop Pay</button>
-      <button className="flex-1 bg-black text-white py-3 rounded hover:opacity-90 transition">Apple Pay</button>
-      <button className="flex-1 bg-yellow-400 text-black py-3 rounded hover:opacity-90 transition">PayPal</button>
-    </div>
-  );
+  const renderExpressCheckout = () => null;
 
   const renderContactInformation = () => (
     <div>
@@ -246,14 +240,8 @@ const CartPage: React.FC = () => {
           <span>₹{discountedTotal.toFixed(2)}</span>
         </p>
       </div>
-      <div className="flex justify-between space-x-4 mb-4">
-        <button className="flex-1 bg-white border border-gray-300 rounded flex items-center justify-center py-3 hover:bg-gray-100 transition">
-          <img src="https://play-lh.googleusercontent.com/HArtbyi53u0jnqhnnxkQnMx9dHOERNcprZyKnInd2nrfM7Wd9ivMNTiz7IJP6-mSpwk" alt="Google Pay" className="h-12 w-auto" />
-        </button>
-        <button className="flex-1 bg-white border border-gray-300 rounded flex items-center justify-center py-3 hover:bg-gray-100 transition">
-          <img src="https://www.hindustantimes.com/ht-img/img/2025/08/14/550x309/UPI_rules_changing_from_October_1_1755140660264_1755140670456.jpeg" alt="UPI Pay" className="h-12 w-auto" />
-        </button>
-        <button className="flex-1 bg-white border border-gray-300 rounded flex items-center justify-center py-3 hover:bg-gray-100 transition">
+      <div className="flex justify-center mb-4">
+        <button className="bg-white border border-gray-300 rounded flex items-center justify-center py-3 px-6 hover:bg-gray-100 transition">
           <img src="https://5.imimg.com/data5/SELLER/Default/2023/9/348603242/KE/OR/XP/29083784/razorpay-software-250x250.png" alt="Razorpay" className="h-16 w-auto" />
         </button>
       </div>

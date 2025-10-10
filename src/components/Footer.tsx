@@ -1,4 +1,4 @@
-import React from 'react';
+ import React from 'react';
 import { Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
@@ -58,7 +58,7 @@ const Footer: React.FC = () => {
             </a>
           </div>
           <div className="text-gray-400 text-sm mt-4 md:mt-0">
-            © 2007-2025 Bee Bridge.com
+            © 2025 Bee Bridge.com
           </div>
       </div>
     </footer>

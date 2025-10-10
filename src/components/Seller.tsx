@@ -120,7 +120,6 @@ const Seller: React.FC = () => {
 
   const renderOptionButtons = () => (
     <div className="max-w-4xl mx-auto p-6 text-center">
-      <h2 className="text-3xl font-bold text-honeybee-primary mb-8">Choose an option</h2>
       <div className="flex justify-center gap-8">
         <button
           onClick={() => {
@@ -383,7 +382,7 @@ const Seller: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <h1 className="text-center font-semibold text-lg mb-4">Register as a Seller</h1>
       {showVideo ? (
         <div className="fixed inset-0 flex items-center justify-center z-50">

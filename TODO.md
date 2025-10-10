@@ -1,11 +1,4 @@
-- [x] Restructure Seller.tsx with step-based flow
-- [x] Create options page with "Sell Honey" and "Sell Bee Hive" buttons
-- [x] Create application form for honey selling
-- [x] Create application form for beehive selling
-- [x] Implement file upload functionality
-- [x] Remove framer-motion dependency and replace animations with plain CSS
-- [x] Update color scheme to bright and modern palette
-- [x] Add gradient backgrounds and modern design elements
-- [x] Enhance HomeScreen with vibrant styling and improved buttons
-- [x] Update SignUpScreen with glass effect and modern shadows
-- [x] Modernize Button component with gradients and hover effects
+- [x] Keep original homepage content (Bee Bridge hero and Farmers section)
+- [x] Add Featured Products section: Headline, description, placeholder for products
+- [x] Add Our Story section: 100-word content on sustainable sourcing and care
+- [x] Ensure smooth flow with transitional phrases and warm tone
