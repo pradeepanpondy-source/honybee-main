@@ -74,7 +74,7 @@ export default function HomeScreen() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
             <video
-              src="src/assets/cart-animated-icon-gif-download-10270594.mp4"
+              src="/assets/cart-animated-icon-gif-download-10270594.mp4"
               autoPlay
               loop
               muted
@@ -86,7 +86,7 @@ export default function HomeScreen() {
               </svg>
             </div>
             <video
-              src="src/assets/payment-complete-animation-gif-download-4281059.mp4"
+              src="/assets/payment-complete-animation-gif-download-4281059.mp4"
               autoPlay
               loop
               muted
@@ -98,7 +98,7 @@ export default function HomeScreen() {
               </svg>
             </div>
             <video
-              src="src/assets/delivery-animation-gif-download-3434735.mp4"
+              src="/assets/delivery-animation-gif-download-3434735.mp4"
               autoPlay
               loop
               muted
@@ -110,7 +110,7 @@ export default function HomeScreen() {
               </svg>
             </div>
             <video
-              src="src/assets/2.mp4"
+              src="/assets/2.mp4"
               autoPlay
               loop
               muted
