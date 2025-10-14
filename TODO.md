@@ -1,20 +1,7 @@
-pl# TODO: Fix Seller Application Submission and Display
+# TODO: Fix Google Login Issues
 
-## Steps to Complete
-
-- [x] Create firestore.rules file with rules allowing authenticated users to read/write their own 'application' documents.
-- [x] Create firebase.json for Firebase CLI deployment configuration.
-- [x] Update src/components/Seller.tsx to improve error handling for permissions errors.
-- [x] Update src/components/Applications.tsx to fetch and display real application data from Firestore instead of mock data.
-- [x] Add rules for 'profile' collection to allow profile saving with specific doc ID.
-- [x] Update src/components/Profile.tsx to save to 'profile' collection with doc ID 'oKBVdiB6yR4iiwacSWah'.
-- [x] Deploy updated rules to beebridge project.
-- [x] Test submission after rules deployment.
-- [x] Test dashboard display of application data.
-- [ ] Test profile saving functionality.
-
-## Notes
-- Deploy rules using `firebase deploy --only firestore:rules` after CLI setup.
-- Ensure Firebase CLI is installed: `npm install -g firebase-tools` and `firebase login`.
-- Focus on permissions fix first, then data display.
-Missing or insufficient permissions. Please ensure you are signed in and try again.Missing or insufficient permissions. Please ensure you are signed in and try again.
+- [x] Improve error handling in `src/hooks/useAuth.ts` to provide specific error messages for Google login failures
+- [x] Update `src/components/LoginScreen.tsx` to display error messages instead of generic alert
+- [x] Update `src/components/SignUpScreen.tsx` to display error messages instead of generic alert
+- [x] Test the app locally to verify Google login works (app running at http://localhost:5173/)
+- [ ] If issues persist, check Firebase console for Google sign-in enablement and authorized domains

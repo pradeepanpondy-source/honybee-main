@@ -19,9 +19,18 @@ export const useAuth = () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       return result.user;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error signing in with Google:', error);
-      throw error;
+      const firebaseError = error as { code?: string };
+      if (firebaseError.code === 'auth/popup-blocked') {
+        throw new Error('Popup was blocked by the browser. Please allow popups for this site and try again.');
+      } else if (firebaseError.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was canceled. Please try again.');
+      } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+        throw new Error('Another sign-in popup is already open. Please close it and try again.');
+      } else {
+        throw new Error('Google sign-in failed. Please check your internet connection and try again.');
+      }
     }
   };
 

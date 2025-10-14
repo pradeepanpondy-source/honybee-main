@@ -10,6 +10,7 @@ const SignUpScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { signInWithGoogle } = useAuth();
 
@@ -101,15 +102,22 @@ const SignUpScreen: React.FC = () => {
             <span className="mx-4 text-gray-400 text-sm">Or continue with</span>
             <hr className="flex-grow border-gray-300" />
           </div>
+          {error && (
+            <div className="text-red-500 text-sm text-center mb-4">
+              {error}
+            </div>
+          )}
           <div className="flex justify-center">
             <Button
               onClick={async () => {
+                setError(null);
                 try {
                   await signInWithGoogle();
                   setLoading(true);
                   setTimeout(() => navigate('/home'), 2500);
-                } catch {
-                  alert('Google login failed. Please try again.');
+                } catch (err: unknown) {
+                  const errorMessage = err instanceof Error ? err.message : 'Google login failed. Please try again.';
+                  setError(errorMessage);
                 }
               }}
               variant="light"
