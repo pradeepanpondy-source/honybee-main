@@ -11,6 +11,7 @@ import CartPage from "./components/CartPage";
 import Checkout from "./components/Checkout";
 import Profile from "./components/Profile";
 import Seller from "./components/Seller";
+import Applications from "./components/Applications";
 import Subscription from "./components/Subscription";
 import Settings from "./components/Settings";
 import PageLayout from "./components/PageLayout";
@@ -34,6 +35,7 @@ function AppRoutes() {
       <Route path="/checkout" element={<PageLayout><Checkout /></PageLayout>} />
       <Route path="/profile" element={<PageLayout><Profile /></PageLayout>} />
       <Route path="/seller" element={<PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout>} />
+      <Route path="/applications" element={<PageLayout><Applications /></PageLayout>} />
       <Route path="/subscription" element={<PageLayout><Subscription /></PageLayout>} />
       <Route path="/settings" element={<PageLayout><Settings /></PageLayout>} />
     </Routes>

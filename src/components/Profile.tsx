@@ -34,7 +34,7 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
-        const docRef = doc(db, 'users', user.uid);
+        const docRef = doc(db, 'profile', 'oKBVdiB6yR4iiwacSWah');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as ProfileData;
@@ -88,15 +88,19 @@ const Profile: React.FC = () => {
     }
 
     try {
-      const docRef = doc(db, 'users', user.uid);
+      const docRef = doc(db, 'profile', 'oKBVdiB6yR4iiwacSWah');
       console.log('Saving profile data:', tempProfile);
       await setDoc(docRef, tempProfile, { merge: true });
       setProfile(tempProfile);
       setIsEditing(false);
       alert('Profile saved successfully!');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error saving profile:', error);
-      alert('Failed to save profile.');
+      if (error instanceof Error && 'code' in error && error.code === 'permission-denied') {
+        alert('Missing or insufficient permissions. Please ensure you are signed in and try again.');
+      } else {
+        alert('Failed to save profile. Please try again.');
+      }
     }
   };
 

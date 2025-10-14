@@ -1,5 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { db } from '../firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import Button from './Button';
 import videoSrc from '../assets/last.mp4';
 
@@ -9,15 +13,15 @@ type FormData = {
   password: string;
   confirmPassword: string;
   country: string;
-  profileUrl: string;
+  profilePic: File | null;
   acceptTerms: boolean;
   city: string;
   state: string;
   zip: string;
   countryCode: string;
-  formattedEmail: string;
   phone: string;
-  websiteUrl: string;
+  idProof: File | null;
+  sellerType: string;
 };
 
 const initialFormData: FormData = {
@@ -26,22 +30,50 @@ const initialFormData: FormData = {
   password: '',
   confirmPassword: '',
   country: '',
-  profileUrl: '',
+  profilePic: null,
   acceptTerms: false,
   city: '',
   state: '',
   zip: '',
   countryCode: '',
-  formattedEmail: '',
   phone: '',
-  websiteUrl: '',
+  idProof: null,
+  sellerType: '',
 };
 
 const Seller: React.FC = () => {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [sellerType, setSellerType] = useState<string>('');
   // Removed unused selectedOption state to fix eslint error
   const [showVideo, setShowVideo] = useState(false);
+  const [hasApplied, setHasApplied] = useState<boolean | null>(null);
+
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkApplication = async () => {
+      if (user) {
+        try {
+          const docRef = doc(db, 'sellerApplications', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setHasApplied(true);
+            navigate('/applications');
+          } else {
+            setHasApplied(false);
+          }
+        } catch (error) {
+          console.error('Error checking application:', error);
+          setHasApplied(false);
+        }
+      } else {
+        setHasApplied(false);
+      }
+    };
+    checkApplication();
+  }, [user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -49,6 +81,16 @@ const Seller: React.FC = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0],
+      }));
+    }
   };
 
   const nextStep = () => {
@@ -59,9 +101,52 @@ const Seller: React.FC = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you can add form validation and submission logic
+
+    if (step === 3) {
+      // Final submission
+      if (!user) {
+        alert('Please sign in to submit the application.');
+        navigate('/login');
+        return;
+      }
+
+      if (!sellerType) {
+        alert('Please select a seller type (Honey or Bee Hive).');
+        return;
+      }
+
+      // Basic validation
+      if (!formData.email || !formData.name || !formData.acceptTerms) {
+        alert('Please fill all required fields and accept terms.');
+        return;
+      }
+
+      try {
+        // Exclude files and sensitive fields; handle files via Storage if needed
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+        const { profilePic: _profilePic, idProof: _idProof, password: _password, confirmPassword: _confirmPassword, ...data } = formData;
+        const submissionData = { ...data, sellerType, submittedAt: new Date() };
+        console.log('Submitting data:', submissionData);
+        console.log('User UID:', user.uid);
+        await setDoc(doc(db, 'sellerApplications', user.uid), submissionData, { merge: true });
+        alert('Application submitted successfully!');
+        navigate('/applications');
+      } catch (error: unknown) {
+        console.error('Error submitting application:', error);
+        let errorMessage = 'Unknown error';
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'permission-denied') {
+          errorMessage = 'Missing or insufficient permissions. Please ensure you are signed in and try again.';
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        alert(`Failed to submit application: ${errorMessage}. Please try again.`);
+      }
+      return;
+    }
+
+    // Here you can add form validation and submission logic for intermediate steps
     nextStep();
   };
 
@@ -123,6 +208,12 @@ const Seller: React.FC = () => {
       <div className="flex justify-center gap-8">
         <button
           onClick={() => {
+            if (!user) {
+              alert('Please sign in with Google to become a seller.');
+              navigate('/profile');
+              return;
+            }
+            setSellerType('honey');
             setShowVideo(true);
           }}
           className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105"
@@ -131,6 +222,12 @@ const Seller: React.FC = () => {
         </button>
         <button
           onClick={() => {
+            if (!user) {
+              alert('Please sign in with Google to become a seller.');
+              navigate('/profile');
+              return;
+            }
+            setSellerType('beehive');
             setShowVideo(true);
           }}
           className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105"
@@ -191,28 +288,20 @@ const Seller: React.FC = () => {
         required
         className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
       />
-      <label className="blockmb-2 text-sm font-medium text-gray-700 flex items-center">
-        Profile URL
-        <svg
-          className="ml-1 w-4 h-4 text-blue-400"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 010 5.656m-1.414-1.414a4 4 0 015.656 0M15 12h.01M9 12h.01M12 15v.01M12 9v.01"></path>
-        </svg>
-      </label>
+      <label className="block mb-2 text-sm font-medium text-gray-700">Profile Picture</label>
       <input
-        type="text"
-        name="profileUrl"
-        placeholder="Unique Seller Profile URL handler.."
-        value={formData.profileUrl}
-        onChange={handleChange}
+        type="file"
+        name="profilePic"
+        accept="image/*"
+        onChange={handleFileChange}
         required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+        className="w-full mb-2 px-3 py-2 border rounded bg-gray-100 text-gray-700"
       />
+      {formData.profilePic && (
+        <p className="text-sm text-gray-600 mb-4">
+          File: {formData.profilePic.name} | Size: {(formData.profilePic.size / 1024).toFixed(2)} KB | Type: {formData.profilePic.type}
+        </p>
+      )}
       <label className="inline-flex items-center mb-4">
         <input
           type="checkbox"
@@ -319,15 +408,6 @@ const Seller: React.FC = () => {
   const renderContact = () => (
     <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded shadow">
       <h2 className="text-xl font-bold mb-6">Contact</h2>
-      <label className="block mb-2 text-sm font-medium text-gray-700">Formatted Email</label>
-      <input
-        type="email"
-        name="formattedEmail"
-        value={formData.formattedEmail}
-        onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
-      />
       <label className="block mb-2 text-sm font-medium text-gray-700">Phone</label>
       <input
         type="text"
@@ -337,15 +417,20 @@ const Seller: React.FC = () => {
         required
         className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
       />
-      <label className="block mb-2 text-sm font-medium text-gray-700">Website URL</label>
+      <label className="block mb-2 text-sm font-medium text-gray-700">ID Proof</label>
       <input
-        type="url"
-        name="websiteUrl"
-        value={formData.websiteUrl}
-        onChange={handleChange}
+        type="file"
+        name="idProof"
+        accept="image/*,.pdf"
+        onChange={handleFileChange}
         required
-        className="w-full mb-6 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+        className="w-full mb-2 px-3 py-2 border rounded bg-gray-100 text-gray-700"
       />
+      {formData.idProof && (
+        <p className="text-sm text-gray-600 mb-4">
+          File: {formData.idProof.name} | Size: {(formData.idProof.size / 1024).toFixed(2)} KB | Type: {formData.idProof.type}
+        </p>
+      )}
       <div className="flex justify-between items-center">
         <button
           type="button"
@@ -373,13 +458,31 @@ const Seller: React.FC = () => {
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
       </svg>
-      <h2 className="text-2xl font-bold mb-2">Successfully Submitted</h2>
-      <p className="mb-4">Your form has been successfully submitted.</p>
-      <a href="/profile" className="text-purple-700 underline">
-        Click here to view your profile.
+      <h2 className="text-2xl font-bold mb-2">Application Submitted</h2>
+      <p className="mb-4">Your seller application has been submitted successfully. You will be redirected to your dashboard shortly.</p>
+      <a href="/applications" className="text-purple-700 underline">
+        Go to Dashboard
       </a>
     </div>
   );
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!user || !user.providerData.some(provider => provider.providerId === 'google.com')) {
+    alert('Please sign in with Google to become a seller.');
+    navigate('/profile');
+    return null;
+  }
+
+  if (hasApplied === null) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (hasApplied) {
+    return null; // Already navigated to /applications
+  }
 
   return (
     <div className="min-h-screen py-12 px-4">

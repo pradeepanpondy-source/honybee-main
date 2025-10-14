@@ -1,4 +1,3 @@
- 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import fndImage from '../assets/fnd.png';
@@ -78,7 +77,7 @@ export default function HomeScreen() {
               autoPlay
               loop
               muted
-              className="w-48 h-48 bg-honeybee-light"
+              className="w-48 h-48"
             />
             <div className="mx-8">
               <svg className="w-12 h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
@@ -90,7 +89,7 @@ export default function HomeScreen() {
               autoPlay
               loop
               muted
-              className="w-48 h-48 bg-honeybee-light"
+              className="w-48 h-48"
             />
             <div className="mx-8">
               <svg className="w-12 h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
@@ -102,7 +101,7 @@ export default function HomeScreen() {
               autoPlay
               loop
               muted
-              className="w-48 h-48 bg-honeybee-light"
+              className="w-48 h-48"
             />
             <div className="mx-8">
               <svg className="w-12 h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
@@ -114,7 +113,7 @@ export default function HomeScreen() {
               autoPlay
               loop
               muted
-              className="w-48 h-48 bg-honeybee-light"
+              className="w-48 h-48"
             />
           </div>
         </div>
