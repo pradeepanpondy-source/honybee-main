@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../hooks/useAuth';
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import Button from './Button';
 import successGif from '../assets/success confetti.gif';
+import congratsGif from '../assets/congratulation.gif';
+import { Order, OrderItem } from '../types/order';
 
 const validCoupons: Record<string, number> = {
   'HONEY10': 0.10,
@@ -11,11 +16,14 @@ const validCoupons: Record<string, number> = {
 
 const Checkout: React.FC = () => {
   const { cartItems, getTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
+  const [showCongrats, setShowCongrats] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [orderId, setOrderId] = useState<string>('');
 
   const total = getTotal();
   const discountedTotal = total - (total * discount);
@@ -34,17 +42,52 @@ const Checkout: React.FC = () => {
     if (validCoupons[upperCoupon]) {
       setDiscount(validCoupons[upperCoupon]);
       setCouponError('');
+      setShowCongrats(true);
+      setTimeout(() => setShowCongrats(false), 3000);
     } else {
       setDiscount(0);
       setCouponError('Invalid coupon code');
     }
   };
 
-  const handlePlaceOrder = () => {
-    // Here you would handle order placement logic
-    setShowSuccess(true);
-    setOrderPlaced(true);
-    clearCart();
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      alert('Please sign in to place an order.');
+      return;
+    }
+
+    try {
+      const orderItems: OrderItem[] = cartItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      }));
+
+      const orderData: Omit<Order, 'id'> = {
+        userId: user.uid,
+        items: orderItems,
+        total: total,
+        discountedTotal: discount > 0 ? discountedTotal : undefined,
+        coupon: discount > 0 ? coupon.toUpperCase() : undefined,
+        discount: discount > 0 ? discount : undefined,
+        status: 'pending',
+        createdAt: new Date(),
+        customerEmail: user.email || undefined,
+        customerName: user.displayName || undefined,
+      };
+
+      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      const generatedOrderId = docRef.id;
+      setOrderId(generatedOrderId);
+
+      setShowSuccess(true);
+      setOrderPlaced(true);
+      clearCart();
+    } catch (error) {
+      console.error('Error placing order:', error);
+      alert('Failed to place order. Please try again.');
+    }
   };
 
   if (orderPlaced) {
@@ -53,12 +96,20 @@ const Checkout: React.FC = () => {
         <div className="max-w-4xl mx-auto p-6 text-center">
           <h2 className="text-3xl font-bold text-honeybee-primary mb-6">Thank you for your order!</h2>
           <p>Your order has been placed successfully.</p>
+          {orderId && (
+            <p className="text-lg mt-4">Order ID: <span className="font-bold">{orderId}</span></p>
+          )}
         </div>
-        {showSuccess && (
-          <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
-            <img src={successGif} alt="Success" className="w-64 h-64 object-cover" />
-          </div>
-        )}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
+          <img src={successGif} alt="Success" className="w-64 h-64 object-cover" />
+        </div>
+      )}
+      {showCongrats && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <img src={congratsGif} alt="Congratulations" className="w-96 h-96 object-cover rounded-lg shadow-2xl" />
+        </div>
+      )}
       </>
     );
   }

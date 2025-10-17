@@ -53,14 +53,19 @@ const Seller: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!loading && (!user || !user.providerData.some(provider => provider.providerId === 'google.com'))) {
+      navigate('/profile', { state: { message: 'Please sign in with Google to access your seller page.' } });
+    }
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
     const checkApplication = async () => {
-      if (user) {
+      if (user && user.providerData.some(provider => provider.providerId === 'google.com')) {
         try {
           const docRef = doc(db, 'sellerApplications', user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             setHasApplied(true);
-            navigate('/applications');
           } else {
             setHasApplied(false);
           }
@@ -73,7 +78,7 @@ const Seller: React.FC = () => {
       }
     };
     checkApplication();
-  }, [user, navigate]);
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -127,7 +132,7 @@ const Seller: React.FC = () => {
         // Exclude files and sensitive fields; handle files via Storage if needed
         /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
         const { profilePic: _profilePic, idProof: _idProof, password: _password, confirmPassword: _confirmPassword, ...data } = formData;
-        const submissionData = { ...data, sellerType, submittedAt: new Date() };
+        const submissionData = { ...data, sellerType, submittedAt: new Date(), kycVerified: false };
         console.log('Submitting data:', submissionData);
         console.log('User UID:', user.uid);
         await setDoc(doc(db, 'sellerApplications', user.uid), submissionData, { merge: true });
@@ -466,22 +471,31 @@ const Seller: React.FC = () => {
     </div>
   );
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  if (!user || !user.providerData.some(provider => provider.providerId === 'google.com')) {
-    alert('Please sign in with Google to become a seller.');
-    navigate('/profile');
-    return null;
-  }
-
-  if (hasApplied === null) {
+  if (loading || hasApplied === null) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (hasApplied) {
-    return null; // Already navigated to /applications
+    if (!showVideo) {
+      setShowVideo(true);
+    }
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <video
+          src={videoSrc}
+          autoPlay
+          muted
+          preload="auto"
+          ref={video => {
+            if (video) {
+              video.playbackRate = 0.7;
+            }
+          }}
+          onEnded={() => navigate('/applications')}
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
   }
 
   return (

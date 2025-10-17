@@ -23,7 +23,7 @@ const Home: React.FC<HomeProps> = ({ onGoToShop, nextStep }) => {
         <div className="relative z-10 max-w-7xl w-full flex flex-col md:flex-row items-center justify-between">
           <div className="text-left max-w-lg">
             <h1 className="text-6xl font-bold text-honeybee-dark-brown mb-6 leading-tight font-serif">
-              <LetterWave text="Pure Organic Honey" className="text-6xl font-serif font-bold leading-tight" />
+              <LetterWave text="Bee Bridge" className="text-6xl font-serif font-bold leading-tight" />
             </h1>
             <p className="text-honeybee-dark-brown mb-6 font-sans">
               Discover the finest selection of artisanal honey, harvested with care from sustainable apiaries around the world.
@@ -69,7 +69,7 @@ const Home: React.FC<HomeProps> = ({ onGoToShop, nextStep }) => {
           </div>
           <div className="max-w-4xl mx-auto text-center">
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              At Honybee, our journey began with a deep appreciation for the delicate balance of nature and the hardworking bees that produce nature's golden elixir. We source our honey from sustainable apiaries across the globe, partnering with passionate beekeepers who prioritize environmental stewardship and ethical practices. Each harvest is done with care and love, ensuring that our products not only delight the senses but also support biodiversity and local communities. From the sun-drenched meadows of Europe to the wild landscapes of North America, our commitment to purity and sustainability shines through in every jar. Join us in savoring the authentic taste of organic honey, harvested with respect for the earth and its pollinators.
+              At Bee Bridge, our journey began with a deep appreciation for the delicate balance of nature and the hardworking bees that produce nature's golden elixir.
             </p>
             <p className="text-lg text-gray-700 leading-relaxed">
               As you explore our collection, you'll feel the warmth of our dedication to quality and the joy of connecting with nature's bounty. We're more than just a marketplace; we're a community united by the love of honey and the bees that make it possible.

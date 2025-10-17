@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { cartItems } = useCart();
+  const { user, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -35,29 +38,77 @@ export default function Navigation() {
             >
               Home
             </Link>
-            <Link
-              to="/shop"
+            <button
+              onClick={async () => {
+                if (!user) {
+                  navigate('/profile', { state: { message: 'Please sign in with Google to access the shop.' } });
+                  return;
+                }
+                if (!user.providerData.some(provider => provider.providerId === 'google.com')) {
+                  navigate('/profile', { state: { message: 'Please sign in with Google to access the shop.' } });
+                  return;
+                }
+                // Request location access
+                if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(
+                    () => {
+                      // Location access granted, proceed to shop
+                      navigate('/shop');
+                    },
+                    (error) => {
+                      console.error('Error getting location:', error);
+                      alert('Location access denied. Please enable location services to access the shop.');
+                    }
+                  );
+                } else {
+                  alert('Geolocation is not supported by this browser.');
+                }
+              }}
               className={`font-medium ${location.pathname === '/shop' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Shop
-            </Link>
+            </button>
             <Link
               to="/about"
               className={`font-medium ${location.pathname === '/about' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               About
             </Link>
+            <button
+              onClick={async () => {
+                if (!user) {
+                  navigate('/profile', { state: { message: 'Please sign in with Google to access your seller page.' } });
+                  return;
+                }
+                if (!user.providerData.some(provider => provider.providerId === 'google.com')) {
+                  navigate('/profile', { state: { message: 'Please sign in with Google to access your seller page.' } });
+                  return;
+                }
+                // Request location access
+                if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(
+                    () => {
+                      // Location access granted, proceed to seller
+                      navigate('/seller');
+                    },
+                    (error) => {
+                      console.error('Error getting location:', error);
+                      alert('Location access denied. Please enable location services to access the seller page.');
+                    }
+                  );
+                } else {
+                  alert('Geolocation is not supported by this browser.');
+                }
+              }}
+              className={`font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+            >
+              Seller
+            </button>
             <Link
               to="/contact"
               className={`font-medium ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Contact
-            </Link>
-            <Link
-              to="/seller"
-              className={`font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
-            >
-              Seller
             </Link>
             <Link
               to="/subscription"
@@ -92,8 +143,7 @@ export default function Navigation() {
                 <button
                   className="block w-full text-left px-4 py-2 text-honeybee-dark hover:bg-honeybee-light"
                   onClick={() => {
-                    // Clear any auth tokens or user data here if applicable
-                    // Redirect to login page
+                    logout();
                     window.location.href = '/';
                   }}
                 >
@@ -141,18 +191,18 @@ export default function Navigation() {
               About
             </Link>
             <Link
-              to="/contact"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Contact
-            </Link>
-            <Link
               to="/seller"
               className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Seller
+            </Link>
+            <Link
+              to="/contact"
+              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Contact
             </Link>
             <Link
               to="/subscription"

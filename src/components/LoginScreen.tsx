@@ -14,6 +14,7 @@ const LoginScreen: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Guest login - navigate to home without authentication
     navigate('/home');
   };
 
@@ -71,13 +72,7 @@ const LoginScreen: React.FC = () => {
               </Button>
             </div>
           </form>
-          <Button
-            onClick={() => navigate('/home')}
-            variant="primary"
-            className="mt-4 w-full"
-          >
-            Continue as Guest
-          </Button>
+
           <div className="mt-4 text-center">
             <span className="text-gray-600 text-sm">
               Don't have an account?{' '}

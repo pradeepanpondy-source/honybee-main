@@ -8,7 +8,7 @@ const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-honeybee-background flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-        <h1 className="text-4xl font-serif font-bold text-honeybee-secondary mb-6">
+          <h1 className="text-4xl font-serif font-bold text-honeybee-secondary mb-6">
           <LetterWave text="Bee Bridge" animationDelayStep={0.1} />
         </h1>
         <p className="text-honeybee-dark-brown mb-8">

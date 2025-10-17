@@ -1,7 +1,7 @@
-# TODO: Fix Google Login Issues
+# TODO: Implement Order System
 
-- [x] Improve error handling in `src/hooks/useAuth.ts` to provide specific error messages for Google login failures
-- [x] Update `src/components/LoginScreen.tsx` to display error messages instead of generic alert
-- [x] Update `src/components/SignUpScreen.tsx` to display error messages instead of generic alert
-- [x] Test the app locally to verify Google login works (app running at http://localhost:5173/)
-- [ ] If issues persist, check Firebase console for Google sign-in enablement and authorized domains
+- [ ] Create Order interface/type in a types file or in relevant components
+- [ ] Modify Checkout component to save order to Firestore with unique ID when order is placed
+- [ ] Create OrderSummary component for displaying order bill
+- [x] Update Applications dashboard to fetch and display real orders from Firestore
+- [x] Test order placement and display in dashboard

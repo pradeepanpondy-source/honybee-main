@@ -127,16 +127,7 @@ const SignUpScreen: React.FC = () => {
               <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5" />
             </Button>
           </div>
-          <Button
-            onClick={() => {
-              setLoading(true);
-              setTimeout(() => navigate('/home'), 2500);
-            }}
-            variant="primary"
-            className="mt-6 w-full"
-          >
-            Continue as Guest
-          </Button>
+
           <div className="mt-4 text-center">
             <span className="text-gray-600 text-sm">
               Already have an account?{' '}

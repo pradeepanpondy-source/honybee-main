@@ -1,12 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { db, storage } from '../firebase';
+import { doc, getDoc, collection, query, getDocs, orderBy, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Order } from '../types/order';
+import VerificationVideo from '../assets/Verification - ID Card & Face Scan.webm';
+
 
 const Applications: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [hasApplication, setHasApplication] = useState<boolean | null>(null);
+  const [kycVerified, setKycVerified] = useState(false);
+  const [showKycPopup, setShowKycPopup] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [totalSales, setTotalSales] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [activeProducts, setActiveProducts] = useState(0);
+  const [kycFormData, setKycFormData] = useState({
+    idType: 'Adhaar' as 'Adhaar' | 'Passport',
+    idNumber: '',
+    address: '',
+    pincode: '',
+    frontSide: null as File | null,
+    backSide: null as File | null,
+  });
+
+  const handleKycSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    try {
+      let frontUrl = '';
+      let backUrl = '';
+
+      if (kycFormData.frontSide) {
+        const frontRef = ref(storage, `kyc/${user.uid}/front_${kycFormData.frontSide.name}`);
+        await uploadBytes(frontRef, kycFormData.frontSide);
+        frontUrl = await getDownloadURL(frontRef);
+      }
+
+      if (kycFormData.backSide) {
+        const backRef = ref(storage, `kyc/${user.uid}/back_${kycFormData.backSide.name}`);
+        await uploadBytes(backRef, kycFormData.backSide);
+        backUrl = await getDownloadURL(backRef);
+      }
+
+      const docRef = doc(db, 'sellerApplications', user.uid);
+      await updateDoc(docRef, {
+        kycVerified: true,
+        kycData: {
+          idType: kycFormData.idType,
+          idNumber: kycFormData.idNumber,
+          address: kycFormData.address,
+          pincode: kycFormData.pincode,
+          frontSideUrl: frontUrl,
+          backSideUrl: backUrl,
+        },
+      });
+
+      setKycVerified(true);
+      alert('KYC submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting KYC:', error);
+      alert('Error submitting KYC. Please try again.');
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -14,7 +75,13 @@ const Applications: React.FC = () => {
         try {
           const docRef = doc(db, 'sellerApplications', user.uid);
           const docSnap = await getDoc(docRef);
-          setHasApplication(docSnap.exists());
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setHasApplication(true);
+            setKycVerified(data.kycVerified || false);
+          } else {
+            setHasApplication(false);
+          }
         } catch (error) {
           console.error('Error checking application:', error);
           setHasApplication(false);
@@ -23,6 +90,34 @@ const Applications: React.FC = () => {
         }
       };
       checkApplication();
+
+      // Fetch orders for the seller
+      const fetchOrders = async () => {
+        try {
+          const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+          const querySnapshot = await getDocs(q);
+          const ordersData: Order[] = [];
+          let sales = 0;
+          let orderCount = 0;
+          const productSet = new Set<string>();
+
+          querySnapshot.forEach((doc) => {
+            const order = { id: doc.id, ...doc.data() } as Order;
+            ordersData.push(order);
+            sales += order.total || 0;
+            orderCount += 1;
+            order.items.forEach(item => productSet.add(item.id.toString()));
+          });
+
+          setOrders(ordersData);
+          setTotalSales(sales);
+          setTotalOrders(orderCount);
+          setActiveProducts(productSet.size);
+        } catch (error) {
+          console.error('Error fetching orders:', error);
+        }
+      };
+      fetchOrders();
     } else {
       setLoading(false);
       setHasApplication(false);
@@ -39,7 +134,7 @@ const Applications: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-6">Seller Dashboard</h1>
           <div className="bg-white rounded-lg shadow p-8">
-            <p className="text-lg text-gray-600 mb-4">Please sign in to access your seller dashboard.</p>
+            <p className="text-lg text-gray-600 mb-4">Please sign in with Google to access your seller dashboard.</p>
             <a href="/profile" className="text-purple-700 underline">Go to Sign In</a>
           </div>
         </div>
@@ -48,17 +143,7 @@ const Applications: React.FC = () => {
   }
 
   if (!hasApplication) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">Seller Dashboard</h1>
-          <div className="bg-white rounded-lg shadow p-8">
-            <p className="text-lg text-gray-600 mb-4">You haven't submitted a seller application yet.</p>
-            <a href="/seller" className="text-purple-700 underline">Apply to become a seller</a>
-          </div>
-        </div>
-      </div>
-    );
+    return null; // Redirect handled by Seller component
   }
 
   // Dashboard for approved sellers - Replicated from provided image
@@ -70,65 +155,60 @@ const Applications: React.FC = () => {
           <h2 className="text-xl font-bold text-purple-700">HoneyBee</h2>
         </div>
         <nav className="mt-4">
-          <a href="#" className="flex items-center px-4 py-2 text-gray-700 bg-gray-100 rounded">
+          <button onClick={() => navigate('/seller')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
+            <span className="mr-3">🏪</span> Seller
+          </button>
+          <button onClick={() => navigate('/applications')} className="flex items-center px-4 py-2 text-gray-700 bg-gray-100 rounded">
             <span className="mr-3">📊</span> Dashboard
-          </a>
-          <a href="#" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
+          </button>
+          <button onClick={() => navigate('/earnings')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
             <span className="mr-3">💰</span> Earnings
-          </a>
-          <a href="#" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
+          </button>
+          <button onClick={() => navigate('/orders')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
             <span className="mr-3">🛒</span> Orders
-          </a>
-          <a href="#" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
+          </button>
+          <button onClick={() => navigate('/analytics')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
             <span className="mr-3">📈</span> Analytics
-          </a>
-          <a href="#" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
+          </button>
+          <button onClick={() => navigate('/products')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
             <span className="mr-3">📦</span> Products
-          </a>
-          <a href="#" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
+          </button>
+          <button onClick={() => navigate('/settings')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
             <span className="mr-3">⚙️</span> Settings
-          </a>
-          <a href="#" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
+          </button>
+          <button onClick={async () => { await logout(); navigate('/'); }} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
             <span className="mr-3">🚪</span> Logout
-          </a>
+          </button>
         </nav>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-white shadow p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
-            </div>
-            <div className="relative">
-              <button className="p-2 text-gray-600 hover:text-gray-900">
-                🔔
-              </button>
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-            </div>
-            <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-              {user?.email?.charAt(0).toUpperCase()}
-            </div>
-          </div>
-        </header>
-
         {/* Main Area */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+          {!kycVerified && (
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold">KYC Verification Required</p>
+                  <p>Please complete your KYC verification to unlock all features.</p>
+                </div>
+                <button
+                  onClick={() => setShowKycPopup(true)}
+                  className="bg-red-200 text-red-800 px-4 py-2 rounded hover:bg-red-300"
+                >
+                  Complete KYC
+                </button>
+              </div>
+            </div>
+          )}
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Selling Price</p>
-                  <p className="text-2xl font-bold text-gray-900">$2,110</p>
+                  <p className="text-sm font-medium text-gray-600">Total Sales</p>
+                  <p className="text-2xl font-bold text-gray-900">${totalSales.toFixed(2)}</p>
                 </div>
                 <div className="p-2 bg-green-100 rounded-full">
                   <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,12 +221,12 @@ const Applications: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Avg Click Price</p>
-                  <p className="text-2xl font-bold text-gray-900">$1,912</p>
+                  <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
                 </div>
-                <div className="p-2 bg-red-100 rounded-full">
-                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
               </div>
@@ -155,12 +235,12 @@ const Applications: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Impressions</p>
-                  <p className="text-2xl font-bold text-gray-900">20,182</p>
+                  <p className="text-sm font-medium text-gray-600">Active Products</p>
+                  <p className="text-2xl font-bold text-gray-900">{activeProducts}</p>
                 </div>
-                <div className="p-2 bg-red-100 rounded-full">
-                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                <div className="p-2 bg-purple-100 rounded-full">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
               </div>
@@ -245,39 +325,165 @@ const Applications: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#001</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Honey Jar - 500g</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mar 15, 2023</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">John Doe</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#002</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Bee Hive Kit</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mar 14, 2023</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Jane Smith</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#003</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Royal Jelly</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Cancelled</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mar 13, 2023</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Bob Johnson</td>
-                  </tr>
+                  {orders.length > 0 ? (
+                    orders.map((order) => (
+                      <tr key={order.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id.slice(-4)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {order.items.map(item => item.name).join(', ')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {order.customerName || order.customerEmail || 'N/A'}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                        No orders found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         </main>
       </div>
+
+      {/* KYC Popup */}
+      {showKycPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-7xl w-full mx-4 max-h-[90vh] overflow-hidden flex">
+            {/* Video Side */}
+            <div className="w-1/2 p-8 flex items-center justify-center">
+              <video
+                src={VerificationVideo}
+                autoPlay
+                loop
+                muted
+                className="w-80 h-80 object-contain rounded-lg"
+              />
+            </div>
+            {/* Form Side */}
+            <div className="w-1/2 p-8 overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-800">KYC Verification</h1>
+                <button
+                  onClick={() => setShowKycPopup(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <form onSubmit={handleKycSubmit} className="space-y-6">
+                <div>
+                  <div className="flex space-x-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setKycFormData({ ...kycFormData, idType: 'Adhaar' })}
+                      className={`flex-1 py-2 px-4 rounded-md border ${kycFormData.idType === 'Adhaar' ? 'bg-purple-100 border-purple-500 text-purple-700' : 'border-gray-300 text-gray-700'}`}
+                    >
+                      Adhaar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setKycFormData({ ...kycFormData, idType: 'Passport' })}
+                      className={`flex-1 py-2 px-4 rounded-md border ${kycFormData.idType === 'Passport' ? 'bg-purple-100 border-purple-500 text-purple-700' : 'border-gray-300 text-gray-700'}`}
+                    >
+                      Passport
+                    </button>
+                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Enter ID Number</label>
+                  <input
+                    type="text"
+                    value={kycFormData.idNumber}
+                    onChange={(e) => setKycFormData({ ...kycFormData, idNumber: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="Enter your ID number"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">We will only store the last 4 digits of your ID proof</p>
+                </div>
+
+
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Address (Same as in KYC document)</label>
+                  <textarea
+                    value={kycFormData.address}
+                    onChange={(e) => setKycFormData({ ...kycFormData, address: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                    rows={3}
+                    placeholder="Enter your address"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">The address details should match with the uploaded KYC. Mismatch leads to shipment return as per customs regulations.</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
+                  <input
+                    type="text"
+                    value={kycFormData.pincode}
+                    onChange={(e) => setKycFormData({ ...kycFormData, pincode: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="Enter pincode"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Upload ID</label>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">Upload Front Side</label>
+                      <input
+                        type="file"
+                        onChange={(e) => setKycFormData({ ...kycFormData, frontSide: e.target.files ? e.target.files[0] : null })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                        accept="image/*,.pdf"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG, PDF (1MB Max)</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">Upload Back Side</label>
+                      <input
+                        type="file"
+                        onChange={(e) => setKycFormData({ ...kycFormData, backSide: e.target.files ? e.target.files[0] : null })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                        accept="image/*,.pdf"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">PNG, JPG, PDF (1MB Max)</p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-purple-700 text-white py-3 px-4 rounded-md hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 font-medium"
+                >
+                  Verify
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

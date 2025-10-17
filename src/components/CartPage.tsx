@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import Button from './Button';
+import congratsGif from '../assets/congratulation.gif';
 
 const CartPage: React.FC = () => {
   const { cartItems, getTotal } = useCart();
@@ -8,6 +9,7 @@ const CartPage: React.FC = () => {
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
+  const [showCongrats, setShowCongrats] = useState(false);
   const [contactInfo, setContactInfo] = useState({ email: '', signUp: false });
   const [shippingAddress, setShippingAddress] = useState({
     firstName: '',
@@ -37,6 +39,8 @@ const CartPage: React.FC = () => {
     if (validCoupons[upperCoupon]) {
       setDiscount(validCoupons[upperCoupon]);
       setCouponError('');
+      setShowCongrats(true);
+      setTimeout(() => setShowCongrats(false), 3000);
     } else {
       setDiscount(0);
       setCouponError('Invalid coupon code');
@@ -294,28 +298,35 @@ const CartPage: React.FC = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div className="md:col-span-2 bg-white rounded-lg shadow-lg p-6">
-        <nav className="text-sm mb-6">
-          <ol className="list-reset flex text-gray-600 space-x-2">
-            <li>Cart {'>'}</li>
-            <li className={step === 1 ? 'font-bold' : ''}>Information {'>'}</li>
-            <li className={step === 2 ? 'font-bold' : ''}>Shipping {'>'}</li>
-            <li className={step === 3 ? 'font-bold' : ''}>Payment</li>
-          </ol>
-        </nav>
-        {step === 1 && (
-          <>
-            {renderExpressCheckout()}
-            <hr className="my-4" />
-            {renderContactInformation()}
-          </>
-        )}
-        {step === 2 && renderShippingAddress()}
-        {step === 3 && renderPayment()}
+    <>
+      <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 bg-white rounded-lg shadow-lg p-6">
+          <nav className="text-sm mb-6">
+            <ol className="list-reset flex text-gray-600 space-x-2">
+              <li>Cart {'>'}</li>
+              <li className={step === 1 ? 'font-bold' : ''}>Information {'>'}</li>
+              <li className={step === 2 ? 'font-bold' : ''}>Shipping {'>'}</li>
+              <li className={step === 3 ? 'font-bold' : ''}>Payment</li>
+            </ol>
+          </nav>
+          {step === 1 && (
+            <>
+              {renderExpressCheckout()}
+              <hr className="my-4" />
+              {renderContactInformation()}
+            </>
+          )}
+          {step === 2 && renderShippingAddress()}
+          {step === 3 && renderPayment()}
+        </div>
+        <div className="md:col-span-1">{renderCartSummary()}</div>
       </div>
-      <div className="md:col-span-1">{renderCartSummary()}</div>
-    </div>
+      {showCongrats && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <img src={congratsGif} alt="Congratulations" className="w-96 h-96 object-cover rounded-lg shadow-2xl" />
+        </div>
+      )}
+    </>
   );
 };
 

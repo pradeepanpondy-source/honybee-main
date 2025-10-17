@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Button from './Button';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -16,6 +17,7 @@ interface ProfileData {
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
 
   const [profile, setProfile] = useState<ProfileData>({
     name: '',
@@ -128,13 +130,13 @@ const Profile: React.FC = () => {
       {!user ? (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <p className="text-center text-gray-600">
-            Please sign in with Google to access your profile.
+            {location.state?.message || 'Please sign in with Google to access your profile.'}
           </p>
         </div>
       ) : !isGoogleUser ? (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <p className="text-center text-gray-600">
-            Profile access is only available for Google users.
+            {location.state?.message || 'Profile access is only available for Google users.'}
           </p>
         </div>
       ) : isEditing ? (

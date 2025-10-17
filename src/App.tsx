@@ -12,12 +12,14 @@ import Checkout from "./components/Checkout";
 import Profile from "./components/Profile";
 import Seller from "./components/Seller";
 import Applications from "./components/Applications";
+import Orders from "./components/Orders";
 import Subscription from "./components/Subscription";
 import Settings from "./components/Settings";
 import PageLayout from "./components/PageLayout";
 import LoginScreen from "./components/LoginScreen";
 import SignUpScreen from "./components/SignUpScreen";
 import { CartProvider } from "./context/CartContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const sellerBackground = 'https://media.istockphoto.com/id/1669258600/vector/illustration-of-delicious-melted-chocolate-on-white-background.jpg?s=612x612&w=0&k=20&c=oykGVJHBjHuevHVi2GE8jFmCe0EpX2unEfhMPCFFeik=';
 
@@ -35,7 +37,8 @@ function AppRoutes() {
       <Route path="/checkout" element={<PageLayout><Checkout /></PageLayout>} />
       <Route path="/profile" element={<PageLayout><Profile /></PageLayout>} />
       <Route path="/seller" element={<PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout>} />
-      <Route path="/applications" element={<PageLayout><Applications /></PageLayout>} />
+      <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
+      <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
       <Route path="/subscription" element={<PageLayout><Subscription /></PageLayout>} />
       <Route path="/settings" element={<PageLayout><Settings /></PageLayout>} />
     </Routes>
