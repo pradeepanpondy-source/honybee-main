@@ -4,7 +4,7 @@ import Button from './Button';
 import congratsGif from '../assets/congratulation.gif';
 
 const CartPage: React.FC = () => {
-  const { cartItems, getTotal } = useCart();
+  const { cartItems, getTotal, removeFromCart } = useCart();
   const [step, setStep] = useState(1);
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -24,6 +24,8 @@ const CartPage: React.FC = () => {
     phone: '',
   });
   // Removed unused paymentMethod and orderPlaced states to fix warnings
+
+  const hasOnlySubscriptions = cartItems.every(item => item.name.includes('Subscription Plan'));
 
   const total = getTotal();
   const discountedTotal = total - (total * discount);
@@ -53,7 +55,11 @@ const CartPage: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (step < 4) setStep(step + 1);
+    if (hasOnlySubscriptions) {
+      if (step < 3) setStep(step + 1);
+    } else {
+      if (step < 4) setStep(step + 1);
+    }
   };
 
   const handleBack = () => {
@@ -101,7 +107,7 @@ const CartPage: React.FC = () => {
       </label>
       <div className="flex justify-between">
         <button onClick={handleNext} className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition">
-          Continue to shipping
+          {hasOnlySubscriptions ? 'Continue to payment' : 'Continue to shipping'}
         </button>
       </div>
     </div>
@@ -272,12 +278,25 @@ const CartPage: React.FC = () => {
         <>
           {cartItems.map(item => (
             <div key={item.id} className="flex items-center space-x-4 mb-4">
-              <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
+              {!item.name.includes('Subscription Plan') && (
+                <img src={item.image} alt={item.name} className="w-8 h-8 object-cover rounded" />
+              )}
               <div className="flex-1">
                 <p className="text-sm font-semibold">{item.name}</p>
                 <p className="text-xs text-gray-600">Quantity: {item.quantity}</p>
               </div>
-              <p className="font-semibold">₹{(parseFloat(item.price.replace(/[$₹]/g, '')) * item.quantity).toFixed(2)}</p>
+              <div className="flex flex-col items-end space-y-2">
+                <p className="font-semibold">₹{(parseFloat(item.price.replace(/[$₹]/g, '')) * item.quantity).toFixed(2)}</p>
+                <button
+                  onClick={() => removeFromCart(item.id)}
+                  className="text-red-600 hover:text-red-800 p-1"
+                  title="Delete item"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
             </div>
           ))}
           <div className="flex justify-between font-semibold border-t border-gray-300 pt-2">
@@ -305,8 +324,8 @@ const CartPage: React.FC = () => {
             <ol className="list-reset flex text-gray-600 space-x-2">
               <li>Cart {'>'}</li>
               <li className={step === 1 ? 'font-bold' : ''}>Information {'>'}</li>
-              <li className={step === 2 ? 'font-bold' : ''}>Shipping {'>'}</li>
-              <li className={step === 3 ? 'font-bold' : ''}>Payment</li>
+              {!hasOnlySubscriptions && <li className={step === 2 ? 'font-bold' : ''}>Shipping {'>'}</li>}
+              <li className={step === (hasOnlySubscriptions ? 2 : 3) ? 'font-bold' : ''}>Payment</li>
             </ol>
           </nav>
           {step === 1 && (
@@ -316,8 +335,9 @@ const CartPage: React.FC = () => {
               {renderContactInformation()}
             </>
           )}
-          {step === 2 && renderShippingAddress()}
-          {step === 3 && renderPayment()}
+          {step === 2 && !hasOnlySubscriptions && renderShippingAddress()}
+          {step === 2 && hasOnlySubscriptions && renderPayment()}
+          {step === 3 && !hasOnlySubscriptions && renderPayment()}
         </div>
         <div className="md:col-span-1">{renderCartSummary()}</div>
       </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../hooks/useAuth';
 import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import Button from './Button';
 import successGif from '../assets/success confetti.gif';
 import congratsGif from '../assets/congratulation.gif';
@@ -71,7 +71,7 @@ const Checkout: React.FC = () => {
         discountedTotal: discount > 0 ? discountedTotal : undefined,
         coupon: discount > 0 ? coupon.toUpperCase() : undefined,
         discount: discount > 0 ? discount : undefined,
-        status: 'pending',
+        status: 'completed', // Set to completed for subscription plans
         createdAt: new Date(),
         customerEmail: user.email || undefined,
         customerName: user.displayName || undefined,
@@ -80,6 +80,14 @@ const Checkout: React.FC = () => {
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       const generatedOrderId = docRef.id;
       setOrderId(generatedOrderId);
+
+      // Check if the order contains a subscription plan
+      const hasSubscription = cartItems.some(item => item.name.includes('Subscription Plan'));
+      if (hasSubscription) {
+        // Add golden batch to dashboard
+        const userDocRef = doc(db, 'users', user.uid);
+        await setDoc(userDocRef, { goldenBatch: true }, { merge: true });
+      }
 
       setShowSuccess(true);
       setOrderPlaced(true);

@@ -26,7 +26,7 @@ const Home: React.FC<HomeProps> = ({ onGoToShop, nextStep }) => {
               <LetterWave text="Bee Bridge" className="text-6xl font-serif font-bold leading-tight" />
             </h1>
             <p className="text-honeybee-dark-brown mb-6 font-sans">
-              Discover the finest selection of artisanal honey, harvested with care from sustainable apiaries around the world.
+              We're the bridge between the farmer's field, the beekeeper's hive, to the honey in your home.
             </p>
             <div className="flex space-x-4">
               <Button onClick={onGoToShop} className="bg-honeybee-dark-brown text-white px-8 py-3 rounded-lg shadow-lg hover:bg-opacity-90 transition-all">

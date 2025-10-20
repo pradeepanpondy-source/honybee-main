@@ -47,7 +47,7 @@ export default function HomeScreen() {
           </div>
 
           {/* Farmers and Consumers Section */}
-          <div className="max-w-6xl mx-auto px-4 py-12">
+          <div className="max-w-6xl mx-auto px-4 py-6">
             <h2 className="text-3xl font-bold text-honeybee-dark mb-10 text-center">Connecting Farmers and Consumers</h2>
             <div className="flex flex-col md:flex-row items-center gap-8">
               <img
@@ -65,11 +65,11 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      <div className="text-center mb-16">
+      <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-honeybee-dark mb-6 text-center">Service</h2>
       </div>
       {/* Animation Section */}
-      <section className="py-20 bg-honeybee-light">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
             <video

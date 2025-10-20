@@ -13,7 +13,10 @@ const LetterWave: React.FC<LetterWaveProps> = ({ text, className = '', animation
         <span
           key={index}
           className="inline-block letter-wave"
-          style={{ animationDelay: `${index * animationDelayStep}s` }}
+          style={{
+            animationDelay: `${index * animationDelayStep}s`,
+            animationPlayState: 'running'
+          }}
         >
           {char === ' ' ? '\u00A0' : char}
         </span>

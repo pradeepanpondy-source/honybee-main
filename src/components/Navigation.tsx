@@ -38,36 +38,12 @@ export default function Navigation() {
             >
               Home
             </Link>
-            <button
-              onClick={async () => {
-                if (!user) {
-                  navigate('/profile', { state: { message: 'Please sign in with Google to access the shop.' } });
-                  return;
-                }
-                if (!user.providerData.some(provider => provider.providerId === 'google.com')) {
-                  navigate('/profile', { state: { message: 'Please sign in with Google to access the shop.' } });
-                  return;
-                }
-                // Request location access
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                    () => {
-                      // Location access granted, proceed to shop
-                      navigate('/shop');
-                    },
-                    (error) => {
-                      console.error('Error getting location:', error);
-                      alert('Location access denied. Please enable location services to access the shop.');
-                    }
-                  );
-                } else {
-                  alert('Geolocation is not supported by this browser.');
-                }
-              }}
+            <Link
+              to="/shop"
               className={`font-medium ${location.pathname === '/shop' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Shop
-            </button>
+            </Link>
             <Link
               to="/about"
               className={`font-medium ${location.pathname === '/about' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}

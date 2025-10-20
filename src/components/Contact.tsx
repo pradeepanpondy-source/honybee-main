@@ -18,15 +18,15 @@ const Contact: React.FC = () => {
             <form>
               <div className="mb-4">
                 <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
-                <input type="text" id="name" className="w-full px-4 py-2 border border-honeybee-light rounded-md focus:ring-honeybee-primary focus:border-honeybee-primary" />
+                <input type="text" id="name" className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-honeybee-primary focus:border-honeybee-primary bg-white" />
               </div>
               <div className="mb-4">
                 <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
-                <input type="email" id="email" className="w-full px-4 py-2 border border-honeybee-light rounded-md focus:ring-honeybee-primary focus:border-honeybee-primary" />
+                <input type="email" id="email" className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-honeybee-primary focus:border-honeybee-primary bg-white" />
               </div>
               <div className="mb-4">
                 <label htmlFor="message" className="block text-sm font-medium mb-1">Message</label>
-                <textarea id="message" rows={4} className="w-full px-4 py-2 border border-honeybee-light rounded-md focus:ring-honeybee-primary focus:border-honeybee-primary"></textarea>
+                <textarea id="message" rows={4} className="w-full px-4 py-2 border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-honeybee-primary focus:border-honeybee-primary bg-white"></textarea>
               </div>
               <Button type="submit" variant="primary" className="w-full">
                 Send Message

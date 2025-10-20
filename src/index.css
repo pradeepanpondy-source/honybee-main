@@ -117,17 +117,20 @@ h1, h2, h3, h4, h5, h6 {
   transform-origin: top center;
 }
 
-/* Letter Wave Animation */
-@keyframes letter-wave-animation {
-  0%, 100% {
-    transform: translateY(0);
+/* Letter Fade In Animation */
+@keyframes letter-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  50% {
-    transform: translateY(-10px);
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 .letter-wave {
-  animation: letter-wave-animation 1.5s ease-in-out forwards;
+  animation: letter-fade-in 0.6s ease-out forwards;
+  opacity: 0;
   white-space: nowrap;
 }
 
