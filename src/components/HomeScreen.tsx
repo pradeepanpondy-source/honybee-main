@@ -71,16 +71,17 @@ export default function HomeScreen() {
       {/* Animation Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
             <video
               src="/assets/cart-animated-icon-gif-download-10270594.mp4"
               autoPlay
               loop
               muted
-              className="w-48 h-48"
+              controls={false}
+              className="w-24 h-24 md:w-48 md:h-48"
             />
-            <div className="mx-8">
-              <svg className="w-12 h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
+            <div className="mx-4 md:mx-8">
+              <svg className="w-8 h-8 md:w-12 md:h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
@@ -89,10 +90,11 @@ export default function HomeScreen() {
               autoPlay
               loop
               muted
-              className="w-48 h-48"
+              controls={false}
+              className="w-24 h-24 md:w-48 md:h-48"
             />
-            <div className="mx-8">
-              <svg className="w-12 h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
+            <div className="mx-4 md:mx-8">
+              <svg className="w-8 h-8 md:w-12 md:h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
@@ -101,10 +103,11 @@ export default function HomeScreen() {
               autoPlay
               loop
               muted
-              className="w-48 h-48"
+              controls={false}
+              className="w-24 h-24 md:w-48 md:h-48"
             />
-            <div className="mx-8">
-              <svg className="w-12 h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
+            <div className="mx-4 md:mx-8">
+              <svg className="w-8 h-8 md:w-12 md:h-12 text-black" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </div>
@@ -113,7 +116,8 @@ export default function HomeScreen() {
               autoPlay
               loop
               muted
-              className="w-48 h-48"
+              controls={false}
+              className="w-24 h-24 md:w-48 md:h-48"
             />
           </div>
         </div>

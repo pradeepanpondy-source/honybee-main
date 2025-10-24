@@ -186,6 +186,36 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  video {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  /* Prevent zoom on input focus */
+  input, textarea, select {
+    font-size: 16px;
+  }
+
+  /* Improve touch targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 /* Modern Design Enhancements */
 .gradient-bg-primary {
   background: linear-gradient(135deg, #FFD700 0%, #FFE55C 100%);
