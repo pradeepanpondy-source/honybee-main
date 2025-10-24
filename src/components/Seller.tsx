@@ -499,8 +499,8 @@ const Seller: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <h1 className="text-center font-semibold text-lg mb-4">Register as a Seller</h1>
+    <div className="min-h-screen py-12 px-4 md:px-6">
+      <h1 className="text-center font-semibold text-lg md:text-xl mb-4">Register as a Seller</h1>
       {showVideo ? (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <video

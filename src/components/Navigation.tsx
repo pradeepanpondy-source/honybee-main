@@ -23,30 +23,30 @@ export default function Navigation() {
   return (
     <nav className="bg-honeybee-background/95 backdrop-blur-sm shadow-lg fixed w-full z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-14 md:h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="font-serif text-2xl font-bold text-honeybee-primary">Bee Bridge</span>
+              <span className="font-serif text-lg md:text-xl lg:text-2xl font-bold text-honeybee-primary">Bee Bridge</span>
             </Link>
           </div>
           
           {/* Desktop menu */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
             <Link
               to="/home"
-              className={`font-medium ${location.pathname === '/home' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+              className={`font-medium text-sm lg:text-base ${location.pathname === '/home' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Home
             </Link>
             <Link
               to="/shop"
-              className={`font-medium ${location.pathname === '/shop' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+              className={`font-medium text-sm lg:text-base ${location.pathname === '/shop' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Shop
             </Link>
             <Link
               to="/about"
-              className={`font-medium ${location.pathname === '/about' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+              className={`font-medium text-sm lg:text-base ${location.pathname === '/about' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               About
             </Link>
@@ -76,42 +76,42 @@ export default function Navigation() {
                   alert('Geolocation is not supported by this browser.');
                 }
               }}
-              className={`font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+              className={`font-medium text-sm lg:text-base ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Seller
             </button>
             <Link
               to="/contact"
-              className={`font-medium ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+              className={`font-medium text-sm lg:text-base ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Contact
             </Link>
             <Link
               to="/subscription"
-              className={`font-medium ${location.pathname === '/subscription' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+              className={`font-medium text-sm lg:text-base ${location.pathname === '/subscription' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Subscription
             </Link>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <Link to="/cart" className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 relative">
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <Link to="/cart" className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 relative p-2 md:p-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {cartItems.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 md:-top-2 md:-right-2 bg-red-600 text-white rounded-full text-xs w-4 h-4 md:w-5 md:h-5 flex items-center justify-center">
                   {cartItems.length}
                 </span>
               )}
             </Link>
-            <Link to="/profile" className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300">
+            <Link to="/profile" className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 p-2 md:p-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </Link>
             <div className="relative group">
-              <button className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 flex items-center space-x-1 focus:outline-none">
+              <button className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 flex items-center space-x-1 focus:outline-none p-2 md:p-0">
                 <Settings className="h-6 w-6" />
                 <span className="sr-only">Settings</span>
               </button>
@@ -127,11 +127,11 @@ export default function Navigation() {
                 </button>
               </div>
             </div>
-            
+
             {/* Mobile menu button */}
-            <button 
+            <button
               onClick={toggleMenu}
-              className="md:hidden text-honeybee-secondary hover:text-honeybee-primary"
+              className="md:hidden text-honeybee-secondary hover:text-honeybee-primary p-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

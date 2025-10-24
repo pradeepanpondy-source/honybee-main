@@ -29,7 +29,8 @@ export const useAuth = () => {
       } else if (firebaseError.code === 'auth/cancelled-popup-request') {
         throw new Error('Another sign-in popup is already open. Please close it and try again.');
       } else {
-        throw new Error('Google sign-in failed. Please check your internet connection and try again.');
+        // Always sign in with Google - remove the generic error message
+        throw new Error('Please sign in with Google to continue.');
       }
     }
   };

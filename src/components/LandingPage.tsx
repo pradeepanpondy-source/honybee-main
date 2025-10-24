@@ -7,18 +7,18 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-honeybee-background flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <h1 className="text-4xl font-serif font-bold text-honeybee-secondary mb-6">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 md:p-8 text-center">
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-honeybee-secondary mb-6">
           <LetterWave text="Bee Bridge" animationDelayStep={0.1} />
         </h1>
-        <p className="text-honeybee-dark-brown mb-8">
+        <p className="text-honeybee-dark-brown mb-8 text-sm md:text-base">
           Welcome to Bee Bridge. Please log in or sign up to continue.
         </p>
         <div className="space-y-4">
           <div>
             <button
               onClick={() => navigate('/login')}
-              className="w-full bg-honeybee-primary hover:bg-honeybee-accent text-honeybee-secondary font-semibold py-3 rounded-md transition duration-300"
+              className="w-full bg-honeybee-primary hover:bg-honeybee-accent text-honeybee-secondary font-semibold py-3 rounded-md transition duration-300 text-base"
             >
               Log In
             </button>
@@ -26,7 +26,7 @@ const LandingPage: React.FC = () => {
           <div>
             <button
               onClick={() => navigate('/signup')}
-              className="w-full border-2 border-honeybee-primary text-honeybee-primary hover:bg-honeybee-light font-semibold py-3 rounded-md transition duration-300"
+              className="w-full border-2 border-honeybee-primary text-honeybee-primary hover:bg-honeybee-light font-semibold py-3 rounded-md transition duration-300 text-base"
             >
               Sign Up
             </button>
@@ -34,7 +34,7 @@ const LandingPage: React.FC = () => {
           <div>
             <button
               onClick={() => navigate('/home')}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-md transition duration-300"
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-md transition duration-300 text-base"
             >
               Login as Guest
             </button>
@@ -42,7 +42,7 @@ const LandingPage: React.FC = () => {
           <div>
             <button
               onClick={() => alert('Google login not implemented yet')}
-              className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-md transition duration-300 flex items-center justify-center"
+              className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-md transition duration-300 flex items-center justify-center text-base"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
