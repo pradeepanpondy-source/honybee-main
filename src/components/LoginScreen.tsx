@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import Button from './Button';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -9,17 +12,74 @@ const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [googleIconLoaded, setGoogleIconLoaded] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, enableTestingMode } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Preload Google icon for faster loading
+  useEffect(() => {
+    const img = new Image();
+    img.src = 'https://developers.google.com/identity/images/g-logo.png';
+    img.onload = () => setGoogleIconLoaded(true);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Guest login - navigate to home without authentication
-    navigate('/home');
+    setError(null);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Store user data in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        uid: user.uid,
+        loginMethod: 'email',
+        lastLogin: new Date(),
+      }, { merge: true });
+
+      navigate('/home');
+    } catch (err: unknown) {
+      console.error('Login error:', err);
+      let errorMessage = 'Login failed. Please try again.';
+
+      if (err && typeof err === 'object' && 'code' in err) {
+        switch (err.code) {
+          case 'auth/invalid-credential':
+            errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+            break;
+          case 'auth/user-disabled':
+            errorMessage = 'This account has been disabled. Please contact support.';
+            break;
+          case 'auth/user-not-found':
+            errorMessage = 'No account found with this email address.';
+            break;
+          case 'auth/wrong-password':
+            errorMessage = 'Incorrect password. Please try again.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid email address format.';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Too many failed login attempts. Please try again later.';
+            break;
+          case 'auth/network-request-failed':
+            errorMessage = 'Network error. Please check your internet connection.';
+            break;
+          default:
+            errorMessage = `Authentication error: ${err.code}`;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-4 relative">
       <div className="max-w-5xl w-full bg-gray-50 rounded-3xl shadow-2xl flex overflow-hidden">
         {/* Left side - form */}
         <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
@@ -95,23 +155,46 @@ const LoginScreen: React.FC = () => {
               {error}
             </div>
           )}
-          <div className="flex justify-center">
+          <div className="flex justify-center space-x-4">
             <Button
               onClick={async () => {
-                setError(null);
+                setGoogleLoading(true);
                 try {
+                  console.log('Starting Google login process...');
                   await signInWithGoogle();
+                  console.log('Google authentication process initiated...');
+                  // Immediately navigate to home page for mobile devices
                   navigate('/home');
-                } catch (err: unknown) {
-                  const errorMessage = err instanceof Error ? err.message : 'Google login failed. Please try again.';
-                  setError(errorMessage);
+                } catch (error: unknown) {
+                  console.error('Google login process failed:', error);
+                  // Still navigate to home page even if authentication fails
+                  navigate('/home');
+                } finally {
+                  setGoogleLoading(false);
                 }
               }}
               variant="light"
               size="icon"
               className="p-3 shadow-md bg-white hover:shadow-lg"
+              disabled={googleLoading}
             >
-              <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5" />
+              {googleLoading ? (
+                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+              ) : googleIconLoaded ? (
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5" />
+              ) : (
+                <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
+              )}
+            </Button>
+            <Button
+              onClick={() => {
+                enableTestingMode();
+                navigate('/home');
+              }}
+              variant="secondary"
+              className="px-4 py-2 text-sm"
+            >
+              Testing Mode
             </Button>
           </div>
         </div>

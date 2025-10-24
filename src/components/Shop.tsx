@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 
 const products = [
   {
@@ -50,6 +50,7 @@ const Shop: React.FC = () => {
   const { addToCart } = useCart();
 
   const handleAddToCart = (product: typeof products[0]) => {
+    // Allow adding to cart regardless of location permission
     addToCart(product);
   };
 

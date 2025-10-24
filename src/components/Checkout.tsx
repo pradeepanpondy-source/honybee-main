@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import { db } from '../firebase';
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
@@ -129,7 +129,7 @@ const Checkout: React.FC = () => {
         <div>
           <div className="mb-4">
             <h3 className="font-semibold mb-2">Order Summary</h3>
-            {cartItems.map(item => (
+            {cartItems.map((item) => (
               <div key={item.id} className="flex justify-between mb-2 text-sm md:text-base">
                 <span>{item.name} x {item.quantity}</span>
                 <span>₹{(parseFloat(item.price.replace(/[$₹]/g, '')) * item.quantity).toFixed(2)}</span>

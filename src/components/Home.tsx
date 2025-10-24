@@ -83,7 +83,12 @@ const Home: React.FC<HomeProps> = ({ onGoToShop, nextStep }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-honeybee-dark-brown mb-4">Join Our Community of Honey Artisans</h2>
           <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">Share your artisanal honey with a global community of honey enthusiasts and build lasting connections with those who cherish quality and sustainability.</p>
-          <Button className="bg-honeybee-primary text-white px-6 md:px-8 py-3 rounded-lg shadow-lg hover:bg-opacity-90 transition-all text-sm md:text-base">
+          <Button
+            onClick={() => {
+              window.location.href = '/login';
+            }}
+            className="bg-honeybee-primary text-white px-6 md:px-8 py-3 rounded-lg shadow-lg hover:bg-opacity-90 transition-all text-sm md:text-base"
+          >
             Become a Seller
           </Button>
         </div>

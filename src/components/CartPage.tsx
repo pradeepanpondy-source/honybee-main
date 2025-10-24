@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 import Button from './Button';
 import congratsGif from '../assets/congratulation.gif';
 

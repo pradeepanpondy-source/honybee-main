@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from './Button';
 
@@ -14,12 +17,58 @@ const SignUpScreen: React.FC = () => {
   const navigate = useNavigate();
   const { signInWithGoogle } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      navigate('/home');
-    }, 2500);
+    setError(null);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Store user data in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        name: name,
+        email: user.email,
+        uid: user.uid,
+        loginMethod: 'email',
+        createdAt: new Date(),
+        lastLogin: new Date(),
+      });
+
+      setTimeout(() => {
+        navigate('/home');
+      }, 2500);
+    } catch (err: unknown) {
+      console.error('Sign up error:', err);
+      let errorMessage = 'Sign up failed. Please try again.';
+
+      if (err && typeof err === 'object' && 'code' in err) {
+        switch (err.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = 'An account with this email already exists. Please try logging in instead.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Invalid email address format.';
+            break;
+          case 'auth/weak-password':
+            errorMessage = 'Password is too weak. Please choose a stronger password.';
+            break;
+          case 'auth/operation-not-allowed':
+            errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+            break;
+          case 'auth/network-request-failed':
+            errorMessage = 'Network error. Please check your internet connection.';
+            break;
+          default:
+            errorMessage = `Authentication error: ${err.code}`;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -113,8 +162,7 @@ const SignUpScreen: React.FC = () => {
                 setError(null);
                 try {
                   await signInWithGoogle();
-                  setLoading(true);
-                  setTimeout(() => navigate('/home'), 2500);
+                  // Navigation will be handled by the auth state change in useAuth
                 } catch (err: unknown) {
                   const errorMessage = err instanceof Error ? err.message : 'Google login failed. Please try again.';
                   setError(errorMessage);

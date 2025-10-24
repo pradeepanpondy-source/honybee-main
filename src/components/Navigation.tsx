@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Settings } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Navigation() {
@@ -56,25 +56,8 @@ export default function Navigation() {
                   navigate('/profile', { state: { message: 'Please sign in with Google to access your seller page.' } });
                   return;
                 }
-                if (!user.providerData.some(provider => provider.providerId === 'google.com')) {
-                  navigate('/profile', { state: { message: 'Please sign in with Google to access your seller page.' } });
-                  return;
-                }
-                // Request location access
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                    () => {
-                      // Location access granted, proceed to seller
-                      navigate('/seller');
-                    },
-                    (error) => {
-                      console.error('Error getting location:', error);
-                      alert('Location access denied. Please enable location services to access the seller page.');
-                    }
-                  );
-                } else {
-                  alert('Geolocation is not supported by this browser.');
-                }
+                // Allow access to seller page regardless of location permission
+                navigate('/seller');
               }}
               className={`font-medium text-sm lg:text-base ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
@@ -110,7 +93,7 @@ export default function Navigation() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </Link>
-            <div className="relative group">
+            <div className="relative group hidden md:block">
               <button className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 flex items-center space-x-1 focus:outline-none p-2 md:p-0">
                 <Settings className="h-6 w-6" />
                 <span className="sr-only">Settings</span>
@@ -146,8 +129,8 @@ export default function Navigation() {
         <div className="md:hidden bg-honeybee-background/95 backdrop-blur-sm border-t border-honeybee-light">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
-              to="/"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
+              to="/home"
+              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/home' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Home
@@ -166,13 +149,20 @@ export default function Navigation() {
             >
               About
             </Link>
-            <Link
-              to="/seller"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
+            <button
+              onClick={() => {
+                if (!user) {
+                  navigate('/profile', { state: { message: 'Please sign in with Google to access your seller page.' } });
+                  return;
+                }
+                // Allow access to seller page regardless of location permission
+                navigate('/seller');
+                setIsMenuOpen(false);
+              }}
+              className={`block w-full text-left px-3 py-2 rounded-md font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
             >
               Seller
-            </Link>
+            </button>
             <Link
               to="/contact"
               className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
@@ -194,6 +184,16 @@ export default function Navigation() {
             >
               Settings
             </Link>
+            <button
+              onClick={() => {
+                logout();
+                window.location.href = '/';
+                setIsMenuOpen(false);
+              }}
+              className="block w-full text-left px-3 py-2 rounded-md font-medium text-honeybee-secondary hover:text-honeybee-accent"
+            >
+              Logout
+            </button>
           </div>
         </div>
       )}
