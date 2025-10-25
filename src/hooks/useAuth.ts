@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { User, signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, linkWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -7,8 +6,6 @@ import { doc, setDoc } from 'firebase/firestore';
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isTestingMode, setIsTestingMode] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -19,7 +16,7 @@ export const useAuth = () => {
     return unsubscribe;
   }, []);
 
-  const signInWithGoogle = async (): Promise<void> => {
+  const signInWithGoogle = async (): Promise<User> => {
     try {
       // Configure Google provider with custom client ID and scopes
       googleProvider.setCustomParameters({
@@ -57,8 +54,8 @@ export const useAuth = () => {
       // Wait for Firestore write to complete
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Navigate to home page immediately after successful sign-in
-      navigate('/home');
+      // Return user data - navigation will be handled by the component
+      return user;
     } catch (error: unknown) {
       console.error('Error signing in with Google:', error);
 
@@ -79,7 +76,7 @@ export const useAuth = () => {
       }
 
       // Handle network errors
-      if (error && typeof error === 'object' && 'code' in error && 'code' in error && error.code === 'auth/network-request-failed') {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/network-request-failed') {
         throw new Error('Network error. Please check your internet connection.');
       }
 
@@ -126,25 +123,11 @@ export const useAuth = () => {
     }
   };
 
-  const enableTestingMode = () => {
-    setIsTestingMode(true);
-    const mockUser = {
-      uid: 'test-user-123',
-      email: 'test@example.com',
-      displayName: 'Test User',
-      providerData: [{ providerId: 'google.com' }],
-    } as User;
-    setUser(mockUser);
-    setLoading(false);
-  };
-
   return {
     user,
     loading,
-    isTestingMode,
     signInWithGoogle,
     linkGoogleAccount,
-    logout,
-    enableTestingMode,
+     logout,
   };
 };

@@ -70,54 +70,63 @@ const Applications: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    const isGuest = localStorage.getItem('guestMode') === 'true';
+
+    if (user || isGuest) {
       const checkApplication = async () => {
-        try {
-          const docRef = doc(db, 'sellerApplications', user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setHasApplication(true);
-            setKycVerified(data.kycVerified || false);
-          } else {
+        if (user) {
+          try {
+            const docRef = doc(db, 'sellerApplications', user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setHasApplication(true);
+              setKycVerified(data.kycVerified || false);
+            } else {
+              setHasApplication(false);
+            }
+          } catch (error) {
+            console.error('Error checking application:', error);
             setHasApplication(false);
           }
-        } catch (error) {
-          console.error('Error checking application:', error);
-          setHasApplication(false);
-        } finally {
-          setLoading(false);
+        } else if (isGuest) {
+          // For guests, check local storage
+          const guestApplication = localStorage.getItem('guestSellerApplication');
+          setHasApplication(guestApplication ? true : false);
+          setKycVerified(true); // Assume guests are verified or skip KYC
         }
       };
       checkApplication();
 
-      // Fetch orders for the seller
-      const fetchOrders = async () => {
-        try {
-          const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-          const querySnapshot = await getDocs(q);
-          const ordersData: Order[] = [];
-          let sales = 0;
-          let orderCount = 0;
-          const productSet = new Set<string>();
+      // Fetch orders for the seller (only if user, guests might not have orders)
+      if (user) {
+        const fetchOrders = async () => {
+          try {
+            const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            const ordersData: Order[] = [];
+            let sales = 0;
+            let orderCount = 0;
+            const productSet = new Set<string>();
 
-          querySnapshot.forEach((doc) => {
-            const order = { id: doc.id, ...doc.data() } as Order;
-            ordersData.push(order);
-            sales += order.total || 0;
-            orderCount += 1;
-            order.items.forEach(item => productSet.add(item.id.toString()));
-          });
+            querySnapshot.forEach((doc) => {
+              const order = { id: doc.id, ...doc.data() } as Order;
+              ordersData.push(order);
+              sales += order.total || 0;
+              orderCount += 1;
+              order.items.forEach(item => productSet.add(item.id.toString()));
+            });
 
-          setOrders(ordersData);
-          setTotalSales(sales);
-          setTotalOrders(orderCount);
-          setActiveProducts(productSet.size);
-        } catch (error) {
-          console.error('Error fetching orders:', error);
-        }
-      };
-      fetchOrders();
+            setOrders(ordersData);
+            setTotalSales(sales);
+            setTotalOrders(orderCount);
+            setActiveProducts(productSet.size);
+          } catch (error) {
+            console.error('Error fetching orders:', error);
+          }
+        };
+        fetchOrders();
+      }
     } else {
       setLoading(false);
       setHasApplication(false);
@@ -128,19 +137,7 @@ const Applications: React.FC = () => {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">Seller Dashboard</h1>
-          <div className="bg-white rounded-lg shadow p-8">
-            <p className="text-lg text-gray-600 mb-4">Please sign in with Google to access your seller dashboard.</p>
-            <a href="/profile" className="text-purple-700 underline">Go to Sign In</a>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Allow access for all users (authenticated or guest)
 
   if (!hasApplication) {
     return null; // Redirect handled by Seller component

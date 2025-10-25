@@ -51,10 +51,7 @@ const Checkout: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (!user) {
-      alert('Please sign in to place an order.');
-      return;
-    }
+    // Allow placing orders for all users (authenticated or guest)
 
     try {
       const orderItems: OrderItem[] = cartItems.map(item => ({
@@ -65,7 +62,7 @@ const Checkout: React.FC = () => {
       }));
 
       const orderData: Omit<Order, 'id'> = {
-        userId: user.uid,
+        userId: user?.uid || 'guest',
         items: orderItems,
         total: total,
         discountedTotal: discount > 0 ? discountedTotal : undefined,
@@ -73,8 +70,8 @@ const Checkout: React.FC = () => {
         discount: discount > 0 ? discount : undefined,
         status: 'completed', // Set to completed for subscription plans
         createdAt: new Date(),
-        customerEmail: user.email || undefined,
-        customerName: user.displayName || undefined,
+        customerEmail: user?.email || undefined,
+        customerName: user?.displayName || undefined,
       };
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
@@ -83,7 +80,7 @@ const Checkout: React.FC = () => {
 
       // Check if the order contains a subscription plan
       const hasSubscription = cartItems.some(item => item.name.includes('Subscription Plan'));
-      if (hasSubscription) {
+      if (hasSubscription && user) {
         // Add golden batch to dashboard
         const userDocRef = doc(db, 'users', user.uid);
         await setDoc(userDocRef, { goldenBatch: true }, { merge: true });

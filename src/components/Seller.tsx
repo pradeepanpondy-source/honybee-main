@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import Button from './Button';
-import videoSrc from '../assets/last.mp4';
+
 
 type FormData = {
   email: string;
@@ -46,29 +46,19 @@ const Seller: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [sellerType, setSellerType] = useState<string>('');
   // Removed unused selectedOption state to fix eslint error
-  const [showVideo, setShowVideo] = useState(false);
   const [hasApplied, setHasApplied] = useState<boolean | null>(null);
 
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isTesting = urlParams.get('testing') === 'true';
-    const storedTesting = localStorage.getItem('testingMode') === 'true';
-
-    if (!loading && (!user || (!user.providerData.some(provider => provider.providerId === 'google.com') && !isTesting && !storedTesting))) {
-      navigate('/login');
-    }
-  }, [user, loading, navigate]);
+  // Removed sign-in check to allow direct access
 
   useEffect(() => {
     const checkApplication = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const isTesting = urlParams.get('testing') === 'true';
-      const storedTesting = localStorage.getItem('testingMode') === 'true';
 
-      if (user && (user.providerData.some(provider => provider.providerId === 'google.com') || isTesting || storedTesting)) {
+      if (user && (user.providerData.some(provider => provider.providerId === 'google.com') || isTesting)) {
         try {
           const docRef = doc(db, 'sellerApplications', user.uid);
           const docSnap = await getDoc(docRef);
@@ -82,6 +72,7 @@ const Seller: React.FC = () => {
           setHasApplied(false);
         }
       } else {
+        // For guests or non-authenticated, allow access to the form
         setHasApplied(false);
       }
     };
@@ -119,7 +110,8 @@ const Seller: React.FC = () => {
 
     if (step === 3) {
       // Final submission
-      if (!user) {
+      const isGuest = localStorage.getItem('guestMode') === 'true';
+      if (!user && !isGuest) {
         alert('Please sign in to submit the application.');
         navigate('/login');
         return;
@@ -133,6 +125,16 @@ const Seller: React.FC = () => {
       // Basic validation
       if (!formData.email || !formData.name || !formData.acceptTerms) {
         alert('Please fill all required fields and accept terms.');
+        return;
+      }
+
+      if (!user) {
+        // For non-authenticated users, store application locally as guest
+        const guestApplication = { ...formData, sellerType, submittedAt: new Date(), kycVerified: false };
+        localStorage.setItem('guestSellerApplication', JSON.stringify(guestApplication));
+        alert('Application submitted successfully!');
+        // For guests, navigate to home since /applications is protected
+        navigate('/home');
         return;
       }
 
@@ -221,16 +223,12 @@ const Seller: React.FC = () => {
       <div className="flex justify-center gap-8">
         <button
           onClick={() => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const isTesting = urlParams.get('testing') === 'true';
-
-            if (!user && !isTesting) {
-              alert('Please sign in with Google to become a seller.');
-              navigate('/login');
-              return;
-            }
             setSellerType('honey');
-            setShowVideo(true);
+            if (!user) {
+              setStep(1);
+            } else {
+              setStep(1);
+            }
           }}
           className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105"
         >
@@ -238,16 +236,12 @@ const Seller: React.FC = () => {
         </button>
         <button
           onClick={() => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const isTesting = urlParams.get('testing') === 'true';
-
-            if (!user && !isTesting) {
-              alert('Please sign in with Google to become a seller.');
-              navigate('/login');
-              return;
-            }
             setSellerType('beehive');
-            setShowVideo(true);
+            if (!user) {
+              setStep(1);
+            } else {
+              setStep(1);
+            }
           }}
           className="gradient-bg-primary hover:shadow-2xl text-black font-semibold py-4 px-10 rounded-full transition-all duration-300 ease-out modern-shadow-hover transform hover:scale-105"
         >
@@ -485,65 +479,23 @@ const Seller: React.FC = () => {
     </div>
   );
 
+
+
   if (loading || hasApplied === null) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  if (hasApplied) {
-    if (!showVideo) {
-      setShowVideo(true);
-    }
-    return (
-      <div className="fixed inset-0 flex items-center justify-center z-50">
-        <video
-          src={videoSrc}
-          autoPlay
-          muted
-          preload="auto"
-          ref={video => {
-            if (video) {
-              video.playbackRate = 0.7;
-            }
-          }}
-          onEnded={() => navigate('/applications')}
-          className="w-full h-full object-cover"
-        />
-      </div>
-    );
   }
 
   return (
     <div className="min-h-screen py-12 px-4 md:px-6">
       <h1 className="text-center font-semibold text-lg md:text-xl mb-4">Register as a Seller</h1>
-      {showVideo ? (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <video
-            src={videoSrc}
-            autoPlay
-            muted
-            preload="auto"
-            ref={video => {
-              if (video) {
-                video.playbackRate = 0.7;
-              }
-            }}
-            onEnded={() => {
-              setShowVideo(false);
-              setStep(1);
-            }}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ) : (
-        <>
-          {step === 0 && renderOptionButtons()}
-          {step > 0 && renderProgress()}
-          {step === 1 && renderPersonalInfo()}
-          {step === 2 && renderAddress()}
-          {step === 3 && renderContact()}
-          {step === 4 && renderFinish()}
-        </>
-      )}
+      <>
+        {step === 0 && renderOptionButtons()}
+        {step > 0 && renderProgress()}
+        {step === 1 && renderPersonalInfo()}
+        {step === 2 && renderAddress()}
+        {step === 3 && renderContact()}
+        {step === 4 && renderFinish()}
+      </>
     </div>
   );
 };

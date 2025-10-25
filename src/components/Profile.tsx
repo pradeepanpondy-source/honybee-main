@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import Button from './Button';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -17,7 +16,6 @@ interface ProfileData {
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
-  const location = useLocation();
 
   const [profile, setProfile] = useState<ProfileData>({
     name: '',
@@ -36,7 +34,7 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
-        const docRef = doc(db, 'profile', 'oKBVdiB6yR4iiwacSWah');
+        const docRef = doc(db, 'profile', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data() as ProfileData;
@@ -77,20 +75,10 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!user) {
-      alert('User not authenticated');
-      return;
-    }
-
-    // Check if user is signed in with Google
-    const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
-    if (!isGoogleUser) {
-      alert('Profile saving is only available for Google users');
-      return;
-    }
-
     try {
-      const docRef = doc(db, 'profile', 'oKBVdiB6yR4iiwacSWah');
+      // Allow saving for all users, not just authenticated ones
+      const profileId = user ? user.uid : 'guest_profile';
+      const docRef = doc(db, 'profile', profileId);
       console.log('Saving profile data:', tempProfile);
       await setDoc(docRef, tempProfile, { merge: true });
       setProfile(tempProfile);
@@ -98,11 +86,7 @@ const Profile: React.FC = () => {
       alert('Profile saved successfully!');
     } catch (error: unknown) {
       console.error('Error saving profile:', error);
-      if (error instanceof Error && 'code' in error && error.code === 'permission-denied') {
-        alert('Missing or insufficient permissions. Please ensure you are signed in and try again.');
-      } else {
-        alert('Failed to save profile. Please try again.');
-      }
+      alert('Failed to save profile. Please try again.');
     }
   };
 
@@ -120,27 +104,13 @@ const Profile: React.FC = () => {
     return <div>Loading profile...</div>;
   }
 
-  // Check if user is signed in with Google or in testing mode
-  const isGoogleUser = user && user.providerData.some(provider => provider.providerId === 'google.com');
-  const isTesting = localStorage.getItem('testingMode') === 'true';
+
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6">
       <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Profile</h2>
 
-      {(!user && !isTesting) ? (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <p className="text-center text-gray-600">
-            {location.state?.message || 'Please sign in with Google to access your profile.'}
-          </p>
-        </div>
-      ) : (!isGoogleUser && !isTesting) ? (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <p className="text-center text-gray-600">
-            {location.state?.message || 'Profile access is only available for Google users.'}
-          </p>
-        </div>
-      ) : isEditing ? (
+      {isEditing ? (
         <div className="group">
           <div className="bg-white rounded-lg shadow-lg p-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

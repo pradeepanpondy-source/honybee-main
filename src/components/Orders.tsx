@@ -41,19 +41,7 @@ const Orders: React.FC = () => {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">Orders</h1>
-          <div className="bg-white rounded-lg shadow p-8">
-            <p className="text-lg text-gray-600 mb-4">Please sign in with Google to access your orders.</p>
-            <a href="/profile" className="text-purple-700 underline">Go to Sign In</a>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Allow access for all users (authenticated or guest)
 
   return (
     <div className="flex h-screen bg-gray-100">

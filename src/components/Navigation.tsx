@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
@@ -7,9 +7,8 @@ import { useAuth } from '../hooks/useAuth';
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { cartItems } = useCart();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -50,19 +49,12 @@ export default function Navigation() {
             >
               About
             </Link>
-            <button
-              onClick={async () => {
-                if (!user) {
-                  navigate('/profile', { state: { message: 'Please sign in with Google to access your seller page.' } });
-                  return;
-                }
-                // Allow access to seller page regardless of location permission
-                navigate('/seller');
-              }}
+            <Link
+              to="/seller"
               className={`font-medium text-sm lg:text-base ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
             >
               Seller
-            </button>
+            </Link>
             <Link
               to="/contact"
               className={`font-medium text-sm lg:text-base ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
@@ -149,20 +141,13 @@ export default function Navigation() {
             >
               About
             </Link>
-            <button
-              onClick={() => {
-                if (!user) {
-                  navigate('/profile', { state: { message: 'Please sign in with Google to access your seller page.' } });
-                  return;
-                }
-                // Allow access to seller page regardless of location permission
-                navigate('/seller');
-                setIsMenuOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 rounded-md font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
+            <Link
+              to="/seller"
+              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
+              onClick={() => setIsMenuOpen(false)}
             >
               Seller
-            </button>
+            </Link>
             <Link
               to="/contact"
               className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}

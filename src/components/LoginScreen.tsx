@@ -15,7 +15,7 @@ const LoginScreen: React.FC = () => {
   const [googleIconLoaded, setGoogleIconLoaded] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
-  const { signInWithGoogle, enableTestingMode } = useAuth();
+  const { signInWithGoogle } = useAuth();
 
   // Preload Google icon for faster loading
   useEffect(() => {
@@ -155,46 +155,48 @@ const LoginScreen: React.FC = () => {
               {error}
             </div>
           )}
-          <div className="flex justify-center space-x-4">
-            <Button
+          <div className="flex justify-center">
+            <button
               onClick={async () => {
                 setGoogleLoading(true);
                 try {
                   console.log('Starting Google login process...');
                   await signInWithGoogle();
-                  console.log('Google authentication process initiated...');
-                  // Immediately navigate to home page for mobile devices
-                  navigate('/home');
+                  console.log('Google authentication successful, navigating to home...');
+                  // Set flag for mobile login animation
+                  sessionStorage.setItem('fromLogin', 'true');
+                  // Force navigation to home page after successful Google sign-in
+                  window.location.href = '/home';
                 } catch (error: unknown) {
                   console.error('Google login process failed:', error);
-                  // Still navigate to home page even if authentication fails
-                  navigate('/home');
+                  // Don't navigate on error - let user try again
                 } finally {
                   setGoogleLoading(false);
                 }
               }}
-              variant="light"
-              size="icon"
-              className="p-3 shadow-md bg-white hover:shadow-lg"
+              className="p-2 hover:opacity-80 transition-opacity disabled:opacity-50"
               disabled={googleLoading}
+              aria-label="Sign in with Google"
             >
               {googleLoading ? (
-                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
               ) : googleIconLoaded ? (
-                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5" />
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-6 h-6" />
               ) : (
-                <div className="w-5 h-5 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
               )}
-            </Button>
+            </button>
+          </div>
+          <div className="mt-6 text-center">
             <Button
               onClick={() => {
-                enableTestingMode();
+                localStorage.setItem('guestMode', 'true');
                 navigate('/home');
               }}
-              variant="secondary"
-              className="px-4 py-2 text-sm"
+              variant="ghost"
+              className="text-gray-600 hover:text-gray-800 underline font-semibold"
             >
-              Testing Mode
+              Continue as Guest
             </Button>
           </div>
         </div>

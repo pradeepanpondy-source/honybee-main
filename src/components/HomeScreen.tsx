@@ -7,8 +7,17 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
+    // Check if user came from login (mobile redirect)
+    const fromLogin = sessionStorage.getItem('fromLogin');
+    if (fromLogin) {
+      sessionStorage.removeItem('fromLogin');
+      setLoading(true);
+      const timer = setTimeout(() => setLoading(false), 2000); // Longer loading for mobile login
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(() => setLoading(false), 1000);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   return (
