@@ -16,72 +16,28 @@ export const useAuth = () => {
     return unsubscribe;
   }, []);
 
-  const signInWithGoogle = async (): Promise<User> => {
-    try {
-      // Configure Google provider with custom client ID and scopes
-      googleProvider.setCustomParameters({
-        client_id: '378321462417-i479i9akc5vndsp3a9na8p29vku1etjl.apps.googleusercontent.com',
-        prompt: 'select_account'
-      });
+  const signInWithGoogle = async () => {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
 
-      // Add additional scopes for profile and email access
-      googleProvider.addScope('profile');
-      googleProvider.addScope('email');
-
-      // Always use popup sign-in for both desktop and mobile devices (no redirect)
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      // Store comprehensive user data in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        name: user.displayName,
+    await setDoc(doc(db, 'users', user.uid), {
+      name: user.displayName,
+      email: user.email,
+      uid: user.uid,
+      loginMethod: 'google',
+      photoURL: user.photoURL,
+      emailVerified: user.emailVerified,
+      providerId: user.providerId,
+      lastLogin: new Date(),
+      googleProfile: {
+        displayName: user.displayName,
         email: user.email,
-        uid: user.uid,
-        loginMethod: 'google',
         photoURL: user.photoURL,
-        emailVerified: user.emailVerified,
-        providerId: user.providerId,
-        lastLogin: new Date(),
-        // Store additional Google profile data
-        googleProfile: {
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
-          providerId: user.providerId
-        }
-      }, { merge: true });
-
-      // Wait for Firestore write to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Return user data - navigation will be handled by the component
-      return user;
-    } catch (error: unknown) {
-      console.error('Error signing in with Google:', error);
-
-      // Handle popup blocked - show error instead of falling back to redirect
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/popup-blocked') {
-        throw new Error('Popup blocked. Please allow popups for this site and try again.');
+        providerId: user.providerId
       }
+    }, { merge: true });
 
-      // Handle account linking for existing email accounts
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/account-exists-with-different-credential') {
-        // This will require user input, so we'll throw a specific error
-        throw new Error('ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL');
-      }
 
-      // Handle popup closed by user
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/popup-closed-by-user') {
-        throw new Error('Google sign-in was cancelled.');
-      }
-
-      // Handle network errors
-      if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/network-request-failed') {
-        throw new Error('Network error. Please check your internet connection.');
-      }
-
-      throw error;
-    }
   };
 
   const linkGoogleAccount = async (email: string, password: string) => {

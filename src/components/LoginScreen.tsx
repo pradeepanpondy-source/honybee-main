@@ -162,11 +162,10 @@ const LoginScreen: React.FC = () => {
                 try {
                   console.log('Starting Google login process...');
                   await signInWithGoogle();
-                  console.log('Google authentication successful, navigating to home...');
+                  console.log('Google authentication and navigation completed...');
                   // Set flag for mobile login animation
                   sessionStorage.setItem('fromLogin', 'true');
-                  // Force navigation to home page after successful Google sign-in
-                  window.location.href = '/home';
+                  navigate(-1);
                 } catch (error: unknown) {
                   console.error('Google login process failed:', error);
                   // Don't navigate on error - let user try again
