@@ -1,6 +1,20 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors in output
+ini_set('log_errors', 1);
+
 require_once '../vendor/autoload.php';
 require_once '../config.php';
+
+// Ensure we always return JSON, even on fatal errors
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['error' => 'Server error: ' . $error['message']]);
+    }
+});
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(['error' => 'Method not allowed'], 405);
@@ -13,8 +27,15 @@ if (empty($data['code'])) {
 }
 
 $client = new Google_Client();
-$client->setClientId(getenv('GOOGLE_CLIENT_ID'));
-$client->setClientSecret(getenv('GOOGLE_CLIENT_SECRET'));
+$googleClientId = getenv('GOOGLE_CLIENT_ID');
+$googleClientSecret = getenv('GOOGLE_CLIENT_SECRET');
+
+if (empty($googleClientId) || empty($googleClientSecret)) {
+    sendJsonResponse(['error' => 'Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in environment variables.'], 500);
+}
+
+$client->setClientId($googleClientId);
+$client->setClientSecret($googleClientSecret);
 $client->setRedirectUri('postmessage');
 
 try {

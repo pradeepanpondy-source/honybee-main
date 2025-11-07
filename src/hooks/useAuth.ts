@@ -125,7 +125,24 @@ export const useAuth = (): {
           body: JSON.stringify({ code: codeResponse.code }),
         });
 
-        const data = await response.json();
+        // Check if response has content before parsing JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Server returned invalid response. Please check your backend configuration.');
+        }
+
+        const text = await response.text();
+        if (!text) {
+          throw new Error('Server returned empty response. Please check if Google OAuth is configured correctly.');
+        }
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error('Failed to parse response:', text);
+          throw new Error('Server returned invalid JSON response.');
+        }
 
         if (!response.ok) {
           throw new Error(data.error || 'Google login failed');
