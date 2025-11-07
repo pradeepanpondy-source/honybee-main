@@ -1,8 +1,18 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+if (file_exists(__DIR__ . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+}
+
+// Supabase configuration
+function getSupabaseClient() {
+    $supabaseUrl = 'https://uigjzcwdyfulrmmeyeys.supabase.co';
+    $supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpZ2p6Y3dkeWZ1bHJtbWV5ZXlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MzUyNDYsImV4cCI6MjA3ODExMTI0Nn0.nwpTzz450fNh6vQRCpRX0dV0XqBxcOjny6eUkYQiYEA';
+
+    return new \Supabase\SupabaseClient($supabaseUrl, $supabaseKey);
+}
 
 header('Content-Type: application/json');
 

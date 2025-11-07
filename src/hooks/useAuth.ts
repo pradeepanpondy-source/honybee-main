@@ -1,8 +1,9 @@
+//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
 import { useState, useEffect } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
+import { supabase } from '../lib/supabase';
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
 }
@@ -22,44 +23,46 @@ export const useAuth = (): {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token and validate it
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      validateToken(token);
-    } else {
-      setLoading(false);
-    }
+    // Check for Supabase session
+    const checkUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+            email: session.user.email || '',
+          });
+        }
+      } catch (error) {
+        console.error('Error checking auth session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+            email: session.user.email || '',
+          });
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const validateToken = async (token: string) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/profile.php`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Extract user info from profile or set basic user info
-        setUser({
-          id: data.profile?.user_id || 0,
-          name: data.profile?.name || '',
-          email: data.profile?.email || '',
-        });
-      } else {
-        // Token invalid, remove it
-        localStorage.removeItem('authToken');
-      }
-    } catch (error) {
-      console.error('Token validation failed:', error);
-      localStorage.removeItem('authToken');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const signInWithEmail = async (email: string, password: string) => {
     try {
@@ -113,55 +116,24 @@ export const useAuth = (): {
     }
   };
 
-  const googleLogin = useGoogleLogin({
-    flow: 'auth-code',
-    onSuccess: async (codeResponse) => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/google_login.php`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ code: codeResponse.code }),
-        });
 
-        // Check if response has content before parsing JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Server returned invalid response. Please check your backend configuration.');
-        }
-
-        const text = await response.text();
-        if (!text) {
-          throw new Error('Server returned empty response. Please check if Google OAuth is configured correctly.');
-        }
-
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          console.error('Failed to parse response:', text);
-          throw new Error('Server returned invalid JSON response.');
-        }
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Google login failed');
-        }
-
-        localStorage.setItem('authToken', data.token);
-        setUser(data.user);
-      } catch (error) {
-        console.error('Google login error:', error);
-        throw error;
-      }
-    },
-    onError: (error) => {
-      console.error('Google login error:', error);
-    },
-  });
 
   const signInWithGoogle = async () => {
-    googleLogin();
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/home`
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      throw error;
+    }
   };
 
   const linkGoogleAccount = async () => {
@@ -171,20 +143,13 @@ export const useAuth = (): {
 
   const logout = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        await fetch(`${API_BASE_URL}/logout.php`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Supabase logout error:', error);
       }
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('authToken');
       setUser(null);
     }
   };

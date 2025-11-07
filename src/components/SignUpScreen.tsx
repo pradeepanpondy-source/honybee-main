@@ -12,7 +12,7 @@ const SignUpScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { signUpWithEmail } = useAuth();
+  const { signUpWithEmail, signInWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +33,17 @@ const SignUpScreen: React.FC = () => {
 
       setError(errorMessage);
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setError(null);
+    try {
+      await signInWithGoogle();
+      navigate('/home');
+    } catch (error: unknown) {
+      console.error('Google sign up error:', error);
+      setError('Google sign up failed. Please try again.');
     }
   };
 
@@ -122,14 +133,13 @@ const SignUpScreen: React.FC = () => {
             </div>
           )}
           <div className="flex justify-center">
-            <Button
-              onClick={() => alert('Google login will be available soon!')}
-              variant="light"
-              size="icon"
-              className="p-3 shadow-md bg-white hover:shadow-lg"
+            <button
+              onClick={handleGoogleSignUp}
+              className="p-3 shadow-md bg-white hover:shadow-lg rounded-lg transition-shadow"
+              aria-label="Sign up with Google"
             >
               <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" className="w-5 h-5" />
-            </Button>
+            </button>
           </div>
 
           <div className="mt-4 text-center">
