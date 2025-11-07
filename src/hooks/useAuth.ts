@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
+import API_BASE_URL from '../API_SERVICE';
 
 interface User {
   id: number;
   name: string;
   email: string;
 }
-
-const API_BASE_URL = 'http://localhost/backend/api'; // Adjust port as needed
 
 export const useAuth = (): {
   user: User | null;

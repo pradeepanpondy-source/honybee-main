@@ -5,6 +5,7 @@ import Button from './Button';
 import successGif from '../assets/success confetti.gif';
 import congratsGif from '../assets/congratulation.gif';
 import { Order, OrderItem } from '../types/order';
+import API_BASE_URL from '../API_SERVICE';
 
 const validCoupons: Record<string, number> = {
   'HONEY10': 0.10,
@@ -72,7 +73,7 @@ const Checkout: React.FC = () => {
         customerName: user?.name || undefined,
       };
 
-      const response = await fetch('http://localhost/backend/api/orders.php', {
+      const response = await fetch(`${API_BASE_URL}/orders.php`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -90,7 +91,7 @@ const Checkout: React.FC = () => {
         const hasSubscription = cartItems.some(item => item.name.includes('Subscription Plan'));
         if (hasSubscription && user) {
           // Add golden batch to dashboard
-          await fetch('http://localhost/backend/api/users.php', {
+          await fetch(`${API_BASE_URL}/users.php`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,

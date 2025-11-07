@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
 import { useAuth } from '../hooks/useAuth';
+import API_BASE_URL from '../API_SERVICE';
 
 interface ProfileData {
   name: string;
@@ -33,7 +34,7 @@ const Profile: React.FC = () => {
     const fetchProfile = async () => {
       if (user) {
         try {
-          const response = await fetch('http://localhost/backend/api/profile.php', {
+          const response = await fetch(`${API_BASE_URL}/profile.php`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -84,7 +85,7 @@ const Profile: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch('http://localhost/backend/api/profile.php', {
+      const response = await fetch(`${API_BASE_URL}/profile.php`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,

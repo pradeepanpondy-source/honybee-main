@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Order } from '../types/order';
+import API_BASE_URL from '../API_SERVICE';
 
 const Orders: React.FC = () => {
   const { user, logout } = useAuth();
@@ -13,7 +14,7 @@ const Orders: React.FC = () => {
     if (user) {
       const fetchOrders = async () => {
         try {
-          const response = await fetch('http://localhost/backend/api/orders.php', {
+          const response = await fetch(`${API_BASE_URL}/orders.php`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,

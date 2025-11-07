@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Order } from '../types/order';
 import VerificationVideo from '../assets/Aadhaar Scan.webm';
+import API_BASE_URL from '../API_SERVICE';
 
 
 const Applications = () => {
@@ -42,7 +43,7 @@ const Applications = () => {
         formData.append('backSide', kycFormData.backSide);
       }
 
-      const response = await fetch('http://localhost/backend/api/kyc.php', {
+      const response = await fetch(`${API_BASE_URL}/kyc.php`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -70,7 +71,7 @@ const Applications = () => {
       const checkApplication = async () => {
         if (user) {
           try {
-            const response = await fetch('http://localhost:8000/backend/api/seller_application.php', {
+            const response = await fetch(`${API_BASE_URL}/seller_application.php`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -103,7 +104,7 @@ const Applications = () => {
       if (user) {
         const fetchOrders = async () => {
           try {
-            const response = await fetch('http://localhost:8000/backend/api/orders.php', {
+            const response = await fetch(`${API_BASE_URL}/orders.php`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
