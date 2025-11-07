@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
-import { db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../hooks/useAuth';
 
 interface ProfileData {
@@ -34,33 +32,43 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
-        const docRef = doc(db, 'profile', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data() as ProfileData;
-          setProfile(data);
-          setTempProfile(data);
-          setIsEditing(false);
-        } else {
-          // Initialize with empty profile if no data exists
-          setProfile({
-            name: '',
-            age: '',
-            location: '',
-            address: '',
-            pincode: '',
-            email: '',
-            phone: '',
+        try {
+          const response = await fetch('http://localhost/backend/api/profile.php', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+              'Content-Type': 'application/json',
+            },
           });
-          setTempProfile({
-            name: '',
-            age: '',
-            location: '',
-            address: '',
-            pincode: '',
-            email: '',
-            phone: '',
-          });
+          const data = await response.json();
+          if (response.ok && data.profile) {
+            setProfile(data.profile);
+            setTempProfile(data.profile);
+            setIsEditing(false);
+          } else {
+            // Initialize with empty profile if no data exists
+            setProfile({
+              name: '',
+              age: '',
+              location: '',
+              address: '',
+              pincode: '',
+              email: '',
+              phone: '',
+            });
+            setTempProfile({
+              name: '',
+              age: '',
+              location: '',
+              address: '',
+              pincode: '',
+              email: '',
+              phone: '',
+            });
+            setIsEditing(true);
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
           setIsEditing(true);
         }
       }
@@ -76,14 +84,22 @@ const Profile: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      // Allow saving for all users, not just authenticated ones
-      const profileId = user ? user.uid : 'guest_profile';
-      const docRef = doc(db, 'profile', profileId);
-      console.log('Saving profile data:', tempProfile);
-      await setDoc(docRef, tempProfile, { merge: true });
-      setProfile(tempProfile);
-      setIsEditing(false);
-      alert('Profile saved successfully!');
+      const response = await fetch('http://localhost/backend/api/profile.php', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tempProfile),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setProfile(tempProfile);
+        setIsEditing(false);
+        alert('Profile saved successfully!');
+      } else {
+        alert(data.message || 'Failed to save profile. Please try again.');
+      }
     } catch (error: unknown) {
       console.error('Error saving profile:', error);
       alert('Failed to save profile. Please try again.');

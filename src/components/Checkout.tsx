@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
-import { db } from '../firebase';
-import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import Button from './Button';
 import successGif from '../assets/success confetti.gif';
 import congratsGif from '../assets/congratulation.gif';
@@ -61,8 +59,8 @@ const Checkout: React.FC = () => {
         quantity: item.quantity,
       }));
 
-      const orderData: Omit<Order, 'id'> = {
-        userId: user?.uid || 'guest',
+      const orderData = {
+        userId: user?.id || 'guest',
         items: orderItems,
         total: total,
         discountedTotal: discount > 0 ? discountedTotal : undefined,
@@ -71,24 +69,43 @@ const Checkout: React.FC = () => {
         status: 'completed', // Set to completed for subscription plans
         createdAt: new Date(),
         customerEmail: user?.email || undefined,
-        customerName: user?.displayName || undefined,
+        customerName: user?.name || undefined,
       };
 
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
-      const generatedOrderId = docRef.id;
-      setOrderId(generatedOrderId);
+      const response = await fetch('http://localhost/backend/api/orders.php', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
 
-      // Check if the order contains a subscription plan
-      const hasSubscription = cartItems.some(item => item.name.includes('Subscription Plan'));
-      if (hasSubscription && user) {
-        // Add golden batch to dashboard
-        const userDocRef = doc(db, 'users', user.uid);
-        await setDoc(userDocRef, { goldenBatch: true }, { merge: true });
+      const data = await response.json();
+      if (response.ok) {
+        const generatedOrderId = data.orderId;
+        setOrderId(generatedOrderId);
+
+        // Check if the order contains a subscription plan
+        const hasSubscription = cartItems.some(item => item.name.includes('Subscription Plan'));
+        if (hasSubscription && user) {
+          // Add golden batch to dashboard
+          await fetch('http://localhost/backend/api/users.php', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ goldenBatch: true }),
+          });
+        }
+
+        setShowSuccess(true);
+        setOrderPlaced(true);
+        clearCart();
+      } else {
+        alert(data.message || 'Failed to place order. Please try again.');
       }
-
-      setShowSuccess(true);
-      setOrderPlaced(true);
-      clearCart();
     } catch (error) {
       console.error('Error placing order:', error);
       alert('Failed to place order. Please try again.');

@@ -1,4 +1,8 @@
-<?php
+{
+  "scripts": {
+    "build": "vite build"
+  }
+}<?php
 require_once '../config.php';
 
 // Get authorization header

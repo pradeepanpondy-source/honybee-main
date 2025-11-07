@@ -1,89 +1,184 @@
 import { useState, useEffect } from 'react';
-import { User, signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, linkWithCredential, GoogleAuthProvider } from 'firebase/auth';
-import { auth, googleProvider, db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { useGoogleLogin } from '@react-oauth/google';
 
-export const useAuth = () => {
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const API_BASE_URL = 'http://localhost/backend/api'; // Adjust port as needed
+
+export const useAuth = (): {
+  user: User | null;
+  loading: boolean;
+  signInWithEmail: (email: string, password: string) => Promise<User>;
+  signUpWithEmail: (name: string, email: string, password: string) => Promise<User>;
+  signInWithGoogle: () => Promise<void>;
+  linkGoogleAccount: () => Promise<void>;
+  logout: () => Promise<void>;
+} => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    // Check for stored token and validate it
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      validateToken(token);
+    } else {
       setLoading(false);
-    });
-
-    return unsubscribe;
+    }
   }, []);
 
-  const signInWithGoogle = async () => {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+  const validateToken = async (token: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/profile.php`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-    await setDoc(doc(db, 'users', user.uid), {
-      name: user.displayName,
-      email: user.email,
-      uid: user.uid,
-      loginMethod: 'google',
-      photoURL: user.photoURL,
-      emailVerified: user.emailVerified,
-      providerId: user.providerId,
-      lastLogin: new Date(),
-      googleProfile: {
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        providerId: user.providerId
+      if (response.ok) {
+        const data = await response.json();
+        // Extract user info from profile or set basic user info
+        setUser({
+          id: data.profile?.user_id || 0,
+          name: data.profile?.name || '',
+          email: data.profile?.email || '',
+        });
+      } else {
+        // Token invalid, remove it
+        localStorage.removeItem('authToken');
       }
-    }, { merge: true });
-
-
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      localStorage.removeItem('authToken');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const linkGoogleAccount = async (email: string, password: string) => {
+  const signInWithEmail = async (email: string, password: string) => {
     try {
-      // First sign in with email/password
-      const emailResult = await signInWithEmailAndPassword(auth, email, password);
-      const user = emailResult.user;
+      const response = await fetch(`${API_BASE_URL}/login.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // Now link the Google account
-      const googleResult = await signInWithPopup(auth, googleProvider);
-      const googleCredential = GoogleAuthProvider.credentialFromResult(googleResult);
+      const data = await response.json();
 
-      if (googleCredential) {
-        await linkWithCredential(user, googleCredential);
-
-        // Update user data in Firestore
-        await setDoc(doc(db, 'users', user.uid), {
-          name: user.displayName || googleResult.user.displayName,
-          email: user.email,
-          uid: user.uid,
-          loginMethod: 'linked', // Both email and Google
-          lastLogin: new Date(),
-        }, { merge: true });
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
       }
 
-      return user;
-    } catch (error: unknown) {
-      console.error('Error linking Google account:', error);
+      localStorage.setItem('authToken', data.token);
+      setUser(data.user);
+
+      return data.user;
+    } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   };
 
+  const signUpWithEmail = async (name: string, email: string, password: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/signup.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Signup failed');
+      }
+
+      localStorage.setItem('authToken', data.token);
+      setUser(data.user);
+
+      return data.user;
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    }
+  };
+
+  const googleLogin = useGoogleLogin({
+    flow: 'auth-code',
+    onSuccess: async (codeResponse) => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/google_login.php`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code: codeResponse.code }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Google login failed');
+        }
+
+        localStorage.setItem('authToken', data.token);
+        setUser(data.user);
+      } catch (error) {
+        console.error('Google login error:', error);
+        throw error;
+      }
+    },
+    onError: (error) => {
+      console.error('Google login error:', error);
+    },
+  });
+
+  const signInWithGoogle = async () => {
+    googleLogin();
+  };
+
+  const linkGoogleAccount = async () => {
+    // Implement account linking if needed
+    throw new Error('Account linking not implemented yet');
+  };
+
   const logout = async () => {
     try {
-      await signOut(auth);
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        await fetch(`${API_BASE_URL}/logout.php`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
     } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
+      console.error('Logout API call failed:', error);
+    } finally {
+      localStorage.removeItem('authToken');
+      setUser(null);
     }
   };
 
   return {
     user,
     loading,
+    signInWithEmail,
+    signUpWithEmail,
     signInWithGoogle,
     linkGoogleAccount,
-     logout,
+    logout,
   };
 };

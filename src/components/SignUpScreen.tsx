@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from './Button';
 
@@ -15,26 +12,14 @@ const SignUpScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { signInWithGoogle } = useAuth();
+  const { signUpWithEmail } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Store user data in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        name: name,
-        email: user.email,
-        uid: user.uid,
-        loginMethod: 'email',
-        createdAt: new Date(),
-        lastLogin: new Date(),
-      });
-
+      await signUpWithEmail(name, email, password);
       setTimeout(() => {
         navigate('/home');
       }, 2500);
@@ -42,27 +27,7 @@ const SignUpScreen: React.FC = () => {
       console.error('Sign up error:', err);
       let errorMessage = 'Sign up failed. Please try again.';
 
-      if (err && typeof err === 'object' && 'code' in err) {
-        switch (err.code) {
-          case 'auth/email-already-in-use':
-            errorMessage = 'An account with this email already exists. Please try logging in instead.';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'Invalid email address format.';
-            break;
-          case 'auth/weak-password':
-            errorMessage = 'Password is too weak. Please choose a stronger password.';
-            break;
-          case 'auth/operation-not-allowed':
-            errorMessage = 'Email/password accounts are not enabled. Please contact support.';
-            break;
-          case 'auth/network-request-failed':
-            errorMessage = 'Network error. Please check your internet connection.';
-            break;
-          default:
-            errorMessage = `Authentication error: ${err.code}`;
-        }
-      } else if (err instanceof Error) {
+      if (err instanceof Error) {
         errorMessage = err.message;
       }
 
@@ -158,16 +123,7 @@ const SignUpScreen: React.FC = () => {
           )}
           <div className="flex justify-center">
             <Button
-              onClick={async () => {
-                setError(null);
-                try {
-                  await signInWithGoogle();
-                  // Navigation will be handled by the auth state change in useAuth
-                } catch (err: unknown) {
-                  const errorMessage = err instanceof Error ? err.message : 'Google login failed. Please try again.';
-                  setError(errorMessage);
-                }
-              }}
+              onClick={() => alert('Google login will be available soon!')}
               variant="light"
               size="icon"
               className="p-3 shadow-md bg-white hover:shadow-lg"

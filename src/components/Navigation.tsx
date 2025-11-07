@@ -20,7 +20,7 @@ export default function Navigation() {
   }
 
   return (
-    <nav className="bg-honeybee-background/95 backdrop-blur-sm shadow-lg fixed w-full z-50">
+    <nav className="bg-honeybee-background/98 backdrop-blur-md shadow-xl fixed w-full z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-14 md:h-16">
           <div className="flex items-center">

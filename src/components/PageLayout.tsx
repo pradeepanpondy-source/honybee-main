@@ -13,10 +13,10 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children, backgroundImage }) =>
   return (
     <div className="min-h-screen flex flex-col" style={backgroundImage ? { backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' } : {}}>
       <Navigation />
-      <main className="pt-16 pb-80">{children}</main>
+      <main className="pt-14 pb-20">{children}</main>
       {location.pathname === '/seller' && <div className="h-screen"></div>}
       {location.pathname !== '/seller' && (
-        <div className="mt-96">
+        <div className="mt-24">
           <Footer />
         </div>
       )}

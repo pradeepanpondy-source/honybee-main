@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { db, storage } from '../firebase';
-import { doc, getDoc, collection, query, getDocs, orderBy, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Order } from '../types/order';
-import VerificationVideo from '../assets/Verification - ID Card & Face Scan.webm';
+import VerificationVideo from '../assets/Aadhaar Scan.webm';
 
 
-const Applications: React.FC = () => {
+const Applications = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [hasApplication, setHasApplication] = useState<boolean | null>(null);
@@ -33,36 +30,33 @@ const Applications: React.FC = () => {
     if (!user) return;
 
     try {
-      let frontUrl = '';
-      let backUrl = '';
-
+      const formData = new FormData();
+      formData.append('idType', kycFormData.idType);
+      formData.append('idNumber', kycFormData.idNumber);
+      formData.append('address', kycFormData.address);
+      formData.append('pincode', kycFormData.pincode);
       if (kycFormData.frontSide) {
-        const frontRef = ref(storage, `kyc/${user.uid}/front_${kycFormData.frontSide.name}`);
-        await uploadBytes(frontRef, kycFormData.frontSide);
-        frontUrl = await getDownloadURL(frontRef);
+        formData.append('frontSide', kycFormData.frontSide);
       }
-
       if (kycFormData.backSide) {
-        const backRef = ref(storage, `kyc/${user.uid}/back_${kycFormData.backSide.name}`);
-        await uploadBytes(backRef, kycFormData.backSide);
-        backUrl = await getDownloadURL(backRef);
+        formData.append('backSide', kycFormData.backSide);
       }
 
-      const docRef = doc(db, 'sellerApplications', user.uid);
-      await updateDoc(docRef, {
-        kycVerified: true,
-        kycData: {
-          idType: kycFormData.idType,
-          idNumber: kycFormData.idNumber,
-          address: kycFormData.address,
-          pincode: kycFormData.pincode,
-          frontSideUrl: frontUrl,
-          backSideUrl: backUrl,
+      const response = await fetch('http://localhost/backend/api/kyc.php', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
+        body: formData,
       });
 
-      setKycVerified(true);
-      alert('KYC submitted successfully!');
+      const data = await response.json();
+      if (response.ok) {
+        setKycVerified(true);
+        alert('KYC submitted successfully!');
+      } else {
+        alert(data.message || 'Error submitting KYC. Please try again.');
+      }
     } catch (error) {
       console.error('Error submitting KYC:', error);
       alert('Error submitting KYC. Please try again.');
@@ -76,10 +70,14 @@ const Applications: React.FC = () => {
       const checkApplication = async () => {
         if (user) {
           try {
-            const docRef = doc(db, 'sellerApplications', user.uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              const data = docSnap.data();
+            const response = await fetch('http://localhost:8000/backend/api/seller_application.php', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              },
+            });
+            const data = await response.json();
+            if (response.ok && data.hasApplication) {
               setHasApplication(true);
               setKycVerified(data.kycVerified || false);
             } else {
@@ -88,12 +86,15 @@ const Applications: React.FC = () => {
           } catch (error) {
             console.error('Error checking application:', error);
             setHasApplication(false);
+          } finally {
+            setLoading(false);
           }
         } else if (isGuest) {
           // For guests, check local storage
           const guestApplication = localStorage.getItem('guestSellerApplication');
           setHasApplication(guestApplication ? true : false);
           setKycVerified(true); // Assume guests are verified or skip KYC
+          setLoading(false);
         }
       };
       checkApplication();
@@ -102,25 +103,30 @@ const Applications: React.FC = () => {
       if (user) {
         const fetchOrders = async () => {
           try {
-            const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-            const querySnapshot = await getDocs(q);
-            const ordersData: Order[] = [];
-            let sales = 0;
-            let orderCount = 0;
-            const productSet = new Set<string>();
-
-            querySnapshot.forEach((doc) => {
-              const order = { id: doc.id, ...doc.data() } as Order;
-              ordersData.push(order);
-              sales += order.total || 0;
-              orderCount += 1;
-              order.items.forEach(item => productSet.add(item.id.toString()));
+            const response = await fetch('http://localhost:8000/backend/api/orders.php', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              },
             });
+            const data = await response.json();
+            if (response.ok) {
+              const ordersData: Order[] = data.orders || [];
+              let sales = 0;
+              let orderCount = 0;
+              const productSet = new Set<string>();
 
-            setOrders(ordersData);
-            setTotalSales(sales);
-            setTotalOrders(orderCount);
-            setActiveProducts(productSet.size);
+              ordersData.forEach((order: Order) => {
+                sales += order.total || 0;
+                orderCount += 1;
+                order.items.forEach(item => productSet.add(item.id.toString()));
+              });
+
+              setOrders(ordersData);
+              setTotalSales(sales);
+              setTotalOrders(orderCount);
+              setActiveProducts(productSet.size);
+            }
           } catch (error) {
             console.error('Error fetching orders:', error);
           }

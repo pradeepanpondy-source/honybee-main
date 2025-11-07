@@ -186,6 +186,10 @@ html {
   scroll-behavior: smooth;
 }
 
+body {
+  scroll-behavior: smooth;
+}
+
 /* Mobile Optimizations */
 @media (max-width: 768px) {
   body {

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../firebase';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import { Order } from '../types/order';
 
 const Orders: React.FC = () => {
@@ -15,18 +13,22 @@ const Orders: React.FC = () => {
     if (user) {
       const fetchOrders = async () => {
         try {
-          const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-          const querySnapshot = await getDocs(q);
-          const ordersData: Order[] = [];
-
-          querySnapshot.forEach((doc) => {
-            const order = { id: doc.id, ...doc.data() } as Order;
-            ordersData.push(order);
+          const response = await fetch('http://localhost/backend/api/orders.php', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            },
           });
-
-          setOrders(ordersData);
+          const data = await response.json();
+          if (response.ok && data.orders) {
+            setOrders(data.orders);
+          } else {
+            setOrders([]);
+          }
         } catch (error) {
           console.error('Error fetching orders:', error);
+          setOrders([]);
         } finally {
           setLoading(false);
         }

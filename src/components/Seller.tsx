@@ -1,9 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+
 import Button from './Button';
 
 
@@ -46,38 +44,8 @@ const Seller: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [sellerType, setSellerType] = useState<string>('');
   // Removed unused selectedOption state to fix eslint error
-  const [hasApplied, setHasApplied] = useState<boolean | null>(null);
-
-  const { user, loading } = useAuth();
+  const user = null; // For guest users, assume no authenticated user
   const navigate = useNavigate();
-
-  // Removed sign-in check to allow direct access
-
-  useEffect(() => {
-    const checkApplication = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const isTesting = urlParams.get('testing') === 'true';
-
-      if (user && (user.providerData.some(provider => provider.providerId === 'google.com') || isTesting)) {
-        try {
-          const docRef = doc(db, 'sellerApplications', user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            setHasApplied(true);
-          } else {
-            setHasApplied(false);
-          }
-        } catch (error) {
-          console.error('Error checking application:', error);
-          setHasApplied(false);
-        }
-      } else {
-        // For guests or non-authenticated, allow access to the form
-        setHasApplied(false);
-      }
-    };
-    checkApplication();
-  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -132,31 +100,20 @@ const Seller: React.FC = () => {
         // For non-authenticated users, store application locally as guest
         const guestApplication = { ...formData, sellerType, submittedAt: new Date(), kycVerified: false };
         localStorage.setItem('guestSellerApplication', JSON.stringify(guestApplication));
-        alert('Application submitted successfully!');
-        // For guests, navigate to home since /applications is protected
-        navigate('/home');
+        // Navigate to dashboard for seller registration
+        navigate('/applications');
         return;
       }
 
       try {
-        // Exclude files and sensitive fields; handle files via Storage if needed
-        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-        const { profilePic: _profilePic, idProof: _idProof, password: _password, confirmPassword: _confirmPassword, ...data } = formData;
-        const submissionData = { ...data, sellerType, submittedAt: new Date(), kycVerified: false };
+        // For now, store locally or send to PHP backend later
+        const submissionData = { ...formData, sellerType, submittedAt: new Date(), kycVerified: false };
         console.log('Submitting data:', submissionData);
-        console.log('User UID:', user.uid);
-        await setDoc(doc(db, 'sellerApplications', user.uid), submissionData, { merge: true });
         alert('Application submitted successfully!');
         navigate('/applications');
       } catch (error: unknown) {
         console.error('Error submitting application:', error);
-        let errorMessage = 'Unknown error';
-        if (error && typeof error === 'object' && 'code' in error && error.code === 'permission-denied') {
-          errorMessage = 'Missing or insufficient permissions. Please ensure you are signed in and try again.';
-        } else if (error instanceof Error) {
-          errorMessage = error.message;
-        }
-        alert(`Failed to submit application: ${errorMessage}. Please try again.`);
+        alert(`Failed to submit application: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
       }
       return;
     }
@@ -481,9 +438,7 @@ const Seller: React.FC = () => {
 
 
 
-  if (loading || hasApplied === null) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
+
 
   return (
     <div className="min-h-screen py-12 px-4 md:px-6">
