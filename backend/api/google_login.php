@@ -69,10 +69,12 @@ try {
             sendJsonResponse(['error' => 'An account with this email already exists. Please login with email and password, then link your Google account.'], 409);
         }
     } else {
-        $stmt = $conn->prepare("INSERT INTO users (name, email, login_method, google_profile, email_verified, created_at, last_login) VALUES (?, ?, 'google', ?, TRUE, NOW(), NOW())");
+        // Create new user with Google login
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, login_method, google_profile, email_verified, created_at, last_login) VALUES (?, ?, NULL, 'google', ?, TRUE, NOW(), NOW())");
         $stmt->execute([$name, $email, json_encode($googleProfile)]);
         $userId = $conn->lastInsertId();
 
+        // Create profile for the new user
         $stmt = $conn->prepare("INSERT INTO profiles (user_id, name, email) VALUES (?, ?, ?)");
         $stmt->execute([$userId, $name, $email]);
     }

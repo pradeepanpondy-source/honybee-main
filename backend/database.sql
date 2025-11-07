@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NULL,
     login_method ENUM('email', 'google', 'linked') DEFAULT 'email',
     google_profile JSON NULL,
     email_verified BOOLEAN DEFAULT FALSE,

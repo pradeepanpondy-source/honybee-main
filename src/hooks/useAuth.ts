@@ -7,7 +7,7 @@ interface User {
   email: string;
 }
 
-const API_BASE_URL = 'http://localhost/backend/api'; // Adjust port as needed
+const API_BASE_URL = 'http://localhost:8000/api';
 
 export const useAuth = (): {
   user: User | null;
