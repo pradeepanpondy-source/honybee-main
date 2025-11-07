@@ -100,8 +100,12 @@ const Seller: React.FC = () => {
         // For non-authenticated users, store application locally as guest
         const guestApplication = { ...formData, sellerType, submittedAt: new Date(), kycVerified: false };
         localStorage.setItem('guestSellerApplication', JSON.stringify(guestApplication));
-        // Navigate to dashboard for seller registration
-        navigate('/applications');
+        // Move to finish screen first
+        setStep(4);
+        // Redirect to dashboard after 3 seconds
+        setTimeout(() => {
+          navigate('/applications');
+        }, 3000);
         return;
       }
 
@@ -109,8 +113,12 @@ const Seller: React.FC = () => {
         // For now, store locally or send to PHP backend later
         const submissionData = { ...formData, sellerType, submittedAt: new Date(), kycVerified: false };
         console.log('Submitting data:', submissionData);
-        alert('Application submitted successfully!');
-        navigate('/applications');
+        // Move to finish screen first
+        setStep(4);
+        // Redirect to dashboard after 3 seconds
+        setTimeout(() => {
+          navigate('/applications');
+        }, 3000);
       } catch (error: unknown) {
         console.error('Error submitting application:', error);
         alert(`Failed to submit application: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
@@ -416,25 +424,32 @@ const Seller: React.FC = () => {
     </form>
   );
 
-  const renderFinish = () => (
-    <div className="max-w-md mx-auto bg-white p-8 rounded shadow text-center">
-      <svg
-        className="mx-auto mb-6 w-16 h-16 text-green-500"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
-      </svg>
-      <h2 className="text-2xl font-bold mb-2">Application Submitted</h2>
-      <p className="mb-4">Your seller application has been submitted successfully. You will be redirected to your dashboard shortly.</p>
-      <a href="/applications" className="text-purple-700 underline">
-        Go to Dashboard
-      </a>
-    </div>
-  );
+  const renderFinish = () => {
+    // Auto-redirect is handled in handleSubmit
+    return (
+      <div className="max-w-md mx-auto bg-white p-8 rounded shadow text-center">
+        <svg
+          className="mx-auto mb-6 w-16 h-16 text-green-500"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <h2 className="text-2xl font-bold mb-2">Application Submitted Successfully!</h2>
+        <p className="mb-4 text-gray-600">Your seller application has been submitted successfully.</p>
+        <p className="mb-6 text-sm text-gray-500">Redirecting to your dashboard in a moment...</p>
+        <button
+          onClick={() => navigate('/applications')}
+          className="gradient-bg-primary text-black font-semibold py-3 px-8 rounded-full hover:shadow-lg transition-all duration-300"
+        >
+          Go to Dashboard Now
+        </button>
+      </div>
+    );
+  };
 
 
 
