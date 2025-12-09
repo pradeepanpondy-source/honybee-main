@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 import Button from './Button';
 
@@ -39,12 +41,12 @@ const initialFormData: FormData = {
   sellerType: '',
 };
 
-const Seller: React.FC = () => {
-  const [step, setStep] = useState(0);
+const Seller = () => {
+  const [step, setStep] = useState<number>(0);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [sellerType, setSellerType] = useState<string>('');
   // Removed unused selectedOption state to fix eslint error
-  const user = null; // For guest users, assume no authenticated user
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,9 +80,16 @@ const Seller: React.FC = () => {
 
     if (step === 3) {
       // Final submission
-      const isGuest = localStorage.getItem('guestMode') === 'true';
-      if (!user && !isGuest) {
+      if (!user) {
         alert('Please sign in to submit the application.');
+        navigate('/login');
+        return;
+      }
+
+      // Ensure session is active
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        alert('Session expired. Please sign in again.');
         navigate('/login');
         return;
       }
@@ -96,24 +105,73 @@ const Seller: React.FC = () => {
         return;
       }
 
-      if (!user) {
-        // For non-authenticated users, store application locally as guest
-        const guestApplication = { ...formData, sellerType, submittedAt: new Date(), kycVerified: false };
-        localStorage.setItem('guestSellerApplication', JSON.stringify(guestApplication));
-        // Navigate to dashboard for seller registration
-        navigate('/applications');
-        return;
-      }
-
       try {
-        // For now, store locally or send to PHP backend later
-        const submissionData = { ...formData, sellerType, submittedAt: new Date(), kycVerified: false };
-        console.log('Submitting data:', submissionData);
-        alert('Application submitted successfully!');
+        let profilePicUrl = '';
+        let idProofUrl = '';
+
+        // Upload profile picture to Supabase storage
+        if (formData.profilePic) {
+          const profileFileName = `${user.id}/seller-profiles/profile_${Date.now()}.${formData.profilePic.name.split('.').pop()}`;
+          const { error: profileError } = await supabase.storage
+            .from('kyc-documents')
+            .upload(profileFileName, formData.profilePic);
+
+          if (profileError) throw profileError;
+
+          const { data: profileData } = supabase.storage
+            .from('kyc-documents')
+            .getPublicUrl(profileFileName);
+
+          profilePicUrl = profileData.publicUrl;
+        }
+
+        // Upload ID proof to Supabase storage
+        if (formData.idProof) {
+          const idFileName = `${user.id}/seller-id-proofs/id_${Date.now()}.${formData.idProof.name.split('.').pop()}`;
+          const { error: idError } = await supabase.storage
+            .from('kyc-documents')
+            .upload(idFileName, formData.idProof);
+
+          if (idError) throw idError;
+
+          const { data: idData } = supabase.storage
+            .from('kyc-documents')
+            .getPublicUrl(idFileName);
+
+          idProofUrl = idData.publicUrl;
+        }
+
+        // Insert seller data directly into Supabase sellers table
+        const { error } = await supabase
+          .from('sellers')
+          .insert([{
+            user_id: user.id,
+            seller_id: `SELLER-${Date.now()}`, // Generate unique seller ID
+            name: formData.name,
+            email: formData.email,
+            seller_type: sellerType,
+            phone: formData.phone,
+            address: `${formData.city}, ${formData.state}, ${formData.zip}, ${formData.country}`,
+            city: formData.city,
+            state: formData.state,
+            zip: formData.zip,
+            country: formData.country,
+            country_code: formData.countryCode,
+            id_proof_url: idProofUrl,
+            profile_pic_url: profilePicUrl,
+            is_approved: false, // Set to false initially, can be approved later
+            kyc_verified: false
+          }]);
+
+        if (error) {
+          throw error;
+        }
+
+        alert('Seller registration submitted successfully! Your application will be reviewed.');
         navigate('/applications');
-      } catch (error: unknown) {
+      } catch (error) {
         console.error('Error submitting application:', error);
-        alert(`Failed to submit application: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+        alert(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
       return;
     }

@@ -1,13 +1,7 @@
 import React, { createContext, useState, ReactNode } from 'react';
+import { Product } from '../types/product'; // Import the correct Product type
 
-interface Product {
-  id: number;
-  name: string;
-  price: string;
-  image: string;
-  description: string;
-}
-
+// We also add quantity to it for the cart.
 interface CartItem extends Product {
   quantity: number;
 }
@@ -15,15 +9,13 @@ interface CartItem extends Product {
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (product: Product) => void;
-  removeFromCart: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  removeFromCart: (id: string) => void; // Changed id to string
+  updateQuantity: (id: string, quantity: number) => void; // Changed id to string
   clearCart: () => void;
   getTotal: () => number;
 }
 
 export const CartContext = createContext<CartContextType | undefined>(undefined);
-
-
 
 interface CartProviderProps {
   children: ReactNode;
@@ -62,11 +54,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   };
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string) => { // Changed id to string
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (id: string, quantity: number) => { // Changed id to string
     if (quantity <= 0) {
       removeFromCart(id);
       return;
@@ -83,9 +75,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   };
 
   const getTotal = () => {
+    // The price from the main Product type is a number, so no parsing is needed.
     return cartItems.reduce((total, item) => {
-      const price = parseFloat(item.price.replace(/[$₹]/g, ''));
-      return total + (price * item.quantity);
+      return total + (item.price * item.quantity);
     }, 0);
   };
 

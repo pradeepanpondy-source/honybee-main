@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 interface ProfileData {
   name: string;
@@ -33,17 +34,18 @@ const Profile: React.FC = () => {
     const fetchProfile = async () => {
       if (user) {
         try {
-          const response = await fetch('http://localhost/backend/api/profile.php', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-              'Content-Type': 'application/json',
-            },
-          });
-          const data = await response.json();
-          if (response.ok && data.profile) {
-            setProfile(data.profile);
-            setTempProfile(data.profile);
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+            console.error('Error fetching profile:', error);
+            setIsEditing(true);
+          } else if (data) {
+            setProfile(data);
+            setTempProfile(data);
             setIsEditing(false);
           } else {
             // Initialize with empty profile if no data exists
@@ -83,22 +85,29 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!user) return;
+
     try {
-      const response = await fetch('http://localhost/backend/api/profile.php', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(tempProfile),
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          name: tempProfile.name,
+          age: tempProfile.age,
+          location: tempProfile.location,
+          address: tempProfile.address,
+          pincode: tempProfile.pincode,
+          email: tempProfile.email,
+          phone: tempProfile.phone,
+        });
+
+      if (error) {
+        console.error('Error saving profile:', error);
+        alert('Failed to save profile. Please try again.');
+      } else {
         setProfile(tempProfile);
         setIsEditing(false);
         alert('Profile saved successfully!');
-      } else {
-        alert(data.message || 'Failed to save profile. Please try again.');
       }
     } catch (error: unknown) {
       console.error('Error saving profile:', error);

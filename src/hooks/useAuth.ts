@@ -1,4 +1,3 @@
-//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
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -8,13 +7,15 @@ interface User {
   email: string;
 }
 
-const API_BASE_URL = 'http://localhost:8000/api';
+interface SignUpResult extends User {
+  needsConfirmation: boolean;
+}
 
 export const useAuth = (): {
   user: User | null;
   loading: boolean;
   signInWithEmail: (email: string, password: string) => Promise<User>;
-  signUpWithEmail: (name: string, email: string, password: string) => Promise<User>;
+  signUpWithEmail: (name: string, email: string, password: string) => Promise<SignUpResult>;
   signInWithGoogle: () => Promise<void>;
   linkGoogleAccount: () => Promise<void>;
   logout: () => Promise<void>;
@@ -26,16 +27,23 @@ export const useAuth = (): {
     // Check for Supabase session
     const checkUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('Session check:', { session, error });
+
         if (session?.user) {
+          console.log('User found in session:', session.user);
           setUser({
             id: session.user.id,
             name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
             email: session.user.email || '',
           });
+        } else {
+          console.log('No session found, user should see login page');
+          setUser(null);
         }
       } catch (error) {
         console.error('Error checking auth session:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -45,7 +53,9 @@ export const useAuth = (): {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user ? 'user logged in' : 'user logged out');
+
         if (session?.user) {
           setUser({
             id: session.user.id,
@@ -62,28 +72,30 @@ export const useAuth = (): {
     return () => subscription.unsubscribe();
   }, []);
 
-
-
   const signInWithEmail = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/login.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+      if (error) {
+        throw error;
       }
 
-      localStorage.setItem('authToken', data.token);
-      setUser(data.user);
+      if (data.user) {
+        setUser({
+          id: data.user.id,
+          name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || '',
+          email: data.user.email || email,
+        });
+      }
 
-      return data.user;
+      return {
+        id: data.user?.id || '',
+        name: data.user?.user_metadata?.full_name || data.user?.user_metadata?.name || '',
+        email: data.user?.email || email,
+      };
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -92,39 +104,38 @@ export const useAuth = (): {
 
   const signUpWithEmail = async (name: string, email: string, password: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/signup.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            name: name,
+          }
+        }
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Signup failed');
+      if (error) {
+        throw error;
       }
 
-      localStorage.setItem('authToken', data.token);
-      setUser(data.user);
-
-      return data.user;
+      // Return user data but don't set state here - let auth state change handle it
+      return {
+        id: data.user?.id || '',
+        name: name,
+        email: data.user?.email || email,
+        needsConfirmation: !data.session, // Indicate if email confirmation is needed
+      };
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
     }
   };
 
-
-
   const signInWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/home`
-        }
+        provider: 'google'
       });
 
       if (error) {

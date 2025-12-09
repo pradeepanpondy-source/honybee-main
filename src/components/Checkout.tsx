@@ -4,7 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import Button from './Button';
 import successGif from '../assets/success confetti.gif';
 import congratsGif from '../assets/congratulation.gif';
-import { Order, OrderItem } from '../types/order';
+import { supabase } from '../lib/supabase'; // Import Supabase client
+import { CartItem } from '../context/CartContext'; // Assuming CartItem is exported from here
 
 const validCoupons: Record<string, number> = {
   'HONEY10': 0.10,
@@ -49,66 +50,84 @@ const Checkout: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
-    // Allow placing orders for all users (authenticated or guest)
+    if (!user) {
+      alert('Please log in to place an order.');
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert('Your cart is empty.');
+      return;
+    }
+
+    // 1. Group cart items by seller_id
+    const ordersBySeller = cartItems.reduce((acc, item) => {
+      const sellerId = item.seller_id;
+      if (!acc[sellerId]) {
+        acc[sellerId] = [];
+      }
+      acc[sellerId].push(item);
+      return acc;
+    }, {} as Record<string, CartItem[]>);
 
     try {
-      const orderItems: OrderItem[] = cartItems.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      }));
+      // 2. Create an order for each seller
+      const createdOrderIds: string[] = [];
+      for (const sellerId in ordersBySeller) {
+        const sellerItems = ordersBySeller[sellerId];
+        const sellerTotal = sellerItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        
+        // Apply discount proportionally
+        const sellerDiscount = sellerTotal / total * (total * discount);
+        const sellerDiscountedTotal = sellerTotal - sellerDiscount;
 
-      const orderData = {
-        userId: user?.id || 'guest',
-        items: orderItems,
-        total: total,
-        discountedTotal: discount > 0 ? discountedTotal : undefined,
-        coupon: discount > 0 ? coupon.toUpperCase() : undefined,
-        discount: discount > 0 ? discount : undefined,
-        status: 'completed', // Set to completed for subscription plans
-        createdAt: new Date(),
-        customerEmail: user?.email || undefined,
-        customerName: user?.name || undefined,
-      };
+        // 3. Insert into 'orders' table
+        const { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            user_id: user.id,
+            seller_id: sellerId,
+            total: sellerTotal,
+            discounted_total: discount > 0 ? sellerDiscountedTotal : undefined,
+            coupon: discount > 0 ? coupon.toUpperCase() : undefined,
+            discount: discount > 0 ? sellerDiscount / sellerTotal : undefined, // as a percentage
+            status: 'pending',
+            customer_email: user.email,
+            customer_name: user.name,
+          })
+          .select()
+          .single();
 
-      const response = await fetch('http://localhost/backend/api/orders.php', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
+        if (orderError) throw orderError;
 
-      const data = await response.json();
-      if (response.ok) {
-        const generatedOrderId = data.orderId;
-        setOrderId(generatedOrderId);
+        const newOrderId = orderData.id;
+        createdOrderIds.push(newOrderId);
 
-        // Check if the order contains a subscription plan
-        const hasSubscription = cartItems.some(item => item.name.includes('Subscription Plan'));
-        if (hasSubscription && user) {
-          // Add golden batch to dashboard
-          await fetch('http://localhost/backend/api/users.php', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ goldenBatch: true }),
-          });
-        }
+        // 4. Prepare items for 'order_items' table
+        const orderItemsToInsert = sellerItems.map(item => ({
+          order_id: newOrderId,
+          product_id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        }));
 
-        setShowSuccess(true);
-        setOrderPlaced(true);
-        clearCart();
-      } else {
-        alert(data.message || 'Failed to place order. Please try again.');
+        // 5. Insert into 'order_items' table
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItemsToInsert);
+
+        if (itemsError) throw itemsError;
       }
-    } catch (error) {
+
+      setOrderId(createdOrderIds.join(', ')); // Show all created order IDs
+      setShowSuccess(true);
+      setOrderPlaced(true);
+      clearCart();
+
+    } catch (error: any) {
       console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      alert(`Failed to place order: ${error.message}`);
     }
   };
 
@@ -119,17 +138,12 @@ const Checkout: React.FC = () => {
           <h2 className="text-3xl font-bold text-honeybee-primary mb-6">Thank you for your order!</h2>
           <p>Your order has been placed successfully.</p>
           {orderId && (
-            <p className="text-lg mt-4">Order ID: <span className="font-bold">{orderId}</span></p>
+            <p className="text-lg mt-4">Order ID(s): <span className="font-bold">{orderId}</span></p>
           )}
         </div>
       {showSuccess && (
         <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
           <img src={successGif} alt="Success" className="w-64 h-64 object-cover" />
-        </div>
-      )}
-      {showCongrats && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <img src={congratsGif} alt="Congratulations" className="w-96 h-96 object-cover rounded-lg shadow-2xl" />
         </div>
       )}
       </>
@@ -146,7 +160,8 @@ const Checkout: React.FC = () => {
             {cartItems.map((item) => (
               <div key={item.id} className="flex justify-between mb-2 text-sm md:text-base">
                 <span>{item.name} x {item.quantity}</span>
-                <span>₹{(parseFloat(item.price.replace(/[$₹]/g, '')) * item.quantity).toFixed(2)}</span>
+                {/* item.price is now a number */}
+                <span>₹{(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}
             <div className="flex justify-between font-bold border-t border-gray-300 pt-2 text-sm md:text-base">
@@ -188,9 +203,9 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </div>
-      {showSuccess && (
-        <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
-          <img src={successGif} alt="Success" className="w-64 h-64 object-cover" />
+      {showCongrats && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <img src={congratsGif} alt="Congratulations" className="w-96 h-96 object-cover rounded-lg shadow-2xl" />
         </div>
       )}
     </>

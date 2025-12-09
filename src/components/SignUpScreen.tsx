@@ -4,13 +4,14 @@ import { useAuth } from '../hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from './Button';
 
-const SignUpScreen: React.FC = () => {
+const SignUpScreen = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { signUpWithEmail, signInWithGoogle } = useAuth();
 
@@ -18,11 +19,17 @@ const SignUpScreen: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMessage(null);
     try {
-      await signUpWithEmail(name, email, password);
-      setTimeout(() => {
-        navigate('/home');
-      }, 2500);
+      const result = await signUpWithEmail(name, email, password);
+      setLoading(false);
+
+      if (result.needsConfirmation) {
+        setSuccessMessage('Account created successfully! Please check your email to confirm your account before signing in.');
+      } else {
+        // User is already signed in, navigation will be handled by auth state change
+        setSuccessMessage('Account created successfully! Redirecting to dashboard...');
+      }
     } catch (err: unknown) {
       console.error('Sign up error:', err);
       let errorMessage = 'Sign up failed. Please try again.';
@@ -40,7 +47,7 @@ const SignUpScreen: React.FC = () => {
     setError(null);
     try {
       await signInWithGoogle();
-      navigate('/home');
+      // Navigation will be handled by App.tsx routing based on auth state
     } catch (error: unknown) {
       console.error('Google sign up error:', error);
       setError('Google sign up failed. Please try again.');

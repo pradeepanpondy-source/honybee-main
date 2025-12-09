@@ -35,9 +35,9 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/home" /> : <LoginScreen />} />
-      <Route path="/login" element={<LoginScreen />} />
-      <Route path="/signup" element={<SignUpScreen />} />
+      <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
+      <Route path="/login" element={user ? <Navigate to="/home" /> : <LoginScreen />} />
+      <Route path="/signup" element={user ? <Navigate to="/home" /> : <SignUpScreen />} />
       <Route path="/home" element={<PageLayout><HomeScreen /></PageLayout>} />
       <Route path="/about" element={<PageLayout><About /></PageLayout>} />
       <Route path="/contact" element={<PageLayout><Contact /></PageLayout>} />

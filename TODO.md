@@ -1,27 +1,15 @@
-# TODO: Migrate Google Login to Supabase Integration
 
-## Information Gathered
-- Current setup uses custom Google OAuth with PHP backend and MySQL database
-- Supabase client exists but not configured for auth
-- useAuth hook has custom Google login implementation calling backend API
-- SignUpScreen has placeholder Google login button
-- Database has users table with google_profile JSON field for Google users
+# TODO: Fix TypeScript Errors in Components
 
-## Plan
-- [x] Update src/lib/supabase.ts to include auth client
-- [x] Modify src/hooks/useAuth.ts to use Supabase auth for Google login instead of custom backend
-- [x] Update src/components/SignUpScreen.tsx to use actual Google login instead of placeholder
-- [x] Remove or update backend/api/google_login.php since Supabase will handle authentication
-- [x] Ensure user data (name, email) is properly saved in Supabase during Google auth
+## Tasks
+# TODO: Fix Registration Failure and Login Page Visibility
 
-## Dependent Files to be edited
-- src/lib/supabase.ts
-- src/hooks/useAuth.ts
-- src/components/SignUpScreen.tsx
-- backend/api/google_login.php
+## Tasks
+- [ ] Update `useAuth.ts` to only set user after signup if a valid session exists (to handle email confirmation)
+- [ ] Improve error handling in `SignUpScreen.tsx` to display specific Supabase error messages
+- [ ] Test the registration flow to ensure errors are handled properly and login page is accessible
 
-## Followup steps
-- [ ] Test Google login functionality on both login and signup screens
-- [ ] Verify user data is saved correctly in Supabase
-- [ ] Check that JWT tokens are properly handled
-- [ ] Update any other components that reference old login flow
+## Notes
+- Current issue: User is set immediately after signup even without session, causing premature navigation to home
+- Supabase signup may require email confirmation, so session might not be active immediately
+- Error messages need to be more specific to help users understand issues
