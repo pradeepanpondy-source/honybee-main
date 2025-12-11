@@ -12,6 +12,7 @@ const SignUpScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const { signUpWithEmail, signInWithGoogle } = useAuth();
 
@@ -21,15 +22,15 @@ const SignUpScreen = () => {
     setError(null);
     setSuccessMessage(null);
     try {
-      const result = await signUpWithEmail(name, email, password);
+      await signUpWithEmail(name, email, password);
+      // Success handling: Show message and redirect to login
       setLoading(false);
-
-      if (result.needsConfirmation) {
-        setSuccessMessage('Account created successfully! Please check your email to confirm your account before signing in.');
-      } else {
-        // User is already signed in, navigation will be handled by auth state change
-        setSuccessMessage('Account created successfully! Redirecting to dashboard...');
-      }
+      localStorage.setItem('justSignedUp', 'true');
+      setSuccessMessage('Account created successfully! Redirecting to Login...');
+      setTimeout(() => {
+        localStorage.removeItem('justSignedUp');
+        navigate('/login');
+      }, 2000);
     } catch (err: unknown) {
       console.error('Sign up error:', err);
       let errorMessage = 'Sign up failed. Please try again.';
@@ -54,19 +55,6 @@ const SignUpScreen = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center">
-        {React.createElement('dotlottie-wc', {
-          src: 'https://lottie.host/81653027-58d6-47e3-9de5-491db6a527a5/TWNyD5vQVe.lottie',
-          style: { width: '300px', height: '300px' },
-          autoplay: true,
-          loop: true
-        })}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen gradient-bg-warm flex items-center justify-center px-4">
       <div className="max-w-5xl w-full glass-effect rounded-3xl modern-shadow flex overflow-hidden">
@@ -75,6 +63,16 @@ const SignUpScreen = () => {
           <h1 className="text-4xl font-bold vibrant-text mb-6 text-center">
             Create Account
           </h1>
+          {successMessage && (
+            <div className="text-sm text-center mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-600">
+              {successMessage}
+            </div>
+          )}
+          {error && (
+            <div className="text-sm text-center mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <input
@@ -124,8 +122,9 @@ const SignUpScreen = () => {
                 type="submit"
                 variant="primary"
                 className="w-full font-semibold"
+                disabled={loading}
               >
-                Sign Up
+                {loading ? 'Creating Account...' : 'Sign Up'}
               </Button>
             </div>
           </form>
@@ -134,11 +133,6 @@ const SignUpScreen = () => {
             <span className="mx-4 text-gray-400 text-sm">Or continue with</span>
             <hr className="flex-grow border-gray-300" />
           </div>
-          {error && (
-            <div className="text-red-500 text-sm text-center mb-4">
-              {error}
-            </div>
-          )}
           <div className="flex justify-center">
             <button
               onClick={handleGoogleSignUp}

@@ -3,6 +3,18 @@ import { useCart } from '../hooks/useCart';
 import { supabase } from '../lib/supabase';
 import { Product } from '../types/product';
 
+// Import the honey jar image
+import honeyJarImage from '../../dist/assets/StockCake-Glowing_Honey_Jar_1765482565.jpg';
+
+const defaultHoneyProducts: Product[] = [
+  { id: 'default-1', name: 'Wildflower Honey', description: 'Pure, raw wildflower honey with a rich, complex flavor.', price: 450, category: 'honey', stock: 100, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
+  { id: 'default-2', name: 'Acacia Honey', description: 'Light and mild acacia honey, perfect for tea and desserts.', price: 550, category: 'honey', stock: 80, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
+  { id: 'default-3', name: 'Manuka Honey', description: 'Premium New Zealand Manuka honey with UMF 10+ rating.', price: 1200, category: 'honey', stock: 50, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
+  { id: 'default-4', name: 'Raw Forest Honey', description: 'Unprocessed forest honey collected from pristine environments.', price: 380, category: 'honey', stock: 120, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
+  { id: 'default-5', name: 'Organic Clover Honey', description: 'Certified organic clover honey with a sweet, mild taste.', price: 420, category: 'honey', stock: 90, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
+  { id: 'default-6', name: 'Eucalyptus Honey', description: 'Aromatic eucalyptus honey with natural healing properties.', price: 480, category: 'honey', stock: 70, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
+];
+
 const Shop: React.FC = () => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
@@ -21,7 +33,7 @@ const Shop: React.FC = () => {
           throw error;
         }
 
-        setProducts(data || []);
+        setProducts(data && data.length > 0 ? data : defaultHoneyProducts);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Failed to fetch products.');
         console.error('Error fetching products:', err);
@@ -39,33 +51,33 @@ const Shop: React.FC = () => {
 
   return (
     <div className="bg-honeybee-background text-honeybee-secondary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
         <div className="text-center">
-          <h1 className="text-4xl font-serif font-bold text-honeybee-primary">Our Honey Selection</h1>
-          <p className="mt-4 text-lg max-w-2xl mx-auto">
-            Explore our collection of premium, all-natural honey. Each jar is a testament to the hard work of our bees and the richness of the land they forage.
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-honeybee-primary">Our Honey Selection</h1>
+          <p className="mt-3 lg:mt-4 text-sm lg:text-lg max-w-2xl mx-auto">
+            Explore our collection of premium, all-natural honey.
           </p>
         </div>
 
         {loading && <div className="text-center mt-16">Loading products...</div>}
         {error && <div className="text-center mt-16 text-red-500">{error}</div>}
-        
+
         {!loading && !error && (
-          <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="mt-8 lg:mt-16 grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-8">
             {products.map((product) => (
               <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                <div className="h-56 overflow-hidden">
+                <div className="h-32 sm:h-48 lg:h-56 overflow-hidden">
                   <img
                     src={product.image_url}
                     alt={product.name}
                     className="w-full h-full object-cover transform hover:scale-105 transition duration-500"
                   />
                 </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-medium text-honeybee-secondary">{product.name}</h3>
-                  <p className="text-honeybee-dark-brown mt-2 text-sm">{product.description}</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-black font-bold">{`₹${product.price.toFixed(2)}`}</span>
+                <div className="p-3 lg:p-6">
+                  <h3 className="text-sm lg:text-lg font-medium text-honeybee-secondary line-clamp-1">{product.name}</h3>
+                  <p className="text-honeybee-dark-brown mt-1 lg:mt-2 text-xs lg:text-sm line-clamp-2 hidden sm:block">{product.description}</p>
+                  <div className="mt-2 lg:mt-4 flex items-center justify-between">
+                    <span className="text-black font-bold text-sm lg:text-base">₹{product.price.toFixed(0)}</span>
                     <button
                       onClick={() => handleAddToCart(product)}
                       className="bg-honeybee-primary hover:bg-honeybee-accent text-white rounded-full p-2 transition duration-300"

@@ -9,10 +9,13 @@ const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [googleIconLoaded, setGoogleIconLoaded] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+  const { signInWithEmail, signInWithGoogle, resetPassword } = useAuth();
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState('');
 
   // Preload Google icon for faster loading
   useEffect(() => {
@@ -24,15 +27,23 @@ const LoginScreen: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
     try {
       await signInWithEmail(email, password);
-      navigate('/home');
+      // Show success message before navigating
+      setSuccessMessage('Login successful! Redirecting...');
+      setTimeout(() => navigate('/home'), 2000);
     } catch (err: unknown) {
       console.error('Login error:', err);
       let errorMessage = 'Login failed. Please try again.';
 
       if (err instanceof Error) {
-        errorMessage = err.message;
+        // Handle Supabase specific errors better
+        if (err.message === 'Invalid login credentials') {
+          errorMessage = 'Invalid email or password. Please check your credentials. If you just signed up, please verify your email address.';
+        } else {
+          errorMessage = err.message;
+        }
       }
 
       setError(errorMessage);
@@ -52,12 +63,38 @@ const LoginScreen: React.FC = () => {
     }
   };
 
+  const handleRecovery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recoveryEmail) {
+      setError('Please enter your email address.');
+      return;
+    }
+    try {
+      await resetPassword(recoveryEmail);
+      setError('Password reset email sent! Check your inbox.');
+      setShowRecovery(false);
+      setRecoveryEmail('');
+    } catch (err) {
+      setError('Failed to send reset email. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-4 relative">
       <div className="max-w-5xl w-full bg-gray-50 rounded-3xl shadow-2xl flex overflow-hidden">
         {/* Left side - form */}
         <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">Hello Again!</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Hello Again!</h1>
+          {successMessage && (
+            <div className="text-sm text-center mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-600">
+              {successMessage}
+            </div>
+          )}
+          {error && (
+            <div className="text-sm text-center mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <input
@@ -92,7 +129,10 @@ const LoginScreen: React.FC = () => {
               </div>
             </div>
             <div>
-              <div className="text-right text-xs text-gray-500 mb-4 cursor-pointer hover:underline">
+              <div
+                onClick={() => setShowRecovery(true)}
+                className="text-right text-xs text-gray-500 mb-4 cursor-pointer hover:underline"
+              >
                 Recovery Password
               </div>
             </div>
@@ -124,11 +164,6 @@ const LoginScreen: React.FC = () => {
             <span className="mx-4 text-gray-400 text-sm">Or continue with</span>
             <hr className="flex-grow border-gray-300" />
           </div>
-          {error && (
-            <div className="text-red-500 text-sm text-center mb-4">
-              {error}
-            </div>
-          )}
           <div className="flex justify-center">
             <button
               onClick={handleGoogleLogin}
@@ -145,18 +180,6 @@ const LoginScreen: React.FC = () => {
               )}
             </button>
           </div>
-          <div className="mt-6 text-center">
-            <Button
-              onClick={() => {
-                localStorage.setItem('guestMode', 'true');
-                navigate('/home');
-              }}
-              variant="ghost"
-              className="text-gray-600 hover:text-gray-800 underline font-semibold"
-            >
-              Continue as Guest
-            </Button>
-          </div>
         </div>
         {/* Right side - animation and overlay */}
         <div className="hidden md:flex md:w-1/2 relative rounded-r-3xl overflow-hidden border-8 border-white shadow-lg">
@@ -168,6 +191,30 @@ const LoginScreen: React.FC = () => {
           })}
         </div>
       </div>
+
+      {/* Password Recovery Modal */}
+      {showRecovery && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">Reset Password</h2>
+            <p className="text-gray-600 text-sm mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+            <form onSubmit={handleRecovery} className="space-y-4">
+              <input
+                type="email"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                placeholder="Email address"
+                required
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              />
+              <div className="flex gap-2">
+                <button type="submit" className="flex-1 bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600">Send Reset Link</button>
+                <button type="button" onClick={() => setShowRecovery(false)} className="flex-1 bg-gray-300 py-2 rounded-lg">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

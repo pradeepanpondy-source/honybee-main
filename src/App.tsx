@@ -16,6 +16,9 @@ import Applications from "./components/Applications";
 import Orders from "./components/Orders";
 import Subscription from "./components/Subscription";
 import Settings from "./components/Settings";
+import SellerProducts from "./components/SellerProducts";
+import SellerAnalytics from "./components/SellerAnalytics";
+import SellerEarnings from "./components/SellerEarnings";
 import PageLayout from "./components/PageLayout";
 import LoginScreen from "./components/LoginScreen";
 import SignUpScreen from "./components/SignUpScreen";
@@ -29,6 +32,16 @@ const sellerBackground = 'https://media.istockphoto.com/id/1669258600/vector/ill
 function AppRoutes() {
   const { user, loading } = useAuth();
 
+  // Check if user just logged out OR just signed up - prevent auto-redirect
+  const justLoggedOut = localStorage.getItem('justLoggedOut') === 'true';
+  const justSignedUp = localStorage.getItem('justSignedUp') === 'true';
+  if (justLoggedOut && !user) {
+    localStorage.removeItem('justLoggedOut');
+  }
+  if (justSignedUp) {
+    // Don't remove flag here - let signup screen handle navigation
+  }
+
   if (loading) {
     return <LoadingSkeleton />;
   }
@@ -36,20 +49,23 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
-      <Route path="/login" element={user ? <Navigate to="/home" /> : <LoginScreen />} />
-      <Route path="/signup" element={user ? <Navigate to="/home" /> : <SignUpScreen />} />
-      <Route path="/home" element={<PageLayout><HomeScreen /></PageLayout>} />
-      <Route path="/about" element={<PageLayout><About /></PageLayout>} />
-      <Route path="/contact" element={<PageLayout><Contact /></PageLayout>} />
-      <Route path="/shop" element={<PageLayout><Shop /></PageLayout>} />
-      <Route path="/cart" element={<PageLayout><CartPage /></PageLayout>} />
-      <Route path="/checkout" element={<PageLayout><Checkout /></PageLayout>} />
-      <Route path="/profile" element={<PageLayout><Profile /></PageLayout>} />
-      <Route path="/seller" element={<PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout>} />
-      <Route path="/applications" element={<PageLayout><Applications /></PageLayout>} />
-      <Route path="/orders" element={<PageLayout><Orders /></PageLayout>} />
-      <Route path="/subscription" element={<PageLayout><Subscription /></PageLayout>} />
-      <Route path="/settings" element={<PageLayout><Settings /></PageLayout>} />
+      <Route path="/login" element={(!user || justLoggedOut) ? <LoginScreen /> : <Navigate to="/home" />} />
+      <Route path="/signup" element={(user && !justSignedUp) ? <Navigate to="/home" /> : <SignUpScreen />} />
+      <Route path="/home" element={user ? <PageLayout><HomeScreen /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/about" element={user ? <PageLayout><About /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/contact" element={user ? <PageLayout><Contact /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/shop" element={user ? <PageLayout><Shop /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/cart" element={user ? <PageLayout><CartPage /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/checkout" element={user ? <PageLayout><Checkout /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/profile" element={user ? <PageLayout><Profile /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/seller" element={user ? <PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/applications" element={user ? <PageLayout><Applications /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/orders" element={user ? <PageLayout><Orders /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/subscription" element={user ? <PageLayout><Subscription /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/settings" element={user ? <PageLayout><Settings /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/products" element={user ? <SellerProducts /> : <Navigate to="/login" />} />
+      <Route path="/analytics" element={user ? <SellerAnalytics /> : <Navigate to="/login" />} />
+      <Route path="/earnings" element={user ? <SellerEarnings /> : <Navigate to="/login" />} />
     </Routes>
   );
 }

@@ -45,6 +45,7 @@ const Seller = () => {
   const [step, setStep] = useState<number>(0);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [sellerType, setSellerType] = useState<string>('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   // Removed unused selectedOption state to fix eslint error
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -81,27 +82,27 @@ const Seller = () => {
     if (step === 3) {
       // Final submission
       if (!user) {
-        alert('Please sign in to submit the application.');
-        navigate('/login');
+        setMessage({ type: 'error', text: 'Please sign in to submit the application.' });
+        setTimeout(() => navigate('/login'), 2000);
         return;
       }
 
       // Ensure session is active
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
-        alert('Session expired. Please sign in again.');
-        navigate('/login');
+        setMessage({ type: 'error', text: 'Session expired. Please sign in again.' });
+        setTimeout(() => navigate('/login'), 2000);
         return;
       }
 
       if (!sellerType) {
-        alert('Please select a seller type (Honey or Bee Hive).');
+        setMessage({ type: 'error', text: 'Please select a seller type (Honey or Bee Hive).' });
         return;
       }
 
       // Basic validation
       if (!formData.email || !formData.name || !formData.acceptTerms) {
-        alert('Please fill all required fields and accept terms.');
+        setMessage({ type: 'error', text: 'Please fill all required fields and accept terms.' });
         return;
       }
 
@@ -167,11 +168,11 @@ const Seller = () => {
           throw error;
         }
 
-        alert('Seller registration submitted successfully! Your application will be reviewed.');
-        navigate('/applications');
+        setMessage({ type: 'success', text: 'Seller registration submitted successfully! Your application will be reviewed.' });
+        setTimeout(() => navigate('/applications'), 2000);
       } catch (error) {
         console.error('Error submitting application:', error);
-        alert(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setMessage({ type: 'error', text: `Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}` });
       }
       return;
     }
@@ -191,9 +192,8 @@ const Seller = () => {
           return (
             <div key={label} className="flex flex-col items-center text-center">
               <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  isActive || isCompleted ? 'border-purple-700' : 'border-gray-300'
-                }`}
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isActive || isCompleted ? 'border-purple-700' : 'border-gray-300'
+                  }`}
               >
                 {isCompleted ? (
                   <svg
@@ -208,16 +208,14 @@ const Seller = () => {
                   </svg>
                 ) : (
                   <div
-                    className={`w-3 h-3 rounded-full ${
-                      isActive ? 'bg-purple-700' : 'bg-gray-300'
-                    }`}
+                    className={`w-3 h-3 rounded-full ${isActive ? 'bg-purple-700' : 'bg-gray-300'
+                      }`}
                   />
                 )}
               </div>
               <span
-                className={`mt-1 text-xs font-semibold ${
-                  isActive || isCompleted ? 'text-purple-700' : 'text-gray-400'
-                }`}
+                className={`mt-1 text-xs font-semibold ${isActive || isCompleted ? 'text-purple-700' : 'text-gray-400'
+                  }`}
               >
                 {label.split(' ').map((word, i) => (
                   <React.Fragment key={i}>
@@ -342,16 +340,16 @@ const Seller = () => {
         <span className="ml-2 text-sm text-gray-700">I Accept Terms & Conditions</span>
       </label>
       <div className="flex justify-between items-center">
-          <button
-            type="button"
-            onClick={() => {
-              setStep(0);
-              // Removed setSelectedOption call as it no longer exists
-            }}
-            className="text-purple-700 underline"
-          >
-            Back to Options
-          </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStep(0);
+            // Removed setSelectedOption call as it no longer exists
+          }}
+          className="text-purple-700 underline"
+        >
+          Back to Options
+        </button>
         <Button type="submit" variant="primary" className="flex items-center space-x-2">
           <span>Next</span>
           <svg
@@ -501,6 +499,11 @@ const Seller = () => {
   return (
     <div className="min-h-screen py-12 px-4 md:px-6">
       <h1 className="text-center font-semibold text-lg md:text-xl mb-4">Register as a Seller</h1>
+      {message && (
+        <div className={`max-w-md mx-auto mb-4 p-3 rounded-lg text-center ${message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-600' : 'bg-red-50 border border-red-200 text-red-600'}`}>
+          {message.text}
+        </div>
+      )}
       <>
         {step === 0 && renderOptionButtons()}
         {step > 0 && renderProgress()}

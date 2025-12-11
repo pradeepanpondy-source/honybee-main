@@ -19,6 +19,9 @@ export default function Navigation() {
     return null;
   }
 
+  // Check if on seller dashboard pages (where Seller link should be hidden)
+  const isSellerDashboard = ['/applications', '/products', '/analytics', '/earnings', '/orders', '/settings'].includes(location.pathname);
+
   return (
     <nav className="bg-honeybee-background/98 backdrop-blur-md shadow-xl fixed w-full z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,7 +31,7 @@ export default function Navigation() {
               <span className="font-serif text-lg md:text-xl lg:text-2xl font-bold text-honeybee-primary">Bee Bridge</span>
             </Link>
           </div>
-          
+
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
             <Link
@@ -49,12 +52,14 @@ export default function Navigation() {
             >
               About
             </Link>
-            <Link
-              to="/seller"
-              className={`font-medium text-sm lg:text-base ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
-            >
-              Seller
-            </Link>
+            {!isSellerDashboard && (
+              <Link
+                to="/seller"
+                className={`font-medium text-sm lg:text-base ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
+              >
+                Seller
+              </Link>
+            )}
             <Link
               to="/contact"
               className={`font-medium text-sm lg:text-base ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
@@ -68,7 +73,7 @@ export default function Navigation() {
               Subscription
             </Link>
           </div>
-          
+
           <div className="flex items-center space-x-2 md:space-x-4">
             <Link to="/cart" className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 relative p-2 md:p-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,9 +98,9 @@ export default function Navigation() {
               <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50">
                 <button
                   className="block w-full text-left px-4 py-2 text-honeybee-dark hover:bg-honeybee-light"
-                  onClick={() => {
-                    logout();
-                    window.location.href = '/';
+                  onClick={async () => {
+                    await logout();
+                    window.location.href = '/login';
                   }}
                 >
                   Logout
@@ -115,7 +120,7 @@ export default function Navigation() {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-honeybee-background/95 backdrop-blur-sm border-t border-honeybee-light">
@@ -170,9 +175,9 @@ export default function Navigation() {
               Settings
             </Link>
             <button
-              onClick={() => {
-                logout();
-                window.location.href = '/';
+              onClick={async () => {
+                await logout();
+                window.location.href = '/login';
                 setIsMenuOpen(false);
               }}
               className="block w-full text-left px-3 py-2 rounded-md font-medium text-honeybee-secondary hover:text-honeybee-accent"

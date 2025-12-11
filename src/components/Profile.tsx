@@ -29,6 +29,7 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(true);
   const [tempProfile, setTempProfile] = useState<ProfileData>(profile);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -86,6 +87,7 @@ const Profile: React.FC = () => {
 
   const handleSave = async () => {
     if (!user) return;
+    setMessage(null);
 
     try {
       const { error } = await supabase
@@ -103,15 +105,15 @@ const Profile: React.FC = () => {
 
       if (error) {
         console.error('Error saving profile:', error);
-        alert('Failed to save profile. Please try again.');
+        setMessage({ type: 'error', text: 'Failed to save profile. Please try again.' });
       } else {
         setProfile(tempProfile);
         setIsEditing(false);
-        alert('Profile saved successfully!');
+        setMessage({ type: 'success', text: 'Profile saved successfully!' });
       }
     } catch (error: unknown) {
       console.error('Error saving profile:', error);
-      alert('Failed to save profile. Please try again.');
+      setMessage({ type: 'error', text: 'Failed to save profile. Please try again.' });
     }
   };
 
@@ -134,6 +136,11 @@ const Profile: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6">
       <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">Profile</h2>
+      {message && (
+        <div className={`mb-4 p-3 rounded-lg text-center ${message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-600' : 'bg-red-50 border border-red-200 text-red-600'}`}>
+          {message.text}
+        </div>
+      )}
 
       {isEditing ? (
         <div className="group">
@@ -225,19 +232,19 @@ const Profile: React.FC = () => {
             </div>
 
             <div className="group">
-                <Button
-                  onClick={handleSave}
-                  className="w-full"
-                  variant="primary"
-                >
-                  Save Profile
-                </Button>
-                <button
-                  onClick={handleCancel}
-                  className="w-full mt-2 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
+              <Button
+                onClick={handleSave}
+                className="w-full"
+                variant="primary"
+              >
+                Save Profile
+              </Button>
+              <button
+                onClick={handleCancel}
+                className="w-full mt-2 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
