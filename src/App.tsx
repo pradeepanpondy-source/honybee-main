@@ -59,10 +59,10 @@ function AppRoutes() {
       <Route path="/checkout" element={user ? <PageLayout><Checkout /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/profile" element={user ? <PageLayout><Profile /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/seller" element={user ? <PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/applications" element={user ? <PageLayout><Applications /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/orders" element={user ? <PageLayout><Orders /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/applications" element={user ? <Applications /> : <Navigate to="/login" />} />
+      <Route path="/orders" element={user ? <Orders /> : <Navigate to="/login" />} />
       <Route path="/subscription" element={user ? <PageLayout><Subscription /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/settings" element={user ? <PageLayout><Settings /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
       <Route path="/products" element={user ? <SellerProducts /> : <Navigate to="/login" />} />
       <Route path="/analytics" element={user ? <SellerAnalytics /> : <Navigate to="/login" />} />
       <Route path="/earnings" element={user ? <SellerEarnings /> : <Navigate to="/login" />} />
