@@ -3,8 +3,8 @@ import { useCart } from '../hooks/useCart';
 import { supabase } from '../lib/supabase';
 import { Product } from '../types/product';
 
-// Import the honey jar image
-import honeyJarImage from '../../dist/assets/StockCake-Glowing_Honey_Jar_1765482565.jpg';
+// Honey jar image URL
+const honeyJarImage = 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=400&fit=crop';
 
 const defaultHoneyProducts: Product[] = [
   { id: 'default-1', name: 'Wildflower Honey', description: 'Pure, raw wildflower honey with a rich, complex flavor.', price: 450, category: 'honey', stock: 100, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
