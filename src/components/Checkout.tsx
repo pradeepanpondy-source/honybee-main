@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import Button from './Button';
-import successGif from '../assets/success confetti.gif';
-import congratsGif from '../assets/congratulation.gif';
+import confetti from 'canvas-confetti';
 import { supabase } from '../lib/supabase'; // Import Supabase client
 import { CartItem } from '../context/CartContext'; // Assuming CartItem is exported from here
 
@@ -19,30 +18,29 @@ const Checkout: React.FC = () => {
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
-  const [showCongrats, setShowCongrats] = useState(false);
+
   const [orderPlaced, setOrderPlaced] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string>('');
 
   const total = getTotal();
   const discountedTotal = total - (total * discount);
 
-  useEffect(() => {
-    if (showSuccess) {
-      const timer = setTimeout(() => {
-        setShowSuccess(false);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccess]);
+
 
   const handleApplyCoupon = () => {
     const upperCoupon = coupon.toUpperCase();
     if (validCoupons[upperCoupon]) {
       setDiscount(validCoupons[upperCoupon]);
       setCouponError('');
-      setShowCongrats(true);
-      setTimeout(() => setShowCongrats(false), 3000);
+      setDiscount(validCoupons[upperCoupon]);
+      setCouponError('');
+      confetti({
+        particleCount: 400,
+        spread: 160,
+        origin: { y: 0.6 },
+        startVelocity: 60,
+        zIndex: 9999,
+      });
     } else {
       setDiscount(0);
       setCouponError('Invalid coupon code');
@@ -76,7 +74,7 @@ const Checkout: React.FC = () => {
       for (const sellerId in ordersBySeller) {
         const sellerItems = ordersBySeller[sellerId];
         const sellerTotal = sellerItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        
+
         // Apply discount proportionally
         const sellerDiscount = sellerTotal / total * (total * discount);
         const sellerDiscountedTotal = sellerTotal - sellerDiscount;
@@ -121,9 +119,27 @@ const Checkout: React.FC = () => {
       }
 
       setOrderId(createdOrderIds.join(', ')); // Show all created order IDs
-      setShowSuccess(true);
       setOrderPlaced(true);
       clearCart();
+
+      // Trigger success confetti
+      const duration = 3000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+      const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+      const interval: any = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+      }, 250);
 
     } catch (error: any) {
       console.error('Error placing order:', error);
@@ -141,11 +157,7 @@ const Checkout: React.FC = () => {
             <p className="text-lg mt-4">Order ID(s): <span className="font-bold">{orderId}</span></p>
           )}
         </div>
-      {showSuccess && (
-        <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
-          <img src={successGif} alt="Success" className="w-64 h-64 object-cover" />
-        </div>
-      )}
+
       </>
     );
   }
@@ -192,6 +204,27 @@ const Checkout: React.FC = () => {
               placeholder="Enter coupon code"
             />
             {couponError && <p className="text-red-600 mt-1">{couponError}</p>}
+            {discount > 0 && (
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
+                <div className="flex items-center text-green-800 font-bold mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Coupon "{coupon.toUpperCase()}" Applied Successfully!
+                </div>
+                <div className="text-green-700 text-sm space-y-1">
+                  <p className="flex justify-between">
+                    <span>Savings:</span>
+                    <span className="font-bold">-₹{(total * discount).toFixed(2)}</span>
+                  </p>
+                  <div className="border-t border-green-200 my-2"></div>
+                  <p className="flex justify-between text-base font-bold text-green-900">
+                    <span>Total to pay:</span>
+                    <span>₹{discountedTotal.toFixed(2)}</span>
+                  </p>
+                </div>
+              </div>
+            )}
             <Button onClick={handleApplyCoupon} variant="accent" className="mt-2 w-full md:w-auto">
               Apply Coupon
             </Button>
@@ -203,11 +236,7 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </div>
-      {showCongrats && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <img src={congratsGif} alt="Congratulations" className="w-96 h-96 object-cover rounded-lg shadow-2xl" />
-        </div>
-      )}
+
     </>
   );
 };

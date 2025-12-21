@@ -19,10 +19,13 @@ import Settings from "./components/Settings";
 import SellerProducts from "./components/SellerProducts";
 import SellerAnalytics from "./components/SellerAnalytics";
 import SellerEarnings from "./components/SellerEarnings";
+import ProductDetails from "./components/ProductDetails";
 import PageLayout from "./components/PageLayout";
 import LoginScreen from "./components/LoginScreen";
 import SignUpScreen from "./components/SignUpScreen";
 import { CartProvider } from "./context/CartContext";
+
+console.log("Fresh Code Loaded: v2 - Fixed Price Type");
 
 import { useAuth } from "./hooks/useAuth";
 import LoadingSkeleton from "./components/LoadingSkeleton";
@@ -64,6 +67,7 @@ function AppRoutes() {
       <Route path="/subscription" element={user ? <PageLayout><Subscription /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
       <Route path="/products" element={user ? <SellerProducts /> : <Navigate to="/login" />} />
+      <Route path="/product/beehive" element={user ? <PageLayout><ProductDetails /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/analytics" element={user ? <SellerAnalytics /> : <Navigate to="/login" />} />
       <Route path="/earnings" element={user ? <SellerEarnings /> : <Navigate to="/login" />} />
     </Routes>

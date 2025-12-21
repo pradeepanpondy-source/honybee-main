@@ -8,13 +8,19 @@ const Subscription: React.FC = () => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  const handleChoosePlan = (planName: string, price: string) => {
+  const handleChoosePlan = (planName: string, price: number) => {
     const planProduct = {
-      id: planName === 'Basic' ? 1 : 2,
+      id: planName === 'Basic' ? 'subscription-basic' : 'subscription-premium',
       name: `${planName} Subscription Plan`,
-      price: price,
-      image: planName === 'Basic' ? '/src/assets/basic.PNG' : '/src/assets/premium.PNG',
       description: `${planName} subscription plan for sellers`,
+      price: price,
+      category: 'subscription',
+      image_url: planName === 'Basic' ? '/src/assets/basic.PNG' : '/src/assets/premium.PNG',
+      seller_id: 'system',
+      stock: 999,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     addToCart(planProduct);
     navigate('/cart');
@@ -37,7 +43,7 @@ const Subscription: React.FC = () => {
               <li className="flex items-center"><CheckCircle className="w-5 h-5 text-green-500 mr-2" /> Can rent up to 10 hive per month</li>
             </ul>
             <div className="group">
-              <Button onClick={() => handleChoosePlan('Basic', '499')} className="px-8 py-3" variant="primary">Choose Plan</Button>
+              <Button onClick={() => handleChoosePlan('Basic', 499)} className="px-8 py-3" variant="primary">Choose Plan</Button>
             </div>
           </div>
         </div>
@@ -55,7 +61,7 @@ const Subscription: React.FC = () => {
               <li className="flex items-center"><CheckCircle className="w-5 h-5 text-green-500 mr-2" /> Can rent unlimited hive per month</li>
             </ul>
             <div className="group">
-              <Button onClick={() => handleChoosePlan('Premium', '1299')} className="px-8 py-3" variant="primary">Choose Plan</Button>
+              <Button onClick={() => handleChoosePlan('Premium', 1299)} className="px-8 py-3" variant="primary">Choose Plan</Button>
             </div>
           </div>
         </div>

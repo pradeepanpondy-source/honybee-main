@@ -248,14 +248,24 @@ const Applications = () => {
   // Main dashboard render
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Mobile Header */}
       <div className="lg:hidden bg-white shadow-sm px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="font-semibold">Dashboard</h1>
+        <div className="flex flex-col items-center">
+          <h1 className="font-semibold text-gray-800">Dashboard</h1>
+          {sellerProfile?.address && (
+            <div className="flex items-center text-xs text-purple-600 mt-1">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="truncate max-w-[150px]">{sellerProfile.address.split(',')[0]}</span>
+            </div>
+          )}
+        </div>
         <div className="w-10"></div>
       </div>
 
@@ -294,6 +304,22 @@ const Applications = () => {
 
         {/* Main Content */}
         <div className="flex-1 p-4 lg:p-6">
+          {/* Desktop Location Header */}
+          {sellerProfile?.address && (
+            <div className="hidden lg:flex items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+              <div className="bg-purple-100 p-2 rounded-full mr-3">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Seller Location</p>
+                <p className="text-gray-800 font-medium">{sellerProfile.address}</p>
+              </div>
+            </div>
+          )}
+
           {kycStatus === 'none' && (
             <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 lg:p-4 mb-4 lg:mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">

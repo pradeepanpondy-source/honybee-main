@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Order } from '../types/order';
 
 const Orders: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,9 +57,6 @@ const Orders: React.FC = () => {
           <h2 className="text-xl font-bold text-purple-700">HoneyBee</h2>
         </div>
         <nav className="mt-4">
-          <button onClick={() => navigate('/seller')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
-            <span className="mr-3">🏪</span> Seller
-          </button>
           <button onClick={() => navigate('/applications')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
             <span className="mr-3">📊</span> Dashboard
           </button>
@@ -77,9 +74,6 @@ const Orders: React.FC = () => {
           </button>
           <button onClick={() => navigate('/settings')} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
             <span className="mr-3">⚙️</span> Settings
-          </button>
-          <button onClick={async () => { await logout(); navigate('/'); }} className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100">
-            <span className="mr-3">🚪</span> Logout
           </button>
         </nav>
       </div>
@@ -124,8 +118,8 @@ const Orders: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
+                            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
                             }`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </span>

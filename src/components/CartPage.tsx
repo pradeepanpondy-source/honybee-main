@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../hooks/useCart';
 import Button from './Button';
-import congratsGif from '../assets/congratulation.gif';
+import confetti from 'canvas-confetti';
 
 const CartPage: React.FC = () => {
   const { cartItems, getTotal, removeFromCart } = useCart();
@@ -9,7 +9,6 @@ const CartPage: React.FC = () => {
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
-  const [showCongrats, setShowCongrats] = useState(false);
   const [contactInfo, setContactInfo] = useState({ email: '', signUp: false });
   const [shippingAddress, setShippingAddress] = useState({
     firstName: '',
@@ -41,8 +40,13 @@ const CartPage: React.FC = () => {
     if (validCoupons[upperCoupon]) {
       setDiscount(validCoupons[upperCoupon]);
       setCouponError('');
-      setShowCongrats(true);
-      setTimeout(() => setShowCongrats(false), 3000);
+      confetti({
+        particleCount: 400,
+        spread: 160,
+        origin: { y: 0.6 },
+        startVelocity: 60,
+        zIndex: 9999,
+      });
     } else {
       setDiscount(0);
       setCouponError('Invalid coupon code');
@@ -235,6 +239,27 @@ const CartPage: React.FC = () => {
           </button>
         </div>
         {couponError && <p className="text-red-600 mt-1">{couponError}</p>}
+        {discount > 0 && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
+            <div className="flex items-center text-green-800 font-bold mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Coupon "{coupon.toUpperCase()}" Applied Successfully!
+            </div>
+            <div className="text-green-700 text-sm space-y-1">
+              <p className="flex justify-between">
+                <span>Savings:</span>
+                <span className="font-bold">-₹{(total * discount).toFixed(2)}</span>
+              </p>
+              <div className="border-t border-green-200 my-2"></div>
+              <p className="flex justify-between text-base font-bold text-green-900">
+                <span>Total to pay:</span>
+                <span>₹{discountedTotal.toFixed(2)}</span>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <div className="mb-4">
         <p className="flex justify-between font-semibold">
@@ -279,14 +304,14 @@ const CartPage: React.FC = () => {
           {cartItems.map(item => (
             <div key={item.id} className="flex items-center space-x-4 mb-4">
               {!item.name.includes('Subscription Plan') && (
-                <img src={item.image} alt={item.name} className="w-8 h-8 object-cover rounded" />
+                <img src={item.image_url} alt={item.name} className="w-8 h-8 object-cover rounded" />
               )}
               <div className="flex-1">
                 <p className="text-sm font-semibold">{item.name}</p>
                 <p className="text-xs text-gray-600">Quantity: {item.quantity}</p>
               </div>
               <div className="flex flex-col items-end space-y-2">
-                <p className="font-semibold">₹{(parseFloat(item.price.replace(/[$₹]/g, '')) * item.quantity).toFixed(2)}</p>
+                <p className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</p>
                 <button
                   onClick={() => removeFromCart(item.id)}
                   className="text-red-600 hover:text-red-800 p-1"
@@ -341,11 +366,6 @@ const CartPage: React.FC = () => {
         </div>
         <div className="md:col-span-1">{renderCartSummary()}</div>
       </div>
-      {showCongrats && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <img src={congratsGif} alt="Congratulations" className="w-96 h-96 object-cover rounded-lg shadow-2xl" />
-        </div>
-      )}
     </>
   );
 };

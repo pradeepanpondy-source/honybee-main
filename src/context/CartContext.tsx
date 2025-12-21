@@ -2,7 +2,8 @@ import React, { createContext, useState, ReactNode } from 'react';
 import { Product } from '../types/product'; // Import the correct Product type
 
 // We also add quantity to it for the cart.
-interface CartItem extends Product {
+// We also add quantity to it for the cart.
+export interface CartItem extends Product {
   quantity: number;
 }
 
@@ -43,7 +44,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
           if (existingItem) {
             return prevItems.map(item =>
               item.id === product.id
-                ? { ...item, quantity: item.quantity + 1 }
+                ? { ...item, quantity: Math.min(item.quantity + 1, 5) }
                 : item
             );
           } else {
@@ -54,18 +55,19 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   };
 
-  const removeFromCart = (id: string) => { // Changed id to string
+  const removeFromCart = (id: string) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
   };
 
-  const updateQuantity = (id: string, quantity: number) => { // Changed id to string
+  const updateQuantity = (id: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(id);
       return;
     }
+    const newQuantity = Math.min(quantity, 5);
     setCartItems(prevItems =>
       prevItems.map(item =>
-        item.id === id ? { ...item, quantity } : item
+        item.id === id ? { ...item, quantity: newQuantity } : item
       )
     );
   };

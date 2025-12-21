@@ -79,9 +79,9 @@ export default function Navigation() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
-              {cartItems.length > 0 && (
+              {cartItems.reduce((acc, item) => acc + item.quantity, 0) > 0 && (
                 <span className="absolute -top-1 -right-1 md:-top-2 md:-right-2 bg-red-600 text-white rounded-full text-xs w-4 h-4 md:w-5 md:h-5 flex items-center justify-center">
-                  {cartItems.length}
+                  {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
                 </span>
               )}
             </Link>

@@ -17,7 +17,7 @@ const Cart: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h2 className="text-3xl font-bold text-honeybee-primary mb-6">Shopping Cart</h2>
-      
+
       <div className="group">
         <div className="bg-white rounded-lg shadow-lg animate-card-hover p-6">
           {cartItems.length === 0 ? (
@@ -32,17 +32,18 @@ const Cart: React.FC = () => {
                   >
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-                      <p className="text-gray-600">₹{parseFloat(item.price.replace(/[$₹]/g, ''))} x {item.quantity}</p>
+                      <p className="text-gray-600">₹{item.price} x {item.quantity}</p>
                     </div>
                     <div className="flex items-center space-x-4">
                       <input
                         type="number"
                         min={1}
+                        max={5}
                         value={item.quantity}
                         onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
                         className="w-16 border border-gray-300 rounded px-2 py-1"
                       />
-                      <span className="text-lg font-semibold text-gray-800">₹{(parseFloat(item.price.replace(/[$₹]/g, '')) * item.quantity).toFixed(2)}</span>
+                      <span className="text-lg font-semibold text-gray-800">₹{(item.price * item.quantity).toFixed(2)}</span>
                       <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={() => removeFromCart(item.id)}>
                         <Trash2 size={20} />
                       </Button>
@@ -50,7 +51,7 @@ const Cart: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               <div
                 className="mt-6 pt-4 border-t border-gray-200"
               >

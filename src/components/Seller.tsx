@@ -22,6 +22,9 @@ type FormData = {
   phone: string;
   idProof: File | null;
   sellerType: string;
+  latitude: number | null;
+  longitude: number | null;
+  detectedAddress: string;
 };
 
 const initialFormData: FormData = {
@@ -39,6 +42,9 @@ const initialFormData: FormData = {
   phone: '',
   idProof: null,
   sellerType: '',
+  latitude: null,
+  longitude: null,
+  detectedAddress: '',
 };
 
 const Seller = () => {
@@ -69,7 +75,7 @@ const Seller = () => {
   };
 
   const nextStep = () => {
-    if (step < 4) setStep(step + 1);
+    if (step < 5) setStep(step + 1);
   };
 
   const prevStep = () => {
@@ -80,7 +86,21 @@ const Seller = () => {
     e.preventDefault();
 
     if (step === 3) {
-      // Final submission
+      nextStep(); // Go to location step instead of finishing
+      return;
+    }
+
+    if (step === 4 && !formData.detectedAddress) {
+      // If logic needs to force location, handle here. 
+      // For now, we allow submission or "Location" is step 4.
+      // Wait, steps are 0-indexed?
+      // 0: Options, 1: Personal, 2: Address, 3: Contact, 4: Location (New), 5: Finish
+      // My previous renderFinish usage was Step 4.
+      // So Location is Step 4. Finish is Step 5.
+    }
+
+    if (step === 4 || (step === 4 && formData.detectedAddress)) {
+      // Final submission logic
       if (!user) {
         setMessage({ type: 'error', text: 'Please sign in to submit the application.' });
         setTimeout(() => navigate('/login'), 2000);
@@ -147,12 +167,13 @@ const Seller = () => {
           .from('sellers')
           .insert([{
             user_id: user.id,
-            seller_id: `SELLER-${Date.now()}`, // Generate unique seller ID
+            seller_id: `SELLER-${Date.now()}`,
             name: formData.name,
             email: formData.email,
             seller_type: sellerType,
             phone: formData.phone,
-            address: `${formData.city}, ${formData.state}, ${formData.zip}, ${formData.country}`,
+            // Use detected address if available, otherwise manual address
+            address: formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}, ${formData.country}`,
             city: formData.city,
             state: formData.state,
             zip: formData.zip,
@@ -160,8 +181,11 @@ const Seller = () => {
             country_code: formData.countryCode,
             id_proof_url: idProofUrl,
             profile_pic_url: profilePicUrl,
-            is_approved: false, // Set to false initially, can be approved later
-            kyc_verified: false
+            is_approved: false,
+            kyc_verified: false,
+            // Try to save coords if schema supports it, otherwise they are ignored (or error if strictly typed, but Supabase JS usually handles extra fields depending on setup)
+            // latitude: formData.latitude, 
+            // longitude: formData.longitude
           }]);
 
         if (error) {
@@ -182,7 +206,7 @@ const Seller = () => {
   };
 
   const renderProgress = () => {
-    const steps = ['Personal Information', 'Address', 'Contact', 'Finish'];
+    const steps = ['Personal Information', 'Address', 'Contact', 'Location', 'Finish'];
     return (
       <div className="flex justify-center space-x-8 mb-8">
         {steps.map((label, index) => {
@@ -472,6 +496,74 @@ const Seller = () => {
     </form>
   );
 
+  const renderLocation = () => (
+    <div className="max-w-md mx-auto bg-white p-6 rounded shadow text-center">
+      <h2 className="text-xl font-bold mb-4">Location Access</h2>
+      <p className="mb-6 text-gray-600">Please allow location access to verify your selling region and improve customer discovery.</p>
+
+      {!formData.detectedAddress ? (
+        <Button
+          onClick={() => {
+            if ("geolocation" in navigator) {
+              navigator.geolocation.getCurrentPosition(async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                  // Reverse geocoding implementation
+                  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                  const data = await response.json();
+                  const address = data.display_name; // Or construct a shorter one
+
+                  setFormData(prev => ({
+                    ...prev,
+                    latitude,
+                    longitude,
+                    detectedAddress: address
+                  }));
+
+                  // Auto-submit after detection
+                  // handleSubmit(new Event('submit') as any); // Trigger submit
+                } catch (error) {
+                  console.error("Geocoding error:", error);
+                  alert("Could not detect address. Please try again.");
+                }
+              }, (error) => {
+                console.error("Location error:", error);
+                alert("Location access denied. You can proceed without it.");
+              });
+            } else {
+              alert("Geolocation is not supported by your browser.");
+            }
+          }}
+          variant="primary"
+          className="w-full flex justify-center items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Detect My Location
+        </Button>
+      ) : (
+        <div className="animate-fade-in">
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
+            <p className="text-green-800 font-semibold mb-1">Location Detected!</p>
+            <p className="text-gray-700 text-sm">{formData.detectedAddress}</p>
+          </div>
+          <Button onClick={handleSubmit} variant="primary" className="w-full">
+            Complete Registration
+          </Button>
+        </div>
+      )}
+
+      <button
+        onClick={() => setStep(4)} // Skip to finish/submit manually if needed
+        className="mt-4 text-gray-400 text-sm underline hover:text-gray-600"
+      >
+        Skip this step
+      </button>
+    </div>
+  );
+
   const renderFinish = () => (
     <div className="max-w-md mx-auto bg-white p-8 rounded shadow text-center">
       <svg
@@ -510,7 +602,8 @@ const Seller = () => {
         {step === 1 && renderPersonalInfo()}
         {step === 2 && renderAddress()}
         {step === 3 && renderContact()}
-        {step === 4 && renderFinish()}
+        {step === 4 && renderLocation()}
+        {step === 5 && renderFinish()}
       </>
     </div>
   );
