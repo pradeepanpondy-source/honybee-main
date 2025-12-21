@@ -6,6 +6,7 @@ import { Product } from '../types/product';
 
 // Honey jar image URL
 import honeyJarImage from '../assets/honey_jar.jpg';
+import beehiveImage from '../assets/beehive_new.png';
 
 const defaultHoneyProducts: Product[] = [
   { id: 'default-1', name: 'Wildflower Honey', description: 'Pure, raw wildflower honey with a rich, complex flavor.', price: 450, category: 'honey', stock: 5, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
@@ -16,12 +17,12 @@ const defaultHoneyProducts: Product[] = [
   { id: 'default-6', name: 'Eucalyptus Honey', description: 'Aromatic eucalyptus honey with natural healing properties.', price: 480, category: 'honey', stock: 5, image_url: honeyJarImage, seller_id: '', is_active: true, created_at: '', updated_at: '' },
   {
     id: 'beehive-starter-kit',
-    name: 'Beehive Wooden Box With Frames',
-    description: 'Complete Beehive Kit for Beekeeper with 1 Deep Box & 1 Medium Box.',
+    name: 'Beehive Wooden Box',
+    description: 'Complete Beehive Kit for Beekeeper with 1 small box',
     price: 5000,
     category: 'beehive',
     stock: 5,
-    image_url: '/src/assets/beehive_new.png',
+    image_url: beehiveImage,
     seller_id: 'pollibee-official',
     is_active: true,
     created_at: new Date().toISOString(),

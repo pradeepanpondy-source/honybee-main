@@ -7,9 +7,12 @@ import { supabase } from '../lib/supabase';
 
 interface SellerProfile {
   id: string;
+  seller_id: string;
   user_id: string;
   is_approved: boolean;
-  // Add other seller fields if needed
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 const Applications = () => {
@@ -45,6 +48,8 @@ const Applications = () => {
     image_url: '',
   });
   const [productSubmitting, setProductSubmitting] = useState(false);
+  // Location Update State
+  const [updatingLocation, setUpdatingLocation] = useState(false);
 
 
 
@@ -59,7 +64,7 @@ const Applications = () => {
       // 1. Fetch seller profile
       const { data: sellerData, error: sellerError } = await supabase
         .from('sellers')
-        .select('id, user_id, is_approved')
+        .select('id, seller_id, user_id, is_approved, address, latitude, longitude')
         .eq('user_id', user.id)
         .single();
 
@@ -227,6 +232,50 @@ const Applications = () => {
     }
   };
 
+  const handleUpdateLocation = async () => {
+    if (!sellerProfile || !user) return;
+    setUpdatingLocation(true);
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const data = await response.json();
+          const address = data.display_name;
+
+          const { error } = await supabase
+            .from('sellers')
+            .update({
+              latitude,
+              longitude,
+              address
+            })
+            .eq('id', sellerProfile.id);
+
+          if (error) throw error;
+
+          // Update local state
+          setSellerProfile(prev => prev ? ({ ...prev, latitude, longitude, address }) : null);
+          alert("Location updated successfully!");
+
+        } catch (error) {
+          console.error("Error updating location:", error);
+          alert("Failed to update location.");
+        } finally {
+          setUpdatingLocation(false);
+        }
+      }, (error) => {
+        console.error("Location error:", error);
+        alert("Location access denied.");
+        setUpdatingLocation(false);
+      });
+    } else {
+      alert("Geolocation is not supported by your browser.");
+      setUpdatingLocation(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -291,8 +340,8 @@ const Applications = () => {
         )}
 
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block w-64 bg-white shadow-lg min-h-screen">
-          <nav className="p-4">
+        <div className="hidden lg:flex flex-col w-64 bg-white shadow-lg min-h-screen">
+          <nav className="p-4 flex-1">
             {navItems.map(item => (
               <button key={item.path} onClick={() => navigate(item.path)}
                 className={`flex items-center w-full px-4 py-2 rounded-lg mb-1 ${item.active ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
@@ -300,12 +349,38 @@ const Applications = () => {
               </button>
             ))}
           </nav>
+
+          {/* Seller ID Display at Bottom */}
+          {sellerProfile?.seller_id && (
+            <div className="p-4 border-t border-gray-200">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Seller ID</p>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-sm font-medium text-gray-800 truncate" title={sellerProfile.seller_id}>
+                    {sellerProfile.seller_id}
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(sellerProfile.seller_id);
+                      alert('Seller ID copied!');
+                    }}
+                    className="text-gray-400 hover:text-purple-600 transition-colors"
+                    title="Copy ID"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
         <div className="flex-1 p-4 lg:p-6">
           {/* Desktop Location Header */}
-          {sellerProfile?.address && (
+          {sellerProfile && (
             <div className="hidden lg:flex items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
               <div className="bg-purple-100 p-2 rounded-full mr-3">
                 <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,10 +388,17 @@ const Applications = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Seller Location</p>
-                <p className="text-gray-800 font-medium">{sellerProfile.address}</p>
+                <p className="text-gray-800 font-medium">{sellerProfile.address || 'Location not set'}</p>
               </div>
+              <button
+                onClick={handleUpdateLocation}
+                disabled={updatingLocation}
+                className="ml-4 px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50"
+              >
+                {updatingLocation ? 'Updating...' : 'Update Location'}
+              </button>
             </div>
           )}
 

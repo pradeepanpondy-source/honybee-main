@@ -184,8 +184,8 @@ const Seller = () => {
             is_approved: false,
             kyc_verified: false,
             // Try to save coords if schema supports it, otherwise they are ignored (or error if strictly typed, but Supabase JS usually handles extra fields depending on setup)
-            // latitude: formData.latitude, 
-            // longitude: formData.longitude
+            latitude: formData.latitude,
+            longitude: formData.longitude
           }]);
 
         if (error) {
