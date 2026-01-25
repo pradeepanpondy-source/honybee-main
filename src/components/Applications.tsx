@@ -4,21 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Order } from '../types/order';
 import { Product } from '../types/product';
 import { supabase } from '../lib/supabase';
-
-interface SellerProfile {
-  id: string;
-  seller_id: string;
-  user_id: string;
-  is_approved: boolean;
-  address?: string;
-  latitude?: number;
-  longitude?: number;
-}
+import { useSeller } from '../hooks/useSeller';
+import SellerLayout from './SellerLayout';
 
 const Applications = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
+  const { seller: sellerProfile, loading: sellerLoading } = useSeller();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [totalSales, setTotalSales] = useState(0);
@@ -27,7 +19,6 @@ const Applications = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [showKycPopup, setShowKycPopup] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [kycData, setKycData] = useState({
     idType: 'Adhaar',
@@ -48,32 +39,17 @@ const Applications = () => {
     image_url: '',
   });
   const [productSubmitting, setProductSubmitting] = useState(false);
-  // Location Update State
-  const [updatingLocation, setUpdatingLocation] = useState(false);
-
-
 
   const fetchDashboardData = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
+    if (!user || !sellerProfile) {
+      if (!sellerLoading && !sellerProfile) setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
-      // 1. Fetch seller profile
-      const { data: sellerData, error: sellerError } = await supabase
-        .from('sellers')
-        .select('id, seller_id, user_id, is_approved, address, latitude, longitude')
-        .eq('user_id', user.id)
-        .single();
-
-      if (sellerError && sellerError.code !== 'PGRST116') { // PGRST116 is "not found"
-        throw sellerError;
-      }
-
       // Fetch KYC status
-      const { data: kycData, error: kycError } = await supabase
+      const { data: kycDataResult, error: kycError } = await supabase
         .from('kyc')
         .select('status')
         .eq('user_id', user.id)
@@ -82,28 +58,25 @@ const Applications = () => {
       if (kycError && kycError.code !== 'PGRST116') {
         console.error('KYC fetch error:', kycError);
       }
-      if (kycData) {
-        setKycStatus(kycData.status as 'pending' | 'approved' | 'rejected');
+      if (kycDataResult) {
+        setKycStatus(kycDataResult.status as 'pending' | 'approved' | 'rejected');
       } else {
         setKycStatus('none');
       }
 
-      if (sellerData) {
-        setSellerProfile(sellerData);
+      // 2. Fetch products if seller exists
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('seller_id', sellerProfile.id);
 
-        // 2. Fetch products if seller exists
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('seller_id', sellerData.id);
+      if (productsError) throw productsError;
+      setProducts(productsData || []);
 
-        if (productsError) throw productsError;
-        setProducts(productsData || []);
-
-        // 3. Fetch orders if seller exists
-        const { data: ordersData, error: ordersError } = await supabase
-          .from('orders')
-          .select(`
+      // 3. Fetch orders if seller exists
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select(`
           id,
           user_id,
           total,
@@ -116,65 +89,50 @@ const Applications = () => {
           customer_name,
           order_items ( id, product_id, name, price, quantity )
         `)
-          .eq('seller_id', sellerData.id);
+        .eq('seller_id', sellerProfile.id);
 
-        if (ordersError) throw ordersError;
+      if (ordersError) throw ordersError;
 
-        const transformedOrders: Order[] = (ordersData || []).map(order => ({
-          id: order.id,
-          userId: order.user_id,
-          items: order.order_items || [],
-          total: order.total,
-          discountedTotal: order.discounted_total,
-          coupon: order.coupon,
-          discount: order.discount,
-          status: order.status,
-          createdAt: new Date(order.created_at),
-          customerEmail: order.customer_email,
-          customerName: order.customer_name,
-        }));
+      const transformedOrders: Order[] = (ordersData || []).map((order: any) => ({
+        id: order.id,
+        userId: order.user_id,
+        items: order.order_items || [],
+        total: order.total,
+        discountedTotal: order.discounted_total,
+        coupon: order.coupon,
+        discount: order.discount,
+        status: order.status,
+        createdAt: new Date(order.created_at),
+        customerEmail: order.customer_email,
+        customerName: order.customer_name,
+      }));
 
-        let sales = 0;
-        let orderCount = 0;
-        transformedOrders.forEach(order => {
-          sales += order.total || 0;
-          orderCount += 1;
-        });
+      let sales = 0;
+      let orderCount = 0;
+      transformedOrders.forEach((order: Order) => {
+        sales += order.total || 0;
+        orderCount += 1;
+      });
 
-        setOrders(transformedOrders);
-        setTotalSales(sales);
-        setTotalOrders(orderCount);
-        setActiveProducts(productsData?.length || 0);
+      setOrders(transformedOrders);
+      setTotalSales(sales);
+      setTotalOrders(orderCount);
+      setActiveProducts(productsData?.length || 0);
 
-      }
     } catch (error: unknown) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, sellerProfile, sellerLoading]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
-
-  const handleEditProduct = () => {
-    setShowProductForm(true);
-  };
-
-  const handleDeleteProduct = async (productId: string) => {
-    if (!sellerProfile || !confirm('Are you sure you want to delete this product?')) return;
-
-    try {
-      const { error } = await supabase.from('products').delete().eq('id', productId);
-      if (error) throw error;
-      alert('Product deleted successfully!');
-      fetchDashboardData(); // Refresh all data
-    } catch (error: unknown) {
-      console.error('Error deleting product:', error);
-      alert(`Error deleting product: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    if (!sellerLoading) {
+      fetchDashboardData();
     }
-  };
+  }, [fetchDashboardData, sellerLoading]);
+
+
 
   const handleKycSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,6 +151,7 @@ const Applications = () => {
       alert('KYC submitted successfully! It will be reviewed shortly.');
       setShowKycPopup(false);
       setKycData({ idType: 'Adhaar', idNumber: '', address: '', pincode: '' });
+      fetchDashboardData();
     } catch (error: unknown) {
       console.error('KYC submission error:', error);
       alert(`KYC submission failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -232,50 +191,6 @@ const Applications = () => {
     }
   };
 
-  const handleUpdateLocation = async () => {
-    if (!sellerProfile || !user) return;
-    setUpdatingLocation(true);
-
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-          const data = await response.json();
-          const address = data.display_name;
-
-          const { error } = await supabase
-            .from('sellers')
-            .update({
-              latitude,
-              longitude,
-              address
-            })
-            .eq('id', sellerProfile.id);
-
-          if (error) throw error;
-
-          // Update local state
-          setSellerProfile(prev => prev ? ({ ...prev, latitude, longitude, address }) : null);
-          alert("Location updated successfully!");
-
-        } catch (error) {
-          console.error("Error updating location:", error);
-          alert("Failed to update location.");
-        } finally {
-          setUpdatingLocation(false);
-        }
-      }, (error) => {
-        console.error("Location error:", error);
-        alert("Location access denied.");
-        setUpdatingLocation(false);
-      });
-    } else {
-      alert("Geolocation is not supported by your browser.");
-      setUpdatingLocation(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -284,480 +199,391 @@ const Applications = () => {
     );
   }
 
-  // Navigation items for reuse
-  const navItems = [
-    { path: '/applications', icon: '📊', label: 'Dashboard', active: true },
-    { path: '/earnings', icon: '💰', label: 'Earnings' },
-    { path: '/orders', icon: '🛒', label: 'Orders' },
-    { path: '/analytics', icon: '📈', label: 'Analytics' },
-    { path: '/products', icon: '📦', label: 'Products' },
-    { path: '/settings', icon: '⚙️', label: 'Settings' },
-  ];
-
-  // Main dashboard render
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="lg:hidden bg-white shadow-sm px-4 py-3 flex items-center justify-between sticky top-0 z-40">
-        <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div className="flex flex-col items-center">
-          <h1 className="font-semibold text-gray-800">Dashboard</h1>
-          {sellerProfile?.address && (
-            <div className="flex items-center text-xs text-purple-600 mt-1">
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="truncate max-w-[150px]">{sellerProfile.address.split(',')[0]}</span>
-            </div>
-          )}
-        </div>
-        <div className="w-10"></div>
-      </div>
-
-      <div className="flex">
-        {/* Mobile Sidebar Overlay */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <div className="w-64 bg-white h-full shadow-lg" onClick={e => e.stopPropagation()}>
-              <div className="p-4 border-b flex justify-between items-center">
-                <span className="font-semibold">Menu</span>
-                <button onClick={() => setSidebarOpen(false)} className="p-1">✕</button>
-              </div>
-              <nav className="p-2">
-                {navItems.map(item => (
-                  <button key={item.path} onClick={() => { navigate(item.path); setSidebarOpen(false); }}
-                    className={`flex items-center w-full px-4 py-3 rounded-lg mb-1 ${item.active ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
-                    <span className="mr-3">{item.icon}</span> {item.label}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
-        )}
-
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:flex flex-col w-64 bg-white shadow-lg min-h-screen">
-          <nav className="p-4 flex-1">
-            {navItems.map(item => (
-              <button key={item.path} onClick={() => navigate(item.path)}
-                className={`flex items-center w-full px-4 py-2 rounded-lg mb-1 ${item.active ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
-                <span className="mr-3">{item.icon}</span> {item.label}
-              </button>
-            ))}
-          </nav>
-
-          {/* Seller ID Display at Bottom */}
-          {sellerProfile?.seller_id && (
-            <div className="p-4 border-t border-gray-200">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Seller ID</p>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-sm font-medium text-gray-800 truncate" title={sellerProfile.seller_id}>
-                    {sellerProfile.seller_id}
-                  </span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(sellerProfile.seller_id);
-                      alert('Seller ID copied!');
-                    }}
-                    className="text-gray-400 hover:text-purple-600 transition-colors"
-                    title="Copy ID"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-4 lg:p-6">
-          {/* Desktop Location Header */}
-          {sellerProfile && (
-            <div className="hidden lg:flex items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-              <div className="bg-purple-100 p-2 rounded-full mr-3">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    <SellerLayout title="Seller Dashboard">
+      <div className="max-w-7xl mx-auto">
+        {kycStatus === 'pending' && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Seller Location</p>
-                <p className="text-gray-800 font-medium">{sellerProfile.address || 'Location not set'}</p>
-              </div>
-              <button
-                onClick={handleUpdateLocation}
-                disabled={updatingLocation}
-                className="ml-4 px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50"
-              >
-                {updatingLocation ? 'Updating...' : 'Update Location'}
-              </button>
-            </div>
-          )}
-
-          {kycStatus === 'none' && (
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 lg:p-4 mb-4 lg:mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <p className="font-bold text-sm lg:text-base">KYC Verification Required</p>
-                  <p className="text-xs lg:text-sm">Complete KYC to unlock all features.</p>
-                </div>
-                <button
-                  onClick={() => setShowKycPopup(true)}
-                  className="bg-red-200 text-red-800 px-3 py-2 rounded hover:bg-red-300 text-sm whitespace-nowrap"
-                >
-                  Complete KYC
-                </button>
-              </div>
-            </div>
-          )}
-          {kycStatus === 'pending' && (
-            <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-3 lg:p-4 mb-4 lg:mb-6">
-              <p className="font-bold text-sm lg:text-base">KYC Verification Pending</p>
-              <p className="text-xs lg:text-sm">Your documents are under review (1-2 business days).</p>
-            </div>
-          )}
-          {kycStatus === 'approved' && (
-            <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-3 lg:p-4 mb-4 lg:mb-6">
-              <p className="font-bold text-sm lg:text-base">KYC Verified ✓</p>
-              <p className="text-xs lg:text-sm">Your account is fully verified.</p>
-            </div>
-          )}
-          {kycStatus === 'rejected' && (
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 lg:p-4 mb-4 lg:mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <p className="font-bold text-sm lg:text-base">KYC Verification Rejected</p>
-                  <p className="text-xs lg:text-sm">Please submit again with correct documents.</p>
-                </div>
-                <button
-                  onClick={() => setShowKycPopup(true)}
-                  className="bg-red-200 text-red-800 px-3 py-2 rounded hover:bg-red-300 text-sm whitespace-nowrap"
-                >
-                  Resubmit KYC
-                </button>
-              </div>
-            </div>
-          )}
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Sales</p>
-                  <p className="text-2xl font-bold text-gray-900">₹{totalSales.toFixed(2)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Orders</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Products</p>
-                  <p className="text-2xl font-bold text-gray-900">{activeProducts}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Approval Status</p>
-                <p className={`text-2xl font-bold ${sellerProfile?.is_approved ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {sellerProfile?.is_approved ? 'Approved' : 'Pending'}
+              <div className="ml-3">
+                <p className="text-sm text-blue-700 font-medium">
+                  Your KYC verification is currently pending. Your dashboard will be fully unlocked once approved.
                 </p>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Orders Table */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">Recent Orders</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product(s)</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {orders.length > 0 ? (
-                    orders.map((order) => (
-                      <tr key={order.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id.slice(0, 8)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                            {order.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.customerName || order.customerEmail || 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{order.total.toFixed(2)}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                        No orders found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Products Management */}
-          <div className="bg-white rounded-lg shadow mt-8">
-            <div className="p-6 border-b">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800">My Products</h3>
-                <button
-                  onClick={() => {
-                    setShowProductForm(true);
-                  }}
-                  className="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800"
-                >
-                  Add Product
-                </button>
+        {kycStatus === 'none' && (
+          <div className="bg-white border border-yellow-200 border-l-4 border-l-yellow-400 p-6 mb-8 rounded-xl shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-start">
+                <div className="bg-yellow-100 p-2 rounded-lg mr-4">
+                  <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">KYC Verification Required</h3>
+                  <p className="text-sm text-gray-500 font-medium mt-1">
+                    Complete your identity verification to start listing products and receiving payments.
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {products.length > 0 ? (
-                    products.map((product) => (
-                      <tr key={product.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{product.price.toFixed(2)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.stock}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <button onClick={() => handleEditProduct()} className="text-blue-600 hover:text-blue-900 mr-2">Edit</button>
-                          <button onClick={() => handleDeleteProduct(product.id)} className="text-red-600 hover:text-red-900">Delete</button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                        No products found. Add one to get started!
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <button
+                onClick={() => setShowKycPopup(true)}
+                className="w-full sm:w-auto bg-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-100"
+              >
+                Start Verification
+              </button>
             </div>
           </div>
-        </div>\n      </div>
+        )}
 
-      {/* KYC Popup */}
+        {kycStatus === 'rejected' && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700 font-bold">
+                    KYC Rejected: Please review your document and resubmit.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowKycPopup(true)}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+              >
+                Resubmit KYC
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Sales</p>
+            <p className="text-3xl font-black text-gray-900 leading-none">₹{totalSales.toFixed(2)}</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Orders</p>
+            <p className="text-3xl font-black text-gray-900 leading-none">{totalOrders}</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Products</p>
+            <p className="text-3xl font-black text-gray-900 leading-none">{activeProducts}</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Approval Status</p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${sellerProfile?.is_approved ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+              <p className={`text-2xl font-black ${sellerProfile?.is_approved ? 'text-green-600' : 'text-yellow-600'}`}>
+                {sellerProfile?.is_approved ? 'Approved' : 'Pending'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Orders Table */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+          <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/20">
+            <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Orders</h3>
+            <button
+              onClick={() => navigate('/orders')}
+              className="text-xs font-bold text-purple-600 hover:text-purple-800 uppercase tracking-widest"
+            >
+              View All →
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50/50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Order ID</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Product(s)</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Total</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-50">
+                {orders.length > 0 ? (
+                  orders.map((order: Order) => (
+                    <tr key={order.id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 font-mono">#{order.id.slice(0, 8).toUpperCase()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                        {order.items.map((itemValue: any) => `${itemValue.name} (x${itemValue.quantity})`).join(', ')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-0.5 inline-flex text-[10px] leading-5 font-black uppercase tracking-widest rounded-full ${order.status === 'completed' || order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                          order.status === 'pending' || order.status === 'processing' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">₹{order.total.toFixed(2)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-400 font-medium italic">
+                      No orders found yet
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+
+        {/* Products Management Snapshot */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/20">
+            <h3 className="text-lg font-black text-gray-900 tracking-tight">Product Catalog</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate('/products')}
+                className="text-xs font-bold text-purple-600 hover:text-purple-800 uppercase tracking-widest"
+              >
+                Manage All →
+              </button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50/50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Name</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Price</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Stock</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {products.length > 0 ? (
+                  products.slice(0, 5).map((product: Product) => (
+                    <tr key={product.id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{product.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium uppercase text-[10px] tracking-widest">{product.category}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-gray-900">₹{product.price.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
+                        <span className={product.stock < 10 ? 'text-red-500' : 'text-gray-900'}>{product.stock}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-0.5 inline-flex text-[10px] leading-5 font-black uppercase tracking-widest rounded-full bg-green-100 text-green-700">
+                          Active
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-400 font-medium italic">
+                      No products listed yet
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* KYC Popup Modal */}
       {showKycPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full mx-4 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Complete KYC Verification</h2>
-              <button onClick={() => setShowKycPopup(false)} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative">
+            <button
+              onClick={() => setShowKycPopup(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-black text-gray-900">Complete KYC Verification</h2>
+              <p className="text-gray-500 font-medium mt-1">Identity verification is required for all sellers.</p>
             </div>
-            {/* KYC Animation Video */}
-            <div className="mb-4 rounded-lg overflow-hidden">
-              <video
-                src="/kyc.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-32 object-cover"
-              />
-            </div>
+
             <form onSubmit={handleKycSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">ID Type</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">ID Type</label>
                 <select
                   value={kycData.idType}
                   onChange={(e) => setKycData({ ...kycData, idType: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 p-2 border"
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
                 >
                   <option value="Adhaar">Adhaar Card</option>
                   <option value="Passport">Passport</option>
+                  <option value="VoterID">Voter ID</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">ID Number</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">ID Number</label>
                 <input
                   type="text"
                   value={kycData.idNumber}
                   onChange={(e) => setKycData({ ...kycData, idNumber: e.target.value })}
                   required
-                  placeholder="Enter your ID number"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 p-2 border"
+                  placeholder="e.g. 1234-5678-9012"
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Address</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Full Address</label>
                 <textarea
                   value={kycData.address}
                   onChange={(e) => setKycData({ ...kycData, address: e.target.value })}
                   required
-                  placeholder="Enter your full address"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 p-2 border"
+                  placeholder="Street, City, Zip..."
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
                   rows={3}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Pincode</label>
-                <input
-                  type="text"
-                  value={kycData.pincode}
-                  onChange={(e) => setKycData({ ...kycData, pincode: e.target.value })}
-                  required
-                  placeholder="Enter your pincode"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 p-2 border"
                 />
               </div>
               <button
                 type="submit"
                 disabled={kycSubmitting}
-                className="w-full bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600 disabled:opacity-50"
+                className="w-full bg-purple-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
               >
-                {kycSubmitting ? 'Submitting...' : 'Submit KYC'}
+                {kycSubmitting ? 'Verifying...' : 'Submit Verification'}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Product Form Popup */}
+      {/* Product Form Popup Modal */}
       {showProductForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b flex justify-between items-center">
-              <h2 className="text-xl font-bold">Add New Product</h2>
-              <button onClick={() => setShowProductForm(false)} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[70vh]">
-              <form onSubmit={handleProductSubmit} className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto relative">
+            <button
+              onClick={() => setShowProductForm(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-6">Add New Product</h2>
+
+            <form onSubmit={handleProductSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Product Name</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Product Name</label>
                   <input
                     type="text"
                     value={productData.name}
                     onChange={(e) => setProductData({ ...productData, name: e.target.value })}
                     required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2 border"
+                    placeholder="e.g. Pure Wild Forest Honey"
+                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    value={productData.description}
-                    onChange={(e) => setProductData({ ...productData, description: e.target.value })}
-                    rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2 border"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Price (₹)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={productData.price}
-                      onChange={(e) => setProductData({ ...productData, price: e.target.value })}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2 border"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Stock</label>
-                    <input
-                      type="number"
-                      value={productData.stock}
-                      onChange={(e) => setProductData({ ...productData, stock: e.target.value })}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2 border"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Category</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Category</label>
                   <select
                     value={productData.category}
                     onChange={(e) => setProductData({ ...productData, category: e.target.value })}
                     required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2 border"
+                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
                   >
-                    <option value="">Select a category</option>
+                    <option value="">Select Category</option>
                     <option value="honey">Honey</option>
                     <option value="beehive">Beehive</option>
                     <option value="accessories">Accessories</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Description</label>
+                <textarea
+                  value={productData.description}
+                  onChange={(e) => setProductData({ ...productData, description: e.target.value })}
+                  required
+                  placeholder="Describe your product's unique features..."
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Image URL</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Price (₹)</label>
                   <input
-                    type="url"
-                    value={productData.image_url}
-                    onChange={(e) => setProductData({ ...productData, image_url: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-2 border"
+                    type="number"
+                    value={productData.price}
+                    onChange={(e) => setProductData({ ...productData, price: e.target.value })}
+                    required
+                    placeholder="0.00"
+                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
                   />
                 </div>
-                <button
-                  type="submit"
-                  disabled={productSubmitting}
-                  className="w-full bg-purple-700 text-white py-2 px-4 rounded-md hover:bg-purple-800 disabled:opacity-50"
-                >
-                  {productSubmitting ? 'Adding Product...' : 'Add Product'}
-                </button>
-              </form>
-            </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Stock Inventory</label>
+                  <input
+                    type="number"
+                    value={productData.stock}
+                    onChange={(e) => setProductData({ ...productData, stock: e.target.value })}
+                    required
+                    placeholder="0"
+                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Image URL</label>
+                <input
+                  type="url"
+                  value={productData.image_url}
+                  onChange={(e) => setProductData({ ...productData, image_url: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={productSubmitting}
+                className="w-full bg-purple-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
+              >
+                {productSubmitting ? 'Adding Product...' : 'Confirm Listing'}
+              </button>
+            </form>
           </div>
         </div>
       )}
-    </div>
+    </SellerLayout>
   );
 };
 

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from './Button';
+import { signUpSchema } from '../utils/validation';
+import { rateLimiter } from '../utils/rateLimiter';
 
 const SignUpScreen = () => {
   const [name, setName] = useState('');
@@ -21,8 +23,26 @@ const SignUpScreen = () => {
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
+
+    // 1. Rate Limiting Check
+    const rateCheck = rateLimiter.check('signup', { limit: 3, windowMs: 60 * 1000 });
+    if (!rateCheck.allowed) {
+      const waitTime = rateLimiter.getWaitTimeSeconds(rateCheck.resetTime!);
+      setError(`Too many attempts. Please wait ${waitTime} seconds (Rate Limit 429).`);
+      setLoading(false);
+      return;
+    }
+
+    // 2. Input Validation
+    const validation = signUpSchema.safeParse({ name, email, password });
+    if (!validation.success) {
+      setError(validation.error.issues[0].message);
+      setLoading(false);
+      return;
+    }
+
     try {
-      await signUpWithEmail(name, email, password);
+      await signUpWithEmail(validation.data.name, validation.data.email, validation.data.password);
       // Success handling: Show message and redirect to login
       setLoading(false);
       localStorage.setItem('justSignedUp', 'true');
@@ -31,11 +51,11 @@ const SignUpScreen = () => {
         localStorage.removeItem('justSignedUp');
         navigate('/login');
       }, 2000);
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Sign up error:', err);
       let errorMessage = 'Sign up failed. Please try again.';
 
-      if (err instanceof Error) {
+      if (err.message) {
         errorMessage = err.message;
       }
 

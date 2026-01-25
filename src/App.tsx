@@ -13,12 +13,12 @@ import Checkout from "./components/Checkout";
 import Profile from "./components/Profile";
 import Seller from "./components/Seller";
 import Applications from "./components/Applications";
-import Orders from "./components/Orders";
+import Orders from './components/Orders';
 import Subscription from "./components/Subscription";
-import Settings from "./components/Settings";
-import SellerProducts from "./components/SellerProducts";
-import SellerAnalytics from "./components/SellerAnalytics";
-import SellerEarnings from "./components/SellerEarnings";
+import Settings from './components/Settings';
+import SellerProducts from './components/SellerProducts';
+import SellerAnalytics from './components/SellerAnalytics';
+import SellerEarnings from './components/SellerEarnings';
 import ProductDetails from "./components/ProductDetails";
 import PageLayout from "./components/PageLayout";
 import LoginScreen from "./components/LoginScreen";
@@ -29,6 +29,7 @@ console.log("Fresh Code Loaded: v2 - Fixed Price Type");
 
 import { useAuth } from "./hooks/useAuth";
 import LoadingSkeleton from "./components/LoadingSkeleton";
+import SellerGuard from "./components/SellerGuard";
 
 const sellerBackground = 'https://media.istockphoto.com/id/1669258600/vector/illustration-of-delicious-melted-chocolate-on-white-background.jpg?s=612x612&w=0&k=20&c=oykGVJHBjHuevHVi2GE8jFmCe0EpX2unEfhMPCFFeik=';
 
@@ -62,14 +63,15 @@ function AppRoutes() {
       <Route path="/checkout" element={user ? <PageLayout><Checkout /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/profile" element={user ? <PageLayout><Profile /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/seller" element={user ? <PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/applications" element={user ? <Applications /> : <Navigate to="/login" />} />
-      <Route path="/orders" element={user ? <Orders /> : <Navigate to="/login" />} />
+      <Route path="/applications" element={user ? <SellerGuard><Applications /></SellerGuard> : <Navigate to="/login" />} />
+      <Route path="/orders" element={user ? <SellerGuard><Orders /></SellerGuard> : <Navigate to="/login" />} />
       <Route path="/subscription" element={user ? <PageLayout><Subscription /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
-      <Route path="/products" element={user ? <SellerProducts /> : <Navigate to="/login" />} />
+      <Route path="/settings" element={user ? <SellerGuard><Settings /></SellerGuard> : <Navigate to="/login" />} />
+      {/* Protected Seller Routes */}
+      <Route path="/products" element={user ? <SellerGuard><SellerProducts /></SellerGuard> : <Navigate to="/login" />} />
       <Route path="/product/beehive" element={user ? <PageLayout><ProductDetails /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/analytics" element={user ? <SellerAnalytics /> : <Navigate to="/login" />} />
-      <Route path="/earnings" element={user ? <SellerEarnings /> : <Navigate to="/login" />} />
+      <Route path="/analytics" element={user ? <SellerGuard><SellerAnalytics /></SellerGuard> : <Navigate to="/login" />} />
+      <Route path="/earnings" element={user ? <SellerGuard><SellerEarnings /></SellerGuard> : <Navigate to="/login" />} />
     </Routes>
   );
 }

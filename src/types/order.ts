@@ -13,7 +13,7 @@ export interface Order {
   discountedTotal?: number;
   coupon?: string;
   discount?: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: Date;
   customerEmail?: string;
   customerName?: string;

@@ -2,23 +2,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useSeller } from '../hooks/useSeller';
 import { supabase } from '../lib/supabase';
 
 import Button from './Button';
+import { sellerRegistrationSchema, sanitizeInput } from '../utils/validation';
 
 
 type FormData = {
   email: string;
   name: string;
-  password: string;
-  confirmPassword: string;
-  country: string;
   profilePic: File | null;
   acceptTerms: boolean;
   city: string;
   state: string;
   zip: string;
-  countryCode: string;
   phone: string;
   idProof: File | null;
   sellerType: string;
@@ -30,15 +28,11 @@ type FormData = {
 const initialFormData: FormData = {
   email: '',
   name: '',
-  password: '',
-  confirmPassword: '',
-  country: '',
   profilePic: null,
   acceptTerms: false,
   city: '',
   state: '',
   zip: '',
-  countryCode: '',
   phone: '',
   idProof: null,
   sellerType: '',
@@ -54,7 +48,56 @@ const Seller = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   // Removed unused selectedOption state to fix eslint error
   const { user } = useAuth();
+  const { seller, loading: sellerLoading, refreshSeller } = useSeller();
   const navigate = useNavigate();
+
+  if (sellerLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Verifying registration status...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If seller already exists, prevent re-registration
+  if (seller) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Already Registered</h2>
+          <p className="text-gray-600 mb-6">
+            You have already registered as a seller.
+            {seller.is_approved
+              ? " Access your dashboard to manage your products."
+              : " Your application is currently under review."}
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => navigate('/applications')}
+              className="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition"
+            >
+              Go to Dashboard
+            </button>
+            <button
+              onClick={() => navigate('/home')}
+              className="w-full bg-gray-100 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-200 transition"
+            >
+              Return Home
+            </button>
+          </div>
+          <p className="mt-4 text-xs text-gray-400">Seller ID: {seller.seller_id}</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -91,12 +134,8 @@ const Seller = () => {
     }
 
     if (step === 4 && !formData.detectedAddress) {
-      // If logic needs to force location, handle here. 
-      // For now, we allow submission or "Location" is step 4.
-      // Wait, steps are 0-indexed?
-      // 0: Options, 1: Personal, 2: Address, 3: Contact, 4: Location (New), 5: Finish
-      // My previous renderFinish usage was Step 4.
-      // So Location is Step 4. Finish is Step 5.
+      setMessage({ type: 'error', text: 'Please detect your location before submitting.' });
+      return;
     }
 
     if (step === 4 || (step === 4 && formData.detectedAddress)) {
@@ -120,27 +159,46 @@ const Seller = () => {
         return;
       }
 
-      // Basic validation
-      if (!formData.email || !formData.name || !formData.acceptTerms) {
-        setMessage({ type: 'error', text: 'Please fill all required fields and accept terms.' });
+      // 1. Strict Input Validation & Sanitization
+      const validationData = {
+        name: sanitizeInput(formData.name),
+        email: user.email,
+        seller_type: sellerType as 'honey' | 'beehive',
+        phone: sanitizeInput(formData.phone),
+        address: sanitizeInput(formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}`),
+        city: sanitizeInput(formData.city),
+        state: sanitizeInput(formData.state),
+        zip: sanitizeInput(formData.zip),
+      };
+
+      const validation = sellerRegistrationSchema.safeParse(validationData);
+      if (!validation.success) {
+        setMessage({ type: 'error', text: validation.error.issues[0].message });
+        return;
+      }
+
+      if (!formData.acceptTerms) {
+        setMessage({ type: 'error', text: 'Please accept the terms and conditions.' });
         return;
       }
 
       try {
+        const sellerId = `SELLER-${Date.now()}`;
         let profilePicUrl = '';
         let idProofUrl = '';
 
         // Upload profile picture to Supabase storage
         if (formData.profilePic) {
-          const profileFileName = `${user.id}/seller-profiles/profile_${Date.now()}.${formData.profilePic.name.split('.').pop()}`;
+          // Path: email/seller_id/filename
+          const profileFileName = `${user.email}/${sellerId}/profile_${Date.now()}.${formData.profilePic.name.split('.').pop()}`;
           const { error: profileError } = await supabase.storage
-            .from('kyc-documents')
+            .from('sellerid_details')
             .upload(profileFileName, formData.profilePic);
 
           if (profileError) throw profileError;
 
           const { data: profileData } = supabase.storage
-            .from('kyc-documents')
+            .from('sellerid_details')
             .getPublicUrl(profileFileName);
 
           profilePicUrl = profileData.publicUrl;
@@ -148,15 +206,15 @@ const Seller = () => {
 
         // Upload ID proof to Supabase storage
         if (formData.idProof) {
-          const idFileName = `${user.id}/seller-id-proofs/id_${Date.now()}.${formData.idProof.name.split('.').pop()}`;
+          const idFileName = `${user.email}/${sellerId}/id_${Date.now()}.${formData.idProof.name.split('.').pop()}`;
           const { error: idError } = await supabase.storage
-            .from('kyc-documents')
+            .from('sellerid_details')
             .upload(idFileName, formData.idProof);
 
           if (idError) throw idError;
 
           const { data: idData } = supabase.storage
-            .from('kyc-documents')
+            .from('sellerid_details')
             .getPublicUrl(idFileName);
 
           idProofUrl = idData.publicUrl;
@@ -167,18 +225,16 @@ const Seller = () => {
           .from('sellers')
           .insert([{
             user_id: user.id,
-            seller_id: `SELLER-${Date.now()}`,
+            seller_id: sellerId,
             name: formData.name,
-            email: formData.email,
+            email: user.email, // Enforce auth email source of truth
             seller_type: sellerType,
             phone: formData.phone,
             // Use detected address if available, otherwise manual address
-            address: formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}, ${formData.country}`,
+            address: formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}`,
             city: formData.city,
             state: formData.state,
             zip: formData.zip,
-            country: formData.country,
-            country_code: formData.countryCode,
             id_proof_url: idProofUrl,
             profile_pic_url: profilePicUrl,
             is_approved: false,
@@ -193,7 +249,9 @@ const Seller = () => {
         }
 
         setMessage({ type: 'success', text: 'Seller registration submitted successfully! Your application will be reviewed.' });
-        setTimeout(() => navigate('/applications'), 2000);
+        await refreshSeller(); // Ensure seller state is updated before navigation
+        localStorage.setItem('justRegisteredSeller', 'true'); // Flag to prevent redirect loop
+        navigate('/applications'); // Navigate immediately after state update
       } catch (error) {
         console.error('Error submitting application:', error);
         setMessage({ type: 'error', text: `Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}` });
@@ -292,48 +350,30 @@ const Seller = () => {
     <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded shadow">
       <h2 className="text-xl font-bold mb-6">Personal Information</h2>
       <label className="block mb-2 text-sm font-medium text-gray-700">Your Email</label>
-      <input
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
-      />
+      <div className="relative">
+        <input
+          type="email"
+          name="email"
+          value={user?.email || ''} // Force use of auth email
+          readOnly
+          disabled
+          className="w-full mb-4 px-3 py-2 border rounded bg-gray-200 text-gray-600 cursor-not-allowed"
+        />
+        <svg
+          className="w-4 h-4 text-gray-500 absolute right-3 top-3"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
       <label className="block mb-2 text-sm font-medium text-gray-700">Your Name</label>
       <input
         type="text"
         name="name"
         placeholder="e.g. John Doe"
         value={formData.name}
-        onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
-      />
-      <label className="block mb-2 text-sm font-medium text-gray-700">Password</label>
-      <input
-        type="password"
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
-      />
-      <label className="block mb-2 text-sm font-medium text-gray-700">Confirm Password</label>
-      <input
-        type="password"
-        name="confirmPassword"
-        value={formData.confirmPassword}
-        onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
-      />
-      <label className="block mb-2 text-sm font-medium text-gray-700">Country</label>
-      <input
-        type="text"
-        name="country"
-        placeholder="Country..."
-        value={formData.country}
         onChange={handleChange}
         required
         className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
@@ -347,11 +387,13 @@ const Seller = () => {
         required
         className="w-full mb-2 px-3 py-2 border rounded bg-gray-100 text-gray-700"
       />
-      {formData.profilePic && (
-        <p className="text-sm text-gray-600 mb-4">
-          File: {formData.profilePic.name} | Size: {(formData.profilePic.size / 1024).toFixed(2)} KB | Type: {formData.profilePic.type}
-        </p>
-      )}
+      {
+        formData.profilePic && (
+          <p className="text-sm text-gray-600 mb-4">
+            File: {formData.profilePic.name} | Size: {(formData.profilePic.size / 1024).toFixed(2)} KB | Type: {formData.profilePic.type}
+          </p>
+        )
+      }
       <label className="inline-flex items-center mb-4">
         <input
           type="checkbox"
@@ -388,7 +430,7 @@ const Seller = () => {
           </svg>
         </Button>
       </div>
-    </form>
+    </form >
   );
 
   const renderAddress = () => (
@@ -420,15 +462,6 @@ const Seller = () => {
         onChange={handleChange}
         required
         className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
-      />
-      <label className="block mb-2 text-sm font-medium text-gray-700">Country Code</label>
-      <input
-        type="text"
-        name="countryCode"
-        value={formData.countryCode}
-        onChange={handleChange}
-        required
-        className="w-full mb-6 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
       />
       <div className="flex justify-between items-center">
         <button
@@ -555,12 +588,6 @@ const Seller = () => {
         </div>
       )}
 
-      <button
-        onClick={() => setStep(4)} // Skip to finish/submit manually if needed
-        className="mt-4 text-gray-400 text-sm underline hover:text-gray-600"
-      >
-        Skip this step
-      </button>
     </div>
   );
 

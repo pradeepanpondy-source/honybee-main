@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from './Button';
 import { Eye, EyeOff } from 'lucide-react';
+import { loginSchema, sanitizeInput } from '../utils/validation';
+import { rateLimiter } from '../utils/rateLimiter';
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -28,19 +30,35 @@ const LoginScreen: React.FC = () => {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
+
+    // 1. Rate Limiting Check
+    const rateCheck = rateLimiter.check('login', { limit: 10, windowMs: 60 * 1000 });
+    if (!rateCheck.allowed) {
+      const waitTime = rateLimiter.getWaitTimeSeconds(rateCheck.resetTime!);
+      setError(`Too many login attempts. Please wait ${waitTime} seconds.`);
+      return;
+    }
+
+    // 2. Input Validation
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      setError(validation.error.issues[0].message);
+      return;
+    }
+
     try {
-      await signInWithEmail(email, password);
+      await signInWithEmail(validation.data.email, validation.data.password);
       // Show success message before navigating
       setSuccessMessage('Login successful! Redirecting...');
       setTimeout(() => navigate('/home'), 2000);
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Login error:', err);
       let errorMessage = 'Login failed. Please try again.';
 
-      if (err instanceof Error) {
+      if (err.message) {
         // Handle Supabase specific errors better
         if (err.message === 'Invalid login credentials') {
-          errorMessage = 'Invalid email or password. Please check your credentials. If you just signed up, please verify your email address.';
+          errorMessage = 'Invalid email or password. Please check your credentials.';
         } else {
           errorMessage = err.message;
         }
@@ -65,7 +83,8 @@ const LoginScreen: React.FC = () => {
 
   const handleRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recoveryEmail) {
+    const sanitizedEmail = sanitizeInput(recoveryEmail);
+    if (!sanitizedEmail) {
       setError('Please enter your email address.');
       return;
     }

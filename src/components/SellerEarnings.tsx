@@ -1,172 +1,162 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useSeller } from '../hooks/useSeller';
+import SellerLayout from './SellerLayout';
 
 const SellerEarnings = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
+    const { seller: sellerProfile, loading: sellerLoading } = useSeller();
     const [loading, setLoading] = useState(true);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [earnings, setEarnings] = useState({ totalEarnings: 0, pendingPayout: 0, completedPayouts: 0, thisMonthEarnings: 0 });
-    const [transactions, setTransactions] = useState<{ id: string; total: number; status: string; created_at: string; customer_name: string }[]>([]);
+    const [totalEarnings, setTotalEarnings] = useState(0);
+    const [pendingPayout, setPendingPayout] = useState(0);
+    const [transactions, setTransactions] = useState<any[]>([]);
 
-    const fetchEarnings = useCallback(async () => {
-        if (!user) return;
+    const fetchEarningsData = useCallback(async () => {
+        if (!sellerProfile) return;
         setLoading(true);
         try {
-            const { data: seller } = await supabase.from('sellers').select('id').eq('user_id', user.id).single();
-            if (seller) {
-                const { data: orders } = await supabase.from('orders').select('id, total, status, created_at, customer_name').eq('seller_id', seller.id).order('created_at', { ascending: false });
-                const orderList = orders || [];
-                const total = orderList.reduce((s, o) => s + (o.total || 0), 0);
-                const pending = orderList.filter(o => o.status === 'pending' || o.status === 'processing').reduce((s, o) => s + (o.total || 0), 0);
-                const completed = orderList.filter(o => o.status === 'delivered' || o.status === 'completed').reduce((s, o) => s + (o.total || 0), 0);
-                const thisMonth = new Date(); thisMonth.setDate(1);
-                const thisMonthEarnings = orderList.filter(o => new Date(o.created_at) >= thisMonth).reduce((s, o) => s + (o.total || 0), 0);
-                setEarnings({ totalEarnings: total, pendingPayout: pending, completedPayouts: completed, thisMonthEarnings });
-                setTransactions(orderList.slice(0, 10));
-            }
-        } catch (e) { console.error(e); }
-        setLoading(false);
-    }, [user]);
+            // Fetch orders to calculate earnings
+            const { data: orders, error: ordersError } = await supabase
+                .from('orders')
+                .select('total, status, created_at')
+                .eq('seller_id', sellerProfile.id)
+                .eq('status', 'delivered');
 
-    useEffect(() => { fetchEarnings(); }, [fetchEarnings]);
+            if (ordersError) throw ordersError;
 
-    const navItems = [
-        { path: '/applications', icon: '📊', label: 'Dashboard' },
-        { path: '/earnings', icon: '💰', label: 'Earnings', active: true },
-        { path: '/orders', icon: '🛒', label: 'Orders' },
-        { path: '/analytics', icon: '📈', label: 'Analytics' },
-        { path: '/products', icon: '📦', label: 'Products' },
-        { path: '/settings', icon: '⚙️', label: 'Settings' },
-    ];
+            const total = (orders || []).reduce((acc: number, curr: any) => acc + curr.total, 0);
+            setTotalEarnings(total);
 
-    if (loading) return (
-        <div className="flex justify-center items-center h-64">
-            <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
-        </div>
-    );
+            // Fetch pending orders (not yet delivered but not cancelled)
+            const { data: pendingOrders, error: pendingError } = await supabase
+                .from('orders')
+                .select('total')
+                .eq('seller_id', sellerProfile.id)
+                .in('status', ['pending', 'processing', 'shipped']);
+
+            if (pendingError) throw pendingError;
+            const pending = (pendingOrders || []).reduce((acc: number, curr: any) => acc + curr.total, 0);
+            setPendingPayout(pending);
+
+            // Recent transactions (from delivered orders)
+            setTransactions((orders || []).slice(0, 10).map(o => ({
+                id: Math.random().toString(36).substr(2, 9),
+                amount: o.total,
+                date: new Date(o.created_at),
+                type: 'Sale',
+                status: 'Completed'
+            })));
+
+        } catch (error) {
+            console.error('Error fetching earnings:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [sellerProfile]);
+
+    useEffect(() => {
+        if (!sellerLoading && sellerProfile) {
+            fetchEarningsData();
+        } else if (!sellerLoading && !sellerProfile) {
+            setLoading(false);
+        }
+    }, [fetchEarningsData, sellerLoading, sellerProfile]);
+
+    if (loading) {
+        return (
+            <SellerLayout title="Earnings">
+                <div className="flex justify-center items-center h-64">
+                    <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+                </div>
+            </SellerLayout>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Mobile Header */}
-            <div className="lg:hidden bg-white shadow-sm px-4 py-3 flex items-center justify-between sticky top-0 z-40">
-                <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-                <h1 className="font-semibold">Earnings</h1>
-                <div className="w-10"></div>
-            </div>
-
-            <div className="flex">
-                {/* Mobile Sidebar Overlay */}
-                {sidebarOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden" onClick={() => setSidebarOpen(false)}>
-                        <div className="w-64 bg-white h-full shadow-lg" onClick={e => e.stopPropagation()}>
-                            <div className="p-4 border-b flex justify-between items-center">
-                                <span className="font-semibold">Menu</span>
-                                <button onClick={() => setSidebarOpen(false)} className="p-1">✕</button>
-                            </div>
-                            <nav className="p-2">
-                                {navItems.map(item => (
-                                    <button key={item.path} onClick={() => { navigate(item.path); setSidebarOpen(false); }}
-                                        className={`flex items-center w-full px-4 py-3 rounded-lg mb-1 ${item.active ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
-                                        <span className="mr-3">{item.icon}</span> {item.label}
-                                    </button>
-                                ))}
-                            </nav>
+        <SellerLayout title="Earnings">
+            <div className="max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between overflow-hidden relative group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                            <svg className="w-12 h-12 text-purple-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z" /></svg>
+                        </div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
+                        <p className="text-4xl font-black text-gray-900 leading-none">₹{totalEarnings.toFixed(2)}</p>
+                        <div className="mt-4 pt-4 border-t border-gray-50">
+                            <span className="text-xs font-bold text-green-500">↑ 12% from last month</span>
                         </div>
                     </div>
-                )}
 
-                {/* Desktop Sidebar */}
-                <div className="hidden lg:block w-64 bg-white shadow-lg min-h-screen">
-                    <nav className="p-4">
-                        {navItems.map(item => (
-                            <button key={item.path} onClick={() => navigate(item.path)}
-                                className={`flex items-center w-full px-4 py-2 rounded-lg mb-1 ${item.active ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}>
-                                <span className="mr-3">{item.icon}</span> {item.label}
-                            </button>
-                        ))}
-                    </nav>
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between overflow-hidden relative group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                            <svg className="w-12 h-12 text-yellow-600" fill="currentColor" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" /></svg>
+                        </div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Pending Payout</p>
+                        <p className="text-4xl font-black text-gray-900 leading-none">₹{pendingPayout.toFixed(2)}</p>
+                        <div className="mt-4 pt-4 border-t border-gray-50">
+                            <span className="text-xs font-bold text-gray-400 italic">Processing current cycle</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-purple-600 p-8 rounded-2xl shadow-xl shadow-purple-100 flex flex-col justify-between overflow-hidden relative group">
+                        <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:scale-110 transition-transform">
+                            <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
+                        </div>
+                        <p className="text-[10px] font-black text-purple-200 uppercase tracking-widest mb-1">Available for Withdrawal</p>
+                        <p className="text-4xl font-black text-white leading-none">₹{totalEarnings.toFixed(2)}</p>
+                        <button className="mt-4 w-full bg-white text-purple-600 font-black uppercase tracking-widest text-[10px] py-3 rounded-xl hover:bg-purple-50 transition-colors">
+                            Withdraw Now
+                        </button>
+                    </div>
                 </div>
 
-                {/* Main Content */}
-                <div className="flex-1 p-4 lg:p-6">
-                    <h1 className="hidden lg:block text-2xl font-bold mb-6">Earnings & Payouts</h1>
-
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6">
-                        <div className="bg-white p-4 lg:p-6 rounded-lg shadow">
-                            <p className="text-xs lg:text-sm text-gray-600">Total Earnings</p>
-                            <p className="text-xl lg:text-2xl font-bold text-green-600">₹{earnings.totalEarnings.toFixed(0)}</p>
-                        </div>
-                        <div className="bg-white p-4 lg:p-6 rounded-lg shadow">
-                            <p className="text-xs lg:text-sm text-gray-600">This Month</p>
-                            <p className="text-xl lg:text-2xl font-bold">₹{earnings.thisMonthEarnings.toFixed(0)}</p>
-                        </div>
-                        <div className="bg-white p-4 lg:p-6 rounded-lg shadow">
-                            <p className="text-xs lg:text-sm text-gray-600">Pending</p>
-                            <p className="text-xl lg:text-2xl font-bold text-yellow-600">₹{earnings.pendingPayout.toFixed(0)}</p>
-                        </div>
-                        <div className="bg-white p-4 lg:p-6 rounded-lg shadow">
-                            <p className="text-xs lg:text-sm text-gray-600">Completed</p>
-                            <p className="text-xl lg:text-2xl font-bold">₹{earnings.completedPayouts.toFixed(0)}</p>
-                        </div>
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/20">
+                        <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Transactions</h3>
+                        <button className="text-xs font-bold text-purple-600 uppercase tracking-widest">Download Report</button>
                     </div>
-
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
-                        <div className="p-4 lg:p-6 border-b"><h2 className="text-base lg:text-lg font-semibold">Recent Transactions</h2></div>
-
-                        {/* Mobile view - Cards */}
-                        <div className="lg:hidden divide-y">
-                            {transactions.length > 0 ? transactions.map((o) => (
-                                <div key={o.id} className="p-4">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <p className="font-medium">#{o.id.slice(0, 8)}</p>
-                                            <p className="text-sm text-gray-500">{o.customer_name || 'N/A'}</p>
-                                        </div>
-                                        <p className="font-semibold">₹{o.total?.toFixed(0)}</p>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-500">{new Date(o.created_at).toLocaleDateString()}</span>
-                                        <span className={`px-2 py-1 text-xs rounded-full ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : o.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100'}`}>{o.status}</span>
-                                    </div>
-                                </div>
-                            )) : <div className="p-4 text-center text-gray-500">No transactions</div>}
-                        </div>
-
-                        {/* Desktop view - Table */}
-                        <table className="hidden lg:table w-full">
-                            <thead className="bg-gray-50">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-50/50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Transaction ID</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Type</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {transactions.length > 0 ? transactions.map((o) => (
-                                    <tr key={o.id}>
-                                        <td className="px-6 py-4 text-sm">#{o.id.slice(0, 8)}</td>
-                                        <td className="px-6 py-4 text-sm">{o.customer_name || 'N/A'}</td>
-                                        <td className="px-6 py-4 text-sm">{new Date(o.created_at).toLocaleDateString()}</td>
-                                        <td className="px-6 py-4"><span className={`px-2 py-1 text-xs rounded-full ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : o.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100'}`}>{o.status}</span></td>
-                                        <td className="px-6 py-4 text-sm font-semibold">₹{o.total?.toFixed(0)}</td>
+                            <tbody className="bg-white divide-y divide-gray-50">
+                                {transactions.length > 0 ? (
+                                    transactions.map((tx) => (
+                                        <tr key={tx.id} className="hover:bg-gray-50/30 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-gray-900 font-mono">#TX-{tx.id.toUpperCase()}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{tx.date.toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-bold uppercase text-[10px] tracking-widest">{tx.type}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-gray-900">₹{tx.amount.toFixed(2)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="px-2 py-0.5 inline-flex text-[10px] leading-5 font-black uppercase tracking-widest rounded-full bg-green-100 text-green-700">
+                                                    {tx.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-400 font-medium italic">
+                                            No transaction history found.
+                                        </td>
                                     </tr>
-                                )) : <tr><td colSpan={5} className="px-6 py-4 text-center text-gray-500">No transactions</td></tr>}
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-        </div>
+        </SellerLayout>
     );
 };
 
 export default SellerEarnings;
+
