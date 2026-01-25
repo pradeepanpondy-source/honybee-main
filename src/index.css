@@ -6,32 +6,42 @@
 @import 'tailwindcss/utilities';
 
 :root {
-  --background: 60 100% 97%;
-  --foreground: 0 0% 0%;
-  --card: 60 100% 97%;
-  --card-foreground: 0 0% 0%;
-  --popover: 60 100% 97%;
-  --popover-foreground: 0 0% 0%;
-  --primary: 51 100% 50%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 0% 0%;
-  --secondary-foreground: 60 100% 97%;
-  --muted: 60 100% 95%;
-  --muted-foreground: 25 75% 47%;
-  --accent: 39 100% 50%;
-  --accent-foreground: 0 0% 0%;
+  --background: 45 100% 98%;
+  /* #FFFBF5 - Warm Cream */
+  --foreground: 18 40% 12%;
+  /* #2C1810 - Dark Brown */
+  --card: 45 100% 98%;
+  --card-foreground: 18 40% 12%;
+  --popover: 45 100% 98%;
+  --popover-foreground: 18 40% 12%;
+  --primary: 43 100% 50%;
+  /* #FFB800 - Honey Gold */
+  --primary-dark: 43 100% 45%;
+  /* #E6A500 */
+  --primary-foreground: 45 100% 98%;
+  --secondary: 0 0% 10%;
+  /* #1A1A1A - Deep Black */
+  --secondary-foreground: 45 100% 98%;
+  --muted: 45 100% 93%;
+  --muted-foreground: 18 40% 30%;
+  --accent: 206 100% 27%;
+  /* #004E89 - Sky Blue */
+  --accent-foreground: 45 100% 98%;
+  --success: 88 50% 41%;
+  /* #7CB342 - Nature Green */
   --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 60 100% 97%;
-  --border: 60 100% 90%;
-  --input: 60 100% 90%;
-  --ring: 51 100% 50%;
-  --radius: 0.5rem;
-  /* Honeybee theme colors - Bright and Modern */
-  --honeybee-primary: 51 100% 50%; /* Bright golden yellow */
-  --honeybee-accent: 15 100% 55%; /* Vibrant coral orange */
-  --honeybee-secondary: 0 0% 10%; /* Deep black */
-  --honeybee-background: 0 0% 100%; /* Pure white */
-  --honeybee-light: 45 100% 97%; /* Warm light cream */
+  --destructive-foreground: 45 100% 98%;
+  --border: 43 100% 85%;
+  --input: 43 100% 85%;
+  --ring: 43 100% 50%;
+  --radius: 1rem;
+  /* Honeybee theme colors - Verified Palette */
+  --honeybee-primary: 43 100% 50%;
+  --honeybee-accent: 206 100% 27%;
+  /* Sky Blue #004E89 as per user spec */
+  --honeybee-secondary: 0 0% 10%;
+  --honeybee-background: 45 100% 98%;
+  --honeybee-light: 45 100% 95%;
 }
 
 .dark {
@@ -61,12 +71,23 @@ body {
   font-family: 'Montserrat', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #FFFFFF;
-  color: #1a1a1a;
+  background-color: #FFFBF5;
+  color: #2C1810;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+.honeycomb-pattern {
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath fill='%23FFB800' fill-opacity='0.05' d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100L0 116L0 82L28 66L56 82L56 116L28 100L28 66Z'%3E%3C/path%3E%3C/svg%3E");
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Playfair Display', serif;
 }
 
@@ -76,41 +97,81 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Dripping Honey Animations */
 @keyframes wave {
-  0%, 100% {
+
+  0%,
+  100% {
     d: path("M0,60 C200,100 350,20 600,60 S850,100 1000,60 S1200,20 1200,60 V150 H0 Z");
   }
+
   50% {
     d: path("M0,60 C200,20 350,100 600,60 S850,20 1000,60 S1200,100 1200,60 V150 H0 Z");
   }
 }
+
 @keyframes drip1 {
-  0% { transform: translateY(0); opacity: 1; }
-  80% { opacity: 1; }
-  100% { transform: translateY(300px) scale(0.8); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(300px) scale(0.8);
+    opacity: 0;
+  }
 }
+
 @keyframes drip2 {
-  0% { transform: translateY(0); opacity: 1; }
-  70% { opacity: 1; }
-  100% { transform: translateY(400px) scale(0.7); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(400px) scale(0.7);
+    opacity: 0;
+  }
 }
+
 @keyframes drip3 {
-  0% { transform: translateY(0); opacity: 1; }
-  60% { opacity: 1; }
-  100% { transform: translateY(350px) scale(0.8); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(350px) scale(0.8);
+    opacity: 0;
+  }
 }
+
 .wave-path {
   animation: wave 10s linear forwards;
 }
+
 .drip1 {
   animation: drip1 5s ease-in forwards;
   animation-delay: 1s;
   transform-origin: top center;
 }
+
 .drip2 {
   animation: drip2 6s ease-in forwards;
   animation-delay: 3s;
   transform-origin: top center;
 }
+
 .drip3 {
   animation: drip3 4s ease-in forwards;
   animation-delay: 0.5s;
@@ -123,11 +184,13 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0;
     transform: translateY(10px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 .letter-wave {
   animation: letter-fade-in 0.6s ease-out forwards;
   opacity: 0;
@@ -135,9 +198,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes subtle-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     text-shadow: 0 0 4px rgba(255, 193, 7, 0.4);
   }
+
   50% {
     text-shadow: 0 0 12px rgba(255, 193, 7, 0.8);
   }
@@ -149,9 +215,12 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Button Animations */
 @keyframes button-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 rgba(255, 193, 7, 0.4);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(255, 193, 7, 0.8);
   }
@@ -162,6 +231,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: scale(0);
     opacity: 1;
   }
+
   100% {
     transform: scale(4);
     opacity: 0;
@@ -179,6 +249,39 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(0);
   animation: button-ripple 0.6s linear;
   pointer-events: none;
+}
+
+/* Page transitions */
+.page-fade-in {
+  animation: page-fade-in 0.4s ease-out forwards;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Input Focus Glow */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 184, 0, 0.3);
+  border-color: #FFB800 !important;
+  transition: all 0.2s ease;
+}
+
+/* Accessibility - Focus ring for keyboard navigation */
+:focus-visible {
+  outline: 3px solid #FFB800;
+  outline-offset: 2px;
 }
 
 /* Global Smooth Scrolling */
@@ -209,12 +312,15 @@ body {
   }
 
   /* Prevent zoom on input focus */
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     font-size: 16px;
   }
 
   /* Improve touch targets */
-  button, a {
+  button,
+  a {
     min-height: 44px;
     min-width: 44px;
   }
@@ -226,7 +332,7 @@ body {
 }
 
 .gradient-bg-accent {
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+  background: linear-gradient(135deg, #1A1A1A 0%, #3E2723 100%);
 }
 
 .gradient-bg-warm {
@@ -257,7 +363,7 @@ body {
 }
 
 .vibrant-text {
-  background: linear-gradient(135deg, #FFD700 0%, #FF6B35 100%);
+  background: linear-gradient(135deg, #FFB800 0%, #1A1A1A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

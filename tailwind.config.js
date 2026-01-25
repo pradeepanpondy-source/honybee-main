@@ -5,18 +5,16 @@ export default {
     extend: {
       colors: {
         honeybee: {
-          primary: '#FFD700', // Bright golden yellow
-          secondary: '#1a1a1a', // Deep black for contrast
-          accent: '#FF6B35', // Vibrant coral orange
-          background: '#FFFFFF', // Pure white for brightness
-          dark: '#2D3748', // Modern dark gray
-          'dark-brown': '#4A5568', // Medium gray
-          light: '#FEFCF3', // Warm light cream
-          'bright-yellow': '#FFE55C', // Bright yellow accent
-          'vibrant-orange': '#FF8C42', // Vibrant orange
-          'sunny-yellow': '#FFD23F', // Sunny yellow
+          primary: '#FFB800', // Honey Gold
+          'primary-dark': '#E6A500',
+          secondary: '#1A1A1A', // Deep Black
+          accent: '#004E89', // Sky Blue
+          success: '#7CB342', // Nature Green
+          background: '#FFFBF5', // Cream
+          'dark-brown': '#2C1810', // Text
+          light: '#FFFBF5',
         },
-      cream: '#FEFCF3',
+        cream: '#FEFCF3',
       },
       fontFamily: {
         sans: ['Montserrat', 'sans-serif'],

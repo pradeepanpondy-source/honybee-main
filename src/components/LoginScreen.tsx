@@ -99,34 +99,38 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7] flex items-center justify-center px-4 relative">
-      <div className="max-w-5xl w-full bg-gray-50 rounded-3xl shadow-2xl flex overflow-hidden">
+    <div className="min-h-screen bg-honeybee-light flex items-center justify-center px-4 relative page-fade-in">
+      <div className="max-w-5xl w-full bg-white rounded-3xl shadow-2xl flex overflow-hidden border border-honeybee-primary/20">
         {/* Left side - form */}
-        <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Hello Again!</h1>
+        <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
+          <h1 className="text-3xl md:text-4xl font-black text-honeybee-secondary mb-2 md:mb-4 tracking-tight">Hello Again!</h1>
+          <p className="text-honeybee-secondary/60 text-sm mb-6 md:mb-8 font-medium">Welcome back to BeeBridge</p>
           {successMessage && (
             <div className="text-sm text-center mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-600">
               {successMessage}
             </div>
           )}
           {error && (
-            <div className="text-sm text-center mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600">
+            <div className="text-sm text-center mb-4 p-3 bg-honeybee-secondary/10 border border-honeybee-secondary/20 rounded-lg text-honeybee-secondary font-bold">
               {error}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             <div>
+              <label htmlFor="email" className="block text-[10px] font-black text-honeybee-secondary/50 uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="Email"
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
+                placeholder="email@example.com"
+                className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-100 bg-gray-50/50 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white transition-all text-sm md:text-base"
+                aria-label="Email Address"
               />
             </div>
             <div>
+              <label htmlFor="password" className="block text-[10px] font-black text-honeybee-secondary/50 uppercase tracking-widest mb-1.5 ml-1">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -134,13 +138,14 @@ const LoginScreen: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Password"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-100 bg-gray-50/50 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white transition-all text-sm md:text-base"
+                  aria-label="Password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-honeybee-secondary focus:outline-none transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
@@ -148,18 +153,19 @@ const LoginScreen: React.FC = () => {
               </div>
             </div>
             <div>
-              <div
+              <button
+                type="button"
                 onClick={() => setShowRecovery(true)}
-                className="text-right text-xs text-gray-500 mb-4 cursor-pointer hover:underline"
+                className="text-right w-full text-xs text-honeybee-secondary/60 mb-2 cursor-pointer hover:text-honeybee-accent hover:underline transition-colors font-semibold"
               >
-                Recovery Password
-              </div>
+                Forgot Password?
+              </button>
             </div>
             <div>
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full font-semibold"
+                className="w-full font-black py-3 md:py-4 rounded-xl uppercase tracking-widest transform hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-honeybee-primary/20"
               >
                 Sign In
               </Button>
@@ -224,10 +230,10 @@ const LoginScreen: React.FC = () => {
                 onChange={(e) => setRecoveryEmail(e.target.value)}
                 placeholder="Email address"
                 required
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
               />
               <div className="flex gap-2">
-                <button type="submit" className="flex-1 bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600">Send Reset Link</button>
+                <button type="submit" className="flex-1 bg-honeybee-secondary text-white py-2 rounded-lg hover:bg-honeybee-secondary/90 transition-colors font-bold uppercase tracking-widest text-xs">Send Reset Link</button>
                 <button type="button" onClick={() => setShowRecovery(false)} className="flex-1 bg-gray-300 py-2 rounded-lg">Cancel</button>
               </div>
             </form>

@@ -6,11 +6,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses = {
-  primary: 'gradient-bg-primary hover:shadow-2xl text-black hover:text-black border-0 modern-shadow-hover transform hover:scale-105',
-  secondary: 'bg-honeybee-secondary hover:bg-honeybee-accent text-white modern-shadow-hover',
-  accent: 'gradient-bg-accent hover:shadow-xl text-white modern-shadow-hover transform hover:scale-105',
-  ghost: 'hover:bg-gray-100/10 text-honeybee-primary hover:text-honeybee-accent',
-  light: 'glass-effect text-honeybee-dark hover:bg-honeybee-primary hover:text-black modern-shadow-hover',
+  primary: 'bg-honeybee-primary hover:bg-honeybee-accent text-honeybee-secondary border-0 transform hover:scale-[1.02] active:scale-[0.98]',
+  secondary: 'bg-honeybee-secondary hover:bg-honeybee-accent text-white transform hover:scale-[1.02] active:scale-[0.98]',
+  accent: 'bg-honeybee-accent hover:bg-honeybee-primary text-honeybee-secondary transform hover:scale-[1.02] active:scale-[0.98]',
+  ghost: 'bg-transparent hover:bg-honeybee-primary/10 text-honeybee-secondary hover:text-honeybee-accent',
+  light: 'bg-honeybee-light/80 backdrop-blur-sm text-honeybee-secondary hover:bg-honeybee-primary transform hover:scale-[1.02] active:scale-[0.98]',
 };
 
 const sizeClasses = {

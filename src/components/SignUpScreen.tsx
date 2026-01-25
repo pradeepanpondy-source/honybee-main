@@ -76,47 +76,53 @@ const SignUpScreen = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-bg-warm flex items-center justify-center px-4">
-      <div className="max-w-5xl w-full glass-effect rounded-3xl modern-shadow flex overflow-hidden">
+    <div className="min-h-screen bg-honeybee-light flex items-center justify-center px-4 py-8 page-fade-in">
+      <div className="max-w-5xl w-full glass-effect rounded-3xl shadow-2xl flex overflow-hidden border border-honeybee-primary/20">
         {/* Left side - form */}
-        <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
-          <h1 className="text-4xl font-bold vibrant-text mb-6 text-center">
-            Create Account
+        <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
+          <h1 className="text-3xl md:text-4xl font-black text-honeybee-secondary mb-2 text-center tracking-tight">
+            Join the Hive
           </h1>
+          <p className="text-honeybee-secondary/60 text-sm mb-8 text-center font-medium">Create your BeeBridge account</p>
           {successMessage && (
             <div className="text-sm text-center mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-600">
               {successMessage}
             </div>
           )}
           {error && (
-            <div className="text-sm text-center mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600">
+            <div className="text-sm text-center mb-4 p-3 bg-honeybee-secondary/10 border border-honeybee-secondary/20 rounded-lg text-honeybee-secondary font-bold">
               {error}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
             <div>
+              <label htmlFor="name" className="block text-[10px] font-black text-honeybee-secondary/50 uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
               <input
                 type="text"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                placeholder="Your full name"
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
+                placeholder="John Doe"
+                className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-100 bg-gray-50/50 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white transition-all text-sm md:text-base"
+                aria-label="Full Name"
               />
             </div>
             <div>
+              <label htmlFor="email" className="block text-[10px] font-black text-honeybee-secondary/50 uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="Email"
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
+                placeholder="email@example.com"
+                className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-100 bg-gray-50/50 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white transition-all text-sm md:text-base"
+                aria-label="Email Address"
               />
             </div>
             <div>
+              <label htmlFor="password" className="block text-[10px] font-black text-honeybee-secondary/50 uppercase tracking-widest mb-1.5 ml-1">Secure Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -124,27 +130,28 @@ const SignUpScreen = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Password"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 md:py-4 rounded-xl border border-gray-100 bg-gray-50/50 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white transition-all text-sm md:text-base"
+                  aria-label="Secure Password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-honeybee-secondary focus:outline-none transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
             </div>
-            <div>
+            <div className="pt-2">
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full font-semibold"
+                className="w-full font-black py-3 md:py-4 rounded-xl uppercase tracking-widest transform hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-honeybee-primary/20"
                 disabled={loading}
               >
-                {loading ? 'Creating Account...' : 'Sign Up'}
+                {loading ? 'Processing...' : 'Start Your Journey'}
               </Button>
             </div>
           </form>

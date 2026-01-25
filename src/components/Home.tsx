@@ -1,99 +1,90 @@
-import React from 'react';
-import Button from './Button';
-import LetterWave from './LetterWave';
+import React, { Suspense, lazy } from 'react';
+import { motion } from 'framer-motion';
+import Hero from './Hero';
+import Stats from './Stats';
+import FeaturedProducts from './FeaturedProducts';
+import SearchBar from './SearchBar';
+
+// Lazy load non-critical sections
+const Testimonials = lazy(() => import('./Testimonials'));
 
 interface HomeProps {
   onGoToShop: () => void;
   nextStep: () => void;
 }
 
+const Story: React.FC = () => (
+  <section className="py-24 md:py-40 bg-honeybee-light/50 relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-64 h-64 bg-honeybee-primary/10 rounded-full blur-[100px]" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="max-w-4xl mx-auto"
+      >
+        <span className="text-honeybee-primary font-black uppercase tracking-[0.3em] text-xs mb-4 block">The Genesis</span>
+        <h2 className="text-4xl md:text-6xl font-black text-honeybee-secondary mb-10 leading-tight">Crafting Nature's <br /><span className="text-honeybee-primary italic">Golden Legacy</span></h2>
+        <div className="space-y-6 text-lg md:text-xl text-honeybee-secondary/80 font-medium leading-relaxed">
+          <p>
+            At Bee Bridge, our journey began with a deep appreciation for the delicate balance of nature and the hardworking bees that produce nature's golden elixir.
+          </p>
+          <p>
+            As you explore our collection, you'll feel the warmth of our dedication to quality and the joy of connecting with nature's bounty. We're more than just a marketplace; we're a community united by the love of honey and the bees that make it possible.
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  </section>
+);
+
 const Home: React.FC<HomeProps> = ({ onGoToShop, nextStep }) => {
   return (
-    <>
-      {/* Hero Section */}
-      <div className="relative bg-honeybee-primary min-h-screen flex flex-col justify-center items-center p-4 md:p-8">
-        <div
-          className="absolute bottom-0 left-0 w-full h-40 bg-no-repeat bg-bottom bg-contain"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3csvg%20xmlns%3d%27http%3a%2f%2fwww.w3.org%2f2000%2fsvg%27%20viewBox%3d%270%200%201440%20320%27%3e%3cpath%20fill%3d%27%23FFD700%27%20fill-opacity%3d%271%27%20d%3d%27M0%2c224L48%2c208C96%2c192%2c192%2c160%2c288%2c165.3C384%2c171%2c480%2c213%2c576%2c202.7C672%2c192%2c768%2c128%2c864%2c117.3C960%2c107%2c1056%2c149%2c1152%2c160C1248%2c171%2c1344%2c149%2c1392%2c138.7L1440%2c128L1440%2c320L1392%2c320C1344%2c320%2c1248%2c320%2c1152%2c320C1056%2c320%2c960%2c320%2c864%2c320C768%2c320%2c672%2c320%2c576%2c320C480%2c320%2c384%2c320%2c288%2c320C192%2c320%2c96%2c320%2c48%2c320L0%2c320Z%27%3e%3c%2fpath%3e%3c%2fsvg%3e")` }}
-        ></div>
-        <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-          <img src="data:image/svg+xml,%3csvg width='1440' height='320' viewBox='0 0 1440 320' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0C48 32 96 64 144 64C192 64 240 32 288 32C336 32 384 64 432 64C480 64 528 32 576 32C624 32 672 64 720 64C768 64 816 32 864 32C912 32 960 64 1008 64C1056 64 1104 32 1152 32C1200 32 1248 64 1296 64C1344 64 1392 32 1440 32L1440 320L0 320Z' fill='%23FFD700'/%3e%3c/svg%3e" alt="Honey Drip" className="w-80 md:w-96 h-auto" />
-        </div>
-
-        <div className="relative z-10 max-w-7xl w-full flex flex-col md:flex-row items-center justify-between">
-          <div className="text-left max-w-lg">
-            <h1 className="text-4xl md:text-6xl font-bold text-honeybee-dark-brown mb-6 leading-tight font-serif">
-              <LetterWave text="Bee Bridge" className="text-4xl md:text-6xl font-serif font-bold leading-tight" />
-            </h1>
-            <p className="text-honeybee-dark-brown mb-6 font-sans text-sm md:text-base">
-              We're the bridge between the farmer's field, the beekeeper's hive, to the honey in your home.
-            </p>
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <Button onClick={onGoToShop} className="bg-honeybee-dark-brown text-white px-6 md:px-8 py-3 rounded-lg shadow-lg hover:bg-opacity-90 transition-all text-sm md:text-base">
-                Shop Now
-              </Button>
-              <Button onClick={nextStep} className="bg-transparent border-2 border-honeybee-dark-brown text-honeybee-dark-brown px-6 md:px-8 py-3 rounded-lg shadow-lg hover:bg-honeybee-dark-brown hover:text-white transition-all text-sm md:text-base">
-                Learn More
-              </Button>
-            </div>
-          </div>
-
-          <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 mt-8 md:mt-12 lg:mt-0">
-            <img
-              src="https://img.freepik.com/free-vector/cute-bees-flying-around-honey-jar-yellow-background_1308-102497.jpg"
-              alt="Honey Jar"
-              className="w-full h-full object-contain rounded-full shadow-2xl"
-            />
-          </div>
+    <div className="overflow-x-hidden pt-14 md:pt-16">
+      <div className="bg-honeybee-background relative">
+        <Hero onGoToShop={onGoToShop} onLearnMore={nextStep} />
+        <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 z-40">
+          <SearchBar />
         </div>
       </div>
 
-      {/* Featured Products Section */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-honeybee-dark-brown mb-4">Featured Products</h2>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">Discover our selection of premium organic honey products, harvested with care and love.</p>
-          </div>
-          <div className="text-center">
-            <p className="text-gray-500 text-sm md:text-base">[Product images and links will be displayed here.]</p>
-          </div>
-        </div>
-      </section>
+      <div className="pt-20 md:pt-32">
+        <Stats />
+      </div>
 
-      {/* Our Story Section */}
-      <section className="py-12 md:py-20 bg-honeybee-light">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-honeybee-dark-brown mb-4">Our Story</h2>
-          </div>
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-6">
-              At Bee Bridge, our journey began with a deep appreciation for the delicate balance of nature and the hardworking bees that produce nature's golden elixir.
-            </p>
-            <p className="text-base md:text-lg text-gray-700 leading-relaxed">
-              As you explore our collection, you'll feel the warmth of our dedication to quality and the joy of connecting with nature's bounty. We're more than just a marketplace; we're a community united by the love of honey and the bees that make it possible.
-            </p>
-          </div>
-        </div>
-      </section>
+      <FeaturedProducts onGoToShop={onGoToShop} />
+
+      <Story />
+
+      <Suspense fallback={<div className="h-96 flex items-center justify-center"><div className="w-12 h-12 border-4 border-honeybee-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+        <Testimonials />
+      </Suspense>
 
       {/* Become a Seller Section */}
-      <section className="py-12 md:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-honeybee-dark-brown mb-4">Join Our Community of Honey Artisans</h2>
-          <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">Share your artisanal honey with a global community of honey enthusiasts and build lasting connections with those who cherish quality and sustainability.</p>
-          <Button
-            onClick={() => {
-              window.location.href = '/login';
-            }}
-            className="bg-honeybee-primary text-white px-6 md:px-8 py-3 rounded-lg shadow-lg hover:bg-opacity-90 transition-all text-sm md:text-base"
+      <section className="py-24 md:py-32 bg-honeybee-secondary text-white relative overflow-hidden">
+        <div className="absolute inset-0 honeycomb-pattern opacity-10" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
           >
-            Become a Seller
-          </Button>
+            <h2 className="text-4xl md:text-6xl font-black mb-6">Ready to Join the <span className="text-honeybee-primary">Hive?</span></h2>
+            <p className="text-lg md:text-xl text-honeybee-light/60 mb-10 max-w-2xl mx-auto font-medium">
+              Share your artisanal honey with a global community and build lasting connections with those who cherish quality.
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.location.href = '/login'}
+              className="bg-honeybee-primary text-honeybee-secondary px-12 py-5 rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-2xl shadow-honeybee-primary/20 transition-all hover:bg-honeybee-accent"
+            >
+              Become a Seller Today
+            </motion.button>
+          </motion.div>
         </div>
       </section>
-    </>
+    </div>
   );
 };
 

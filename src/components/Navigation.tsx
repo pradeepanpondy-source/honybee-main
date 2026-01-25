@@ -1,14 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Settings } from 'lucide-react';
+import { Settings, Menu, X, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { cartItems } = useCart();
   const { logout } = useAuth();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -23,170 +34,181 @@ export default function Navigation() {
   const isSellerDashboard = ['/applications', '/products', '/analytics', '/earnings', '/orders', '/settings'].includes(location.pathname);
 
   return (
-    <nav className="bg-honeybee-background/98 backdrop-blur-md shadow-xl fixed w-full z-50">
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled
+      ? 'bg-honeybee-background/95 backdrop-blur-md shadow-lg py-2'
+      : 'bg-transparent py-4'
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-14 md:h-16">
+        <div className="flex justify-between items-center h-14 md:h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="font-serif text-lg md:text-xl lg:text-2xl font-bold text-honeybee-primary">Bee Bridge</span>
+            <Link to="/" className="flex-shrink-0 flex items-center group">
+              <motion.div
+                initial="initial"
+                animate="animate"
+                className="font-serif text-xl md:text-2xl font-black flex overflow-hidden"
+              >
+                {"Bee".split("").map((letter, i) => (
+                  <motion.span
+                    key={i}
+                    variants={{
+                      initial: { y: 20, opacity: 0 },
+                      animate: { y: 0, opacity: 1 }
+                    }}
+                    transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+                    className="text-honeybee-secondary"
+                  >
+                    {letter}
+                  </motion.span>
+                ))}
+                <motion.span
+                  variants={{
+                    initial: { scale: 0, opacity: 0 },
+                    animate: { scale: 1, opacity: 1 }
+                  }}
+                  transition={{ duration: 0.8, delay: 0.5, type: "spring", stiffness: 200 }}
+                  className="text-honeybee-primary ml-0.5"
+                >
+                  Bridge
+                </motion.span>
+              </motion.div>
             </Link>
           </div>
 
           {/* Desktop menu */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-            <Link
-              to="/home"
-              className={`font-medium text-sm lg:text-base ${location.pathname === '/home' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/shop"
-              className={`font-medium text-sm lg:text-base ${location.pathname === '/shop' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
-            >
-              Shop
-            </Link>
-            <Link
-              to="/about"
-              className={`font-medium text-sm lg:text-base ${location.pathname === '/about' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
-            >
-              About
-            </Link>
-            {!isSellerDashboard && (
-              <Link
-                to="/seller"
-                className={`font-medium text-sm lg:text-base ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
-              >
-                Seller
-              </Link>
-            )}
-            <Link
-              to="/contact"
-              className={`font-medium text-sm lg:text-base ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
-            >
-              Contact
-            </Link>
-            <Link
-              to="/subscription"
-              className={`font-medium text-sm lg:text-base ${location.pathname === '/subscription' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'} transition duration-300`}
-            >
-              Subscription
-            </Link>
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-10">
+            {[
+              { name: 'Home', path: '/home' },
+              { name: 'Shop', path: '/shop' },
+              { name: 'About', path: '/about' },
+              { name: 'Seller', path: '/seller', hidden: isSellerDashboard },
+              { name: 'Contact', path: '/contact' },
+              { name: 'Subscription', path: '/subscription' },
+            ].map((link) => (
+              !link.hidden && (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`relative font-bold text-sm uppercase tracking-widest transition-colors duration-300 group ${location.pathname === link.path
+                    ? 'text-honeybee-primary'
+                    : 'text-honeybee-secondary hover:text-honeybee-primary'
+                    }`}
+                >
+                  {link.name}
+                  <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-honeybee-primary transition-all duration-300 group-hover:w-full ${location.pathname === link.path ? 'w-full' : ''
+                    }`}></span>
+                </Link>
+              )
+            ))}
           </div>
 
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <Link to="/cart" className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 relative p-2 md:p-0">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
+          <div className="flex items-center space-x-3 md:space-x-5">
+            <Link to="/cart" className="text-honeybee-secondary hover:text-honeybee-primary transition-all p-2 bg-white/50 rounded-full hover:bg-honeybee-primary/10 relative">
+              <ShoppingCart className="h-5 w-5" />
               {cartItems.reduce((acc, item) => acc + item.quantity, 0) > 0 && (
-                <span className="absolute -top-1 -right-1 md:-top-2 md:-right-2 bg-red-600 text-white rounded-full text-xs w-4 h-4 md:w-5 md:h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-honeybee-secondary text-honeybee-primary rounded-full text-[10px] font-black w-4 h-4 flex items-center justify-center animate-pulse">
                   {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
                 </span>
               )}
             </Link>
-            <Link to="/profile" className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 p-2 md:p-0">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+            <Link to="/profile" className="text-honeybee-secondary hover:text-honeybee-primary transition-all p-2 bg-white/50 rounded-full hover:bg-honeybee-primary/10">
+              <User className="h-5 w-5" />
             </Link>
-            <div className="relative group hidden md:block">
-              <button className="text-honeybee-secondary hover:text-honeybee-primary transition duration-300 flex items-center space-x-1 focus:outline-none p-2 md:p-0">
-                <Settings className="h-6 w-6" />
-                <span className="sr-only">Settings</span>
+            <div
+              className="relative hidden md:block group"
+              onMouseEnter={() => setIsSettingsOpen(true)}
+              onMouseLeave={() => setIsSettingsOpen(false)}
+            >
+              <button className="text-honeybee-secondary hover:text-honeybee-primary transition-all p-2 bg-white/50 rounded-full hover:bg-honeybee-primary/10 relative z-10">
+                <Settings className="h-5 w-5" />
               </button>
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                <button
-                  className="block w-full text-left px-4 py-2 text-honeybee-dark hover:bg-honeybee-light"
-                  onClick={async () => {
-                    await logout();
-                    window.location.href = '/login';
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
+              <AnimatePresence>
+                {isSettingsOpen && (
+                  <>
+                    {/* Hover Bridge - Invisible div to keep the menu open while moving mouse */}
+                    <div className="absolute top-full left-0 w-full h-4 bg-transparent z-0" />
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-honeybee-primary/5 overflow-hidden z-[100]"
+                    >
+                      <button
+                        className="block w-full text-left px-6 py-4 text-sm font-black uppercase tracking-widest text-honeybee-secondary hover:bg-honeybee-primary hover:text-white transition-all duration-300 hover:pl-8 active:scale-95"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          await logout();
+                          window.location.href = '/login';
+                        }}
+                      >
+                        <span className="flex items-center gap-2 pointer-events-none">
+                          Logout <motion.span animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 2 }}>→</motion.span>
+                        </span>
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Mobile menu button */}
             <button
               onClick={toggleMenu}
-              className="md:hidden text-honeybee-secondary hover:text-honeybee-primary p-2"
+              className="md:hidden text-honeybee-secondary hover:text-honeybee-primary p-2 transition-transform active:scale-90"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
       </div>
 
       {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-honeybee-background/95 backdrop-blur-sm border-t border-honeybee-light">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              to="/home"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/home' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              to="/shop"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/shop' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Shop
-            </Link>
-            <Link
-              to="/about"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/about' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              About
-            </Link>
-            <Link
-              to="/seller"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/seller' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Seller
-            </Link>
-            <Link
-              to="/contact"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/contact' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Contact
-            </Link>
-            <Link
-              to="/subscription"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/subscription' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Subscription
-            </Link>
-            <Link
-              to="/settings"
-              className={`block px-3 py-2 rounded-md font-medium ${location.pathname === '/settings' ? 'text-honeybee-primary' : 'text-honeybee-secondary hover:text-honeybee-accent'}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Settings
-            </Link>
-            <button
-              onClick={async () => {
-                await logout();
-                window.location.href = '/login';
-                setIsMenuOpen(false);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-md font-medium text-honeybee-secondary hover:text-honeybee-accent"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, y: -20 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -20 }}
+            transition={{ duration: 0.8, ease: [0.04, 0.62, 0.23, 0.98] }}
+            className="md:hidden bg-honeybee-background border-t border-honeybee-primary/10 shadow-2xl overflow-hidden"
+          >
+            <div className="px-4 pt-4 pb-8 space-y-2">
+              {[
+                { name: 'Home', path: '/home' },
+                { name: 'Shop', path: '/shop' },
+                { name: 'About', path: '/about' },
+                { name: 'Seller', path: '/seller' },
+                { name: 'Contact', path: '/contact' },
+                { name: 'Subscription', path: '/subscription' },
+                { name: 'Settings', path: '/settings' },
+              ].map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`block px-5 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all ${location.pathname === link.path
+                    ? 'bg-honeybee-primary text-honeybee-secondary'
+                    : 'text-honeybee-secondary hover:bg-honeybee-primary/10'
+                    }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              ))}
+              <button
+                onClick={async () => {
+                  await logout();
+                  window.location.href = '/login';
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left px-5 py-4 rounded-2xl font-black uppercase tracking-widest text-sm text-honeybee-secondary hover:bg-honeybee-primary/10 transition-colors"
+              >
+                Logout account
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
