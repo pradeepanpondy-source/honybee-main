@@ -118,7 +118,7 @@ const Shop: React.FC = () => {
                               }
                             }}
                             className={`text-honeybee-primary hover:text-honeybee-accent font-bold px-2 ${cartItem.quantity >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={cartItem.quantity >= 5}
+                            disabled={cartItem.quantity >= 8}
                           >
                             +
                           </button>
