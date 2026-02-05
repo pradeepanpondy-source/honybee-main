@@ -294,13 +294,13 @@ const Seller = () => {
   const renderProgress = () => {
     const steps = ['Personal Information', 'Address', 'Contact', 'Location', 'Finish'];
     return (
-      <div className="flex justify-center space-x-8 mb-8">
+      <div className="flex justify-center gap-2 md:space-x-8 mb-8 w-full px-2">
         {steps.map((label, index) => {
           const current = index + 1;
           const isActive = current === step;
           const isCompleted = current < step;
           return (
-            <div key={label} className="flex flex-col items-center text-center">
+            <div key={label} className="flex flex-col items-center text-center flex-1 md:flex-none">
               <div
                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isActive || isCompleted ? 'border-purple-700' : 'border-gray-300'
                   }`}
@@ -343,7 +343,7 @@ const Seller = () => {
 
   const renderOptionButtons = () => (
     <div className="max-w-4xl mx-auto p-6 text-center">
-      <div className="flex justify-center gap-8">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-8">
         <button
           onClick={() => {
             setSellerType('honey');
@@ -674,9 +674,9 @@ const Seller = () => {
       </svg>
       <h2 className="text-2xl font-bold mb-2">Application Submitted</h2>
       <p className="mb-4">Your seller application has been submitted successfully. You will be redirected to your dashboard shortly.</p>
-      <a href="/applications" className="text-purple-700 underline">
+      <button onClick={() => navigate('/applications')} className="text-purple-700 underline">
         Go to Dashboard
-      </a>
+      </button>
     </div>
   );
 

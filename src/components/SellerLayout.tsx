@@ -104,10 +104,17 @@ const SellerLayout: React.FC<SellerLayoutProps> = ({ children, title }) => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden" onClick={() => setSidebarOpen(false)}>
                     <div className="w-64 bg-white h-full shadow-lg flex flex-col" onClick={e => e.stopPropagation()}>
                         <div className="p-4 border-b flex justify-between items-center bg-purple-600 text-white">
-                            <span className="font-bold">Seller Menu</span>
+                            <div>
+                                <span className="font-bold block">Seller Menu</span>
+                                {sellerProfile && (
+                                    <span className="text-[10px] opacity-90 font-mono block mt-1">
+                                        ID: {sellerProfile.seller_id}
+                                    </span>
+                                )}
+                            </div>
                             <button onClick={() => setSidebarOpen(false)} className="p-1 hover:bg-purple-700 rounded">✕</button>
                         </div>
-                        <nav className="p-2 flex-1 overflow-y-auto">
+                        <nav className="p-2 flex-1 overflow-y-auto flex flex-col">
                             {navItems.map(item => (
                                 <button
                                     key={item.path}
@@ -118,6 +125,20 @@ const SellerLayout: React.FC<SellerLayoutProps> = ({ children, title }) => {
                                     <span className="mr-3">{item.icon}</span> {item.label}
                                 </button>
                             ))}
+
+                            {sellerProfile && (
+                                <div className="mt-auto pt-4 border-t border-gray-100">
+                                    <button
+                                        onClick={() => { generateSellerPDF(sellerProfile); setSidebarOpen(false); }}
+                                        className="flex items-center w-full px-4 py-3 rounded-lg text-purple-700 bg-purple-50 font-bold border border-purple-100"
+                                    >
+                                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Download App PDF
+                                    </button>
+                                </div>
+                            )}
                         </nav>
                     </div>
                 </div>
