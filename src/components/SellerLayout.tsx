@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSeller } from '../hooks/useSeller';
 
-import { generateSellerPDF } from '../utils/pdfGenerator'; // Import PDF generator
+import { generateSellerPDF, uploadSellerPDFToBucket } from '../utils/pdfGenerator'; // Import PDF generator and uploader
 
 interface SellerLayoutProps {
     children: React.ReactNode;
@@ -15,6 +15,21 @@ const SellerLayout: React.FC<SellerLayoutProps> = ({ children, title }) => {
     const { seller: sellerProfile, loading: sellerLoading, refreshSeller } = useSeller();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [updatingLocation, setUpdatingLocation] = useState(false);
+
+    const handleDownloadPDF = async () => {
+        if (!sellerProfile) return;
+
+        // 1. Trigger Download
+        generateSellerPDF(sellerProfile);
+
+        // 2. Upload to Bucket in background
+        try {
+            await uploadSellerPDFToBucket(sellerProfile);
+            console.log("PDF backup uploaded to bucket");
+        } catch (err) {
+            console.error("Background upload failed", err);
+        }
+    };
 
     const navItems = [
         { path: '/applications', icon: '📊', label: 'Dashboard' },
@@ -129,13 +144,13 @@ const SellerLayout: React.FC<SellerLayoutProps> = ({ children, title }) => {
                             {sellerProfile && (
                                 <div className="mt-auto pt-4 border-t border-gray-100">
                                     <button
-                                        onClick={() => { generateSellerPDF(sellerProfile); setSidebarOpen(false); }}
+                                        onClick={() => { handleDownloadPDF(); setSidebarOpen(false); }}
                                         className="flex items-center w-full px-4 py-3 rounded-lg text-purple-700 bg-purple-50 font-bold border border-purple-100"
                                     >
                                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
-                                        Download App PDF
+                                        Download Application
                                     </button>
                                 </div>
                             )}
@@ -225,7 +240,7 @@ const SellerLayout: React.FC<SellerLayoutProps> = ({ children, title }) => {
                     </div>
                     {sellerProfile && (
                         <button
-                            onClick={() => generateSellerPDF(sellerProfile)}
+                            onClick={handleDownloadPDF}
                             className="flex items-center gap-2 bg-white border border-gray-200 text-purple-700 px-4 py-2 rounded-lg font-bold hover:bg-purple-50 hover:border-purple-200 transition-all shadow-sm"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

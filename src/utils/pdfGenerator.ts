@@ -1,13 +1,12 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Seller } from '../hooks/useSeller';
+import { supabase } from '../lib/supabase';
 
-export const generateSellerPDF = (seller: Seller) => {
-    // Cast to any first to avoid type conflicts, then to intersection
+// Helper to create the PDF document object
+const createSellerPDFDoc = (seller: Seller) => {
+    // Cast to any first to avoid type conflicts
     const doc = new jsPDF() as any;
-    // Or better, just use any for the library extension part if types are fighting
-    // const doc: any = new jsPDF();
-
 
     // Sanitize text
     const cleanText = (text: string | undefined) => {
@@ -31,8 +30,8 @@ export const generateSellerPDF = (seller: Seller) => {
     const tableStyles = {
         theme: 'grid' as const,
         headStyles: {
-            fillColor: [220, 220, 220] as [number, number, number], // Light gray header
-            textColor: [0, 0, 0] as [number, number, number],      // Black text
+            fillColor: [220, 220, 220] as [number, number, number],
+            textColor: [0, 0, 0] as [number, number, number],
             fontStyle: 'bold' as const,
             lineWidth: 0.1,
             lineColor: [80, 80, 80] as [number, number, number]
@@ -84,7 +83,7 @@ export const generateSellerPDF = (seller: Seller) => {
         ...tableStyles,
         columnStyles: {
             0: { fontStyle: 'bold', cellWidth: 70 },
-            1: { cellWidth: 'auto' } // Auto width allows wrapping for long addresses
+            1: { cellWidth: 'auto' }
         },
     });
 
@@ -119,8 +118,38 @@ export const generateSellerPDF = (seller: Seller) => {
     const pageHeight = doc.internal.pageSize.height;
     doc.setFontSize(8);
     doc.setTextColor(100);
-    doc.text('© 2026 BeeBridgePlatform. All rights reserved.', 105, pageHeight - 10, { align: 'center' });
+    doc.text('© 2026 BeeBridge Platform. All rights reserved.', 105, pageHeight - 10, { align: 'center' });
 
-    // Save
+    return doc;
+};
+
+// Original function: Downloads the PDF
+export const generateSellerPDF = (seller: Seller) => {
+    const doc = createSellerPDFDoc(seller);
     doc.save(`Seller_Application_${seller.seller_id}.pdf`);
+};
+
+// New function: Uploads the PDF to Supabase
+export const uploadSellerPDFToBucket = async (seller: Seller) => {
+    try {
+        const doc = createSellerPDFDoc(seller);
+        const pdfBlob = doc.output('blob');
+
+        const filePath = `${seller.email}/${seller.seller_id}/application_form.pdf`;
+
+        const { data, error } = await supabase.storage
+            .from('sellerid_details')
+            .upload(filePath, pdfBlob, {
+                contentType: 'application/pdf',
+                upsert: true
+            });
+
+        if (error) throw error;
+        console.log('PDF uploaded successfully:', data);
+        return data;
+    } catch (error) {
+        console.error('Error uploading PDF:', error);
+        // We don't throw here to avoid breaking the download flow if upload fails
+        return null;
+    }
 };
