@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSeller } from '../hooks/useSeller';
 
+import { generateSellerPDF } from '../utils/pdfGenerator'; // Import PDF generator
+
 interface SellerLayoutProps {
     children: React.ReactNode;
     title: string;
@@ -85,7 +87,7 @@ const SellerLayout: React.FC<SellerLayoutProps> = ({ children, title }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
-                    <h1 className="font-bold text-purple-700">HoneyBee</h1>
+                    {/* <h1 className="font-bold text-purple-700">HoneyBee</h1> */}
                 </div>
                 {sellerProfile?.address && (
                     <div className="flex items-center gap-1 text-[10px] bg-purple-50 text-purple-700 px-2 py-1 rounded-full border border-purple-100 max-w-[140px] truncate">
@@ -124,7 +126,7 @@ const SellerLayout: React.FC<SellerLayoutProps> = ({ children, title }) => {
             {/* Desktop Sidebar */}
             <div className="hidden lg:flex flex-col w-64 bg-white shadow-xl min-h-screen sticky top-0">
                 <div className="p-6 border-b">
-                    <h2 className="text-2xl font-black text-purple-700 tracking-tight">HoneyBee</h2>
+                    {/* <h2 className="text-2xl font-black text-purple-700 tracking-tight">HoneyBee</h2> */}
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Seller Studio</p>
                 </div>
 
@@ -193,10 +195,24 @@ const SellerLayout: React.FC<SellerLayoutProps> = ({ children, title }) => {
             </div>
 
             {/* Main Content Area */}
+
             <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-                <header className="mb-8 hidden lg:block">
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">{title}</h1>
-                    <p className="text-gray-500 font-medium mt-1">Manage your honey business and sales</p>
+                <header className="mb-8 hidden lg:flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-black text-gray-900 tracking-tight">{title}</h1>
+                        <p className="text-gray-500 font-medium mt-1">Manage your honey business and sales</p>
+                    </div>
+                    {sellerProfile && (
+                        <button
+                            onClick={() => generateSellerPDF(sellerProfile)}
+                            className="flex items-center gap-2 bg-white border border-gray-200 text-purple-700 px-4 py-2 rounded-lg font-bold hover:bg-purple-50 hover:border-purple-200 transition-all shadow-sm"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Download Application
+                        </button>
+                    )}
                 </header>
                 {children}
             </main>

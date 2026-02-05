@@ -46,6 +46,8 @@ const Seller = () => {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [sellerType, setSellerType] = useState<string>('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   // Removed unused selectedOption state to fix eslint error
   const { user } = useAuth();
   const { seller, loading: sellerLoading, refreshSeller } = useSeller();
@@ -125,20 +127,50 @@ const Seller = () => {
     if (step > 1) setStep(step - 1);
   };
 
+
+
+  // Check if we are validating current step requirements before moving next
+  const validateStep = (currentStep: number) => {
+    const stepErrors: Record<string, string> = {};
+    if (currentStep === 1) { // Personal Info
+      if (!formData.name) stepErrors.name = "Name is required";
+      if (!formData.profilePic) stepErrors.profilePic = "Profile picture is required";
+      if (!formData.acceptTerms) stepErrors.acceptTerms = "You must accept terms";
+    }
+    if (currentStep === 2) { // Address
+      if (!formData.city) stepErrors.city = "City is required";
+      if (!formData.state) stepErrors.state = "State is required";
+      if (!formData.zip) stepErrors.zip = "Zip is required";
+      else if (!/^\d{6}$/.test(formData.zip)) stepErrors.zip = "Invalid Pincode";
+    }
+    if (currentStep === 3) { // Contact
+      if (!formData.phone) stepErrors.phone = "Phone is required";
+      else if (!/^\d{10}$/.test(formData.phone)) stepErrors.phone = "Invalid mobile number";
+      if (!formData.idProof) stepErrors.idProof = "ID Proof is required";
+    }
+    setErrors(stepErrors);
+    return Object.keys(stepErrors).length === 0;
+  }
+
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (step === 3) {
-      nextStep(); // Go to location step instead of finishing
+    if (step < 4) {
+      if (validateStep(step)) {
+        nextStep();
+      }
       return;
     }
 
+    // Step 4: Location & Final Submit
     if (step === 4 && !formData.detectedAddress) {
       setMessage({ type: 'error', text: 'Please detect your location before submitting.' });
       return;
     }
 
-    if (step === 4 || (step === 4 && formData.detectedAddress)) {
+    if (step === 4) {
       // Final submission logic
       if (!user) {
         setMessage({ type: 'error', text: 'Please sign in to submit the application.' });
@@ -154,43 +186,40 @@ const Seller = () => {
         return;
       }
 
-      if (!sellerType) {
-        setMessage({ type: 'error', text: 'Please select a seller type (Honey or Bee Hive).' });
-        return;
-      }
-
-      // 1. Strict Input Validation & Sanitization
-      const validationData = {
-        name: sanitizeInput(formData.name),
-        email: user.email,
-        seller_type: sellerType as 'honey' | 'beehive',
-        phone: sanitizeInput(formData.phone),
-        address: sanitizeInput(formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}`),
-        city: sanitizeInput(formData.city),
-        state: sanitizeInput(formData.state),
-        zip: sanitizeInput(formData.zip),
-      };
-
-      const validation = sellerRegistrationSchema.safeParse(validationData);
-      if (!validation.success) {
-        setMessage({ type: 'error', text: validation.error.issues[0].message });
-        return;
-      }
-
-      if (!formData.acceptTerms) {
-        setMessage({ type: 'error', text: 'Please accept the terms and conditions.' });
-        return;
-      }
+      // const isValid = validateStep(1) && validateStep(2) && validateStep(3); // Re-validate all?
+      // Simpler: assume previous steps good if we are here.
 
       try {
+        setIsSubmitting(true); // Start loading
+
+        // 1. Strict Input Validation & Sanitization
+        const validationData = {
+          // ... existing validation construction
+          name: sanitizeInput(formData.name),
+          email: user.email,
+          seller_type: sellerType as 'honey' | 'beehive',
+          phone: sanitizeInput(formData.phone),
+          address: sanitizeInput(formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}`),
+          city: sanitizeInput(formData.city),
+          state: sanitizeInput(formData.state),
+          zip: sanitizeInput(formData.zip),
+        };
+
+        const validation = sellerRegistrationSchema.safeParse(validationData);
+        if (!validation.success) {
+          setMessage({ type: 'error', text: validation.error.issues[0].message });
+          setIsSubmitting(false);
+          return;
+        }
+
         const sellerId = `SELLER-${Date.now()}`;
         let profilePicUrl = '';
         let idProofUrl = '';
 
         // Upload profile picture to Supabase storage
         if (formData.profilePic) {
-          // Path: email/seller_id/filename
-          const profileFileName = `${user.email}/${sellerId}/profile_${Date.now()}.${formData.profilePic.name.split('.').pop()}`;
+          // Path: email/seller_id/data/filename
+          const profileFileName = `${user.email}/${sellerId}/data/profile_${Date.now()}.${formData.profilePic.name.split('.').pop()}`;
           const { error: profileError } = await supabase.storage
             .from('sellerid_details')
             .upload(profileFileName, formData.profilePic);
@@ -206,7 +235,7 @@ const Seller = () => {
 
         // Upload ID proof to Supabase storage
         if (formData.idProof) {
-          const idFileName = `${user.email}/${sellerId}/id_${Date.now()}.${formData.idProof.name.split('.').pop()}`;
+          const idFileName = `${user.email}/${sellerId}/data/id_${Date.now()}.${formData.idProof.name.split('.').pop()}`;
           const { error: idError } = await supabase.storage
             .from('sellerid_details')
             .upload(idFileName, formData.idProof);
@@ -251,16 +280,15 @@ const Seller = () => {
         setMessage({ type: 'success', text: 'Seller registration submitted successfully! Your application will be reviewed.' });
         await refreshSeller(); // Ensure seller state is updated before navigation
         localStorage.setItem('justRegisteredSeller', 'true'); // Flag to prevent redirect loop
-        navigate('/applications'); // Navigate immediately after state update
+        setStep(5); // Move to finish step
+        // navigate('/applications'); // Removed immediate navigation, let user see success screen
       } catch (error) {
         console.error('Error submitting application:', error);
         setMessage({ type: 'error', text: `Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}` });
+      } finally {
+        setIsSubmitting(false); // Stop loading
       }
-      return;
     }
-
-    // Here you can add form validation and submission logic for intermediate steps
-    nextStep();
   };
 
   const renderProgress = () => {
@@ -375,18 +403,21 @@ const Seller = () => {
         placeholder="e.g. John Doe"
         value={formData.name}
         onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+        // required // Handled by validatStep
+        className={`w-full mb-1 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400 ${errors.name ? 'border-red-500' : ''}`}
       />
+      {errors.name && <p className="text-red-500 text-xs mb-3">{errors.name}</p>}
+
       <label className="block mb-2 text-sm font-medium text-gray-700">Profile Picture</label>
       <input
         type="file"
         name="profilePic"
         accept="image/*"
         onChange={handleFileChange}
-        required
-        className="w-full mb-2 px-3 py-2 border rounded bg-gray-100 text-gray-700"
+        // required
+        className={`w-full mb-1 px-3 py-2 border rounded bg-gray-100 text-gray-700 ${errors.profilePic ? 'border-red-500' : ''}`}
       />
+      {errors.profilePic && <p className="text-red-500 text-xs mb-3">{errors.profilePic}</p>}
       {
         formData.profilePic && (
           <p className="text-sm text-gray-600 mb-4">
@@ -400,11 +431,13 @@ const Seller = () => {
           name="acceptTerms"
           checked={formData.acceptTerms}
           onChange={handleChange}
-          required
+          // required
           className="form-checkbox text-purple-700"
         />
         <span className="ml-2 text-sm text-gray-700">I Accept Terms & Conditions</span>
       </label>
+      {errors.acceptTerms && <p className="text-red-500 text-xs mb-4">{errors.acceptTerms}</p>}
+
       <div className="flex justify-between items-center">
         <button
           type="button"
@@ -442,27 +475,33 @@ const Seller = () => {
         name="city"
         value={formData.city}
         onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+        // required
+        className={`w-full mb-1 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400 ${errors.city ? 'border-red-500' : ''}`}
       />
+      {errors.city && <p className="text-red-500 text-xs mb-3">{errors.city}</p>}
+
       <label className="block mb-2 text-sm font-medium text-gray-700">State</label>
       <input
         type="text"
         name="state"
         value={formData.state}
         onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+        // required
+        className={`w-full mb-1 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400 ${errors.state ? 'border-red-500' : ''}`}
       />
+      {errors.state && <p className="text-red-500 text-xs mb-3">{errors.state}</p>}
+
       <label className="block mb-2 text-sm font-medium text-gray-700">Zip</label>
       <input
         type="text"
         name="zip"
         value={formData.zip}
         onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+        // required
+        className={`w-full mb-1 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400 ${errors.zip ? 'border-red-500' : ''}`}
       />
+      {errors.zip && <p className="text-red-500 text-xs mb-3">{errors.zip}</p>}
+
       <div className="flex justify-between items-center">
         <button
           type="button"
@@ -497,18 +536,22 @@ const Seller = () => {
         name="phone"
         value={formData.phone}
         onChange={handleChange}
-        required
-        className="w-full mb-4 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400"
+        // required
+        className={`w-full mb-1 px-3 py-2 border rounded bg-gray-100 text-gray-700 placeholder-gray-400 ${errors.phone ? 'border-red-500' : ''}`}
       />
+      {errors.phone && <p className="text-red-500 text-xs mb-3">{errors.phone}</p>}
+
       <label className="block mb-2 text-sm font-medium text-gray-700">ID Proof</label>
       <input
         type="file"
         name="idProof"
         accept="image/*,.pdf"
         onChange={handleFileChange}
-        required
-        className="w-full mb-2 px-3 py-2 border rounded bg-gray-100 text-gray-700"
+        // required
+        className={`w-full mb-1 px-3 py-2 border rounded bg-gray-100 text-gray-700 ${errors.idProof ? 'border-red-500' : ''}`}
       />
+      {errors.idProof && <p className="text-red-500 text-xs mb-3">{errors.idProof}</p>}
+
       {formData.idProof && (
         <p className="text-sm text-gray-600 mb-4">
           File: {formData.idProof.name} | Size: {(formData.idProof.size / 1024).toFixed(2)} KB | Type: {formData.idProof.type}
@@ -522,8 +565,19 @@ const Seller = () => {
         >
           Back
         </button>
-        <Button type="submit" variant="primary">
-          Sign up
+        {/* Changed button text to Next because we have one more step (Location) */}
+        <Button type="submit" variant="primary" className="flex items-center space-x-2">
+          <span>Next</span>
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"></path>
+          </svg>
         </Button>
       </div>
     </form>
@@ -568,7 +622,7 @@ const Seller = () => {
             }
           }}
           variant="primary"
-          className="w-full flex justify-center items-center gap-2"
+          className="w-full flex justify-center items-center gap-2 mb-4"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -582,11 +636,26 @@ const Seller = () => {
             <p className="text-green-800 font-semibold mb-1">Location Detected!</p>
             <p className="text-gray-700 text-sm">{formData.detectedAddress}</p>
           </div>
-          <Button onClick={handleSubmit} variant="primary" className="w-full">
-            Complete Registration
-          </Button>
         </div>
       )}
+
+      <div className="flex justify-between items-center gap-4 mt-4">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="text-purple-700 underline"
+        >
+          Back
+        </button>
+        <Button
+          onClick={handleSubmit}
+          variant="primary"
+          className="flex-1"
+          disabled={isSubmitting} // Disable when submitting
+        >
+          {isSubmitting ? 'Processing...' : 'Complete Registration'}
+        </Button>
+      </div>
 
     </div>
   );

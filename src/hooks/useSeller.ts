@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '../lib/supabase';
 
-export interface SellerProfile {
+export interface Seller {
     id: string;
     seller_id: string;
     user_id: string;
@@ -16,7 +16,12 @@ export interface SellerProfile {
     phone?: string;
     latitude?: number;
     longitude?: number;
+    seller_type?: 'honey' | 'beehive';
+    kyc_verified?: boolean;
+    created_at: string;
 }
+
+export type SellerProfile = Seller; // Backwards compatibility if needed
 
 export const useSeller = () => {
     const { user } = useAuth();

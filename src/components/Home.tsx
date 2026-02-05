@@ -4,6 +4,7 @@ import Hero from './Hero';
 import Stats from './Stats';
 import FeaturedProducts from './FeaturedProducts';
 import SearchBar from './SearchBar';
+import MarqueeSection from './MarqueeSection';
 
 // Lazy load non-critical sections
 const Testimonials = lazy(() => import('./Testimonials'));
@@ -41,6 +42,31 @@ const Story: React.FC = () => (
 const Home: React.FC<HomeProps> = ({ onGoToShop, nextStep }) => {
   return (
     <div className="overflow-x-hidden pt-14 md:pt-16">
+      {/* DEBUG MARQUEE - INLINED FOR VISIBILITY TEST */}
+      <section className="py-24 bg-red-600 relative overflow-hidden w-full border-y-8 border-yellow-400 z-50">
+        <style>{`
+                .scroller { max-width: 100%; }
+                .scroller__inner { padding-block: 1rem; display: flex; flex-wrap: nowrap; gap: 3rem; width: max-content; }
+                .scroller[data-animated="true"] { overflow: hidden; mask: linear-gradient(90deg, transparent, white 10%, white 90%, transparent); }
+                .scroller[data-animated="true"] .scroller__inner { width: max-content; flex-wrap: nowrap; animation: scroll 30s forwards linear infinite; }
+                @keyframes scroll { to { transform: translate(-25%); } }
+            `}</style>
+        <div className="max-w-7xl mx-auto px-4 text-center mb-8"><h1 className="text-4xl font-black text-white">DEBUG MODE: CAN YOU SEE THIS?</h1></div>
+        <div className="scroller" data-animated="true">
+          <div className="scroller__inner">
+            {[1, 2, 3, 4].map((setNum) => (
+              <div key={setNum} className="flex gap-12 shrink-0">
+                {['Sustainability', 'Quality', 'Community', 'Become a Seller', 'Quick Payments'].map((item, index) => (
+                  <span key={`${setNum}-${index}`} className="text-5xl font-black text-white uppercase tracking-widest whitespace-nowrap">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <div className="bg-honeybee-background relative">
         <Hero onGoToShop={onGoToShop} onLearnMore={nextStep} />
         <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 z-40">
@@ -51,6 +77,8 @@ const Home: React.FC<HomeProps> = ({ onGoToShop, nextStep }) => {
       <div className="pt-20 md:pt-32">
         <Stats />
       </div>
+
+      <MarqueeSection />
 
       <FeaturedProducts onGoToShop={onGoToShop} />
 
