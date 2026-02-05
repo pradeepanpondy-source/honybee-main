@@ -174,7 +174,7 @@ export default function Navigation() {
             className="md:hidden bg-honeybee-background border-t border-honeybee-primary/10 shadow-2xl overflow-hidden"
           >
             <div className="px-4 pt-4 pb-8 space-y-2">
-              {(location.pathname === '/home' || location.pathname === '/') ? null : [
+              {[
                 { name: 'Home', path: '/home' },
                 { name: 'Shop', path: '/shop' },
                 { name: 'About', path: '/about' },
