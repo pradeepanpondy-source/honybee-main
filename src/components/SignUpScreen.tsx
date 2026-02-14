@@ -43,20 +43,21 @@ const SignUpScreen = () => {
 
     try {
       const newUser = await signUpWithEmail(validation.data.name, validation.data.email, validation.data.password);
-      // Success handling: Show message and redirect to verification pending page
+      // Success handling: Show message and redirect to login with verify prompt
       setLoading(false);
       localStorage.setItem('justSignedUp', 'true');
-      setSuccessMessage('Account created! Redirecting to email verification...');
+      setSuccessMessage('Account created! Please check your email to verify your account.');
       setTimeout(() => {
         localStorage.removeItem('justSignedUp');
-        navigate('/verify-email-pending', {
+        navigate('/login', {
           state: {
+            verifyEmail: true,
             email: validation.data.email,
             userId: newUser.id,
             name: validation.data.name,
           }
         });
-      }, 1500);
+      }, 2000);
     } catch (err: any) {
       console.error('Sign up error:', err);
       let errorMessage = 'Sign up failed. Please try again.';

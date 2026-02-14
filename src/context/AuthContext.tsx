@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface User {
@@ -24,6 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const isSigningUp = useRef(false);
 
   useEffect(() => {
     // Check for Supabase session
@@ -64,6 +65,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+
+        // Skip setting user during signup flow to prevent brief home page redirect
+        if (isSigningUp.current) {
+          setLoading(false);
+          return;
+        }
 
         if (session?.user) {
           setUser({
@@ -116,56 +123,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUpWithEmail = async (name: string, email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: name,
-          name: name,
+    // Prevent onAuthStateChange from setting user during signup
+    isSigningUp.current = true;
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            name: name,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      const newUserId = data.user?.id || '';
+
+      // Create user_profiles record with provider='local', is_verified=false
+      if (newUserId) {
+        try {
+          await supabase.from('user_profiles').upsert({
+            user_id: newUserId,
+            provider: 'local',
+            is_verified: false,
+          }, { onConflict: 'user_id' });
+        } catch (profileError) {
+          console.error('Error creating user profile:', profileError);
+        }
+
+        // Send verification email via API
+        try {
+          await fetch('/api/send-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, userId: newUserId, name }),
+          });
+        } catch (emailError) {
+          console.error('Error sending verification email:', emailError);
         }
       }
-    });
 
-    if (error) throw error;
-
-    const newUserId = data.user?.id || '';
-
-    // Create user_profiles record with provider='local', is_verified=false
-    if (newUserId) {
-      try {
-        await supabase.from('user_profiles').upsert({
-          user_id: newUserId,
-          provider: 'local',
-          is_verified: false,
-        }, { onConflict: 'user_id' });
-      } catch (profileError) {
-        console.error('Error creating user profile:', profileError);
+      // Force explicit login flow: sign out immediately
+      if (data.session) {
+        await supabase.auth.signOut();
       }
 
-      // Send verification email via API
-      try {
-        await fetch('/api/send-verification', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, userId: newUserId, name }),
-        });
-      } catch (emailError) {
-        console.error('Error sending verification email:', emailError);
-      }
-    }
+      // Clear user state explicitly
+      setUser(null);
 
-    // Force explicit login flow: if Supabase auto-creates a session, sign out immediately.
-    // This supports the requirement: Signup -> Go to Login -> Manual Login.
-    if (data.session) {
-      await supabase.auth.signOut();
+      return {
+        id: newUserId,
+        name: name,
+        email: data.user?.email || email,
+      };
+    } catch (err) {
+      throw err;
+    } finally {
+      isSigningUp.current = false;
     }
-
-    return {
-      id: newUserId,
-      name: name,
-      email: data.user?.email || email,
-    };
   };
 
   const signInWithGoogle = async () => {

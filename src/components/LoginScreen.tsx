@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Button from './Button';
@@ -13,12 +13,23 @@ const LoginScreen: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [googleIconLoaded, setGoogleIconLoaded] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signInWithEmail, signInWithGoogle, resetPassword } = useAuth();
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState('');
+
+  // Check if coming from signup with verifyEmail flag
+  const verifyEmailState = (location.state as any);
+
+  useEffect(() => {
+    if (verifyEmailState?.verifyEmail) {
+      setInfoMessage('📧 A verification email has been sent to your inbox. Please verify your email before logging in.');
+    }
+  }, []);
 
   // Preload Google icon for faster loading
   useEffect(() => {
@@ -31,6 +42,7 @@ const LoginScreen: React.FC = () => {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
+    setInfoMessage(null);
 
     // 1. Rate Limiting Check
     const rateCheck = rateLimiter.check('login', { limit: 10, windowMs: 60 * 1000 });
@@ -61,7 +73,8 @@ const LoginScreen: React.FC = () => {
         if (profile && profile.provider === 'local' && !profile.is_verified) {
           // Sign out unverified user immediately
           await supabase.auth.signOut();
-          setError('Please verify your email before logging in. Check your inbox for the verification link.');
+          setInfoMessage('📧 Please verify your email before logging in. Check your inbox for the verification link.');
+          setError(null);
           return;
         }
       } catch (profileErr) {
@@ -70,7 +83,8 @@ const LoginScreen: React.FC = () => {
       }
 
       // Show success message before navigating
-      setSuccessMessage('Login successful! Redirecting...');
+      setSuccessMessage('✅ Login successful! Redirecting...');
+      setInfoMessage(null);
       setTimeout(() => navigate('/home'), 2000);
     } catch (err: any) {
       console.error('Login error:', err);
@@ -119,6 +133,30 @@ const LoginScreen: React.FC = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!verifyEmailState?.userId || !verifyEmailState?.email) return;
+    setInfoMessage('Sending verification email...');
+    try {
+      const response = await fetch('/api/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: verifyEmailState.email,
+          userId: verifyEmailState.userId,
+          name: verifyEmailState.name || '',
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setInfoMessage('📧 Verification email resent! Check your inbox.');
+      } else {
+        setInfoMessage(`⚠️ ${data.error || 'Failed to resend. Please try again.'}`);
+      }
+    } catch {
+      setInfoMessage('⚠️ Network error. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-honeybee-light flex items-center justify-center px-4 relative page-fade-in">
       <div className="max-w-5xl w-full bg-white rounded-3xl shadow-2xl flex overflow-hidden border border-honeybee-primary/20">
@@ -126,6 +164,22 @@ const LoginScreen: React.FC = () => {
         <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
           <h1 className="text-3xl md:text-4xl font-black text-honeybee-secondary mb-2 md:mb-4 tracking-tight">Hello Again!</h1>
           <p className="text-honeybee-secondary/60 text-sm mb-6 md:mb-8 font-medium">Welcome back to BeeBridge</p>
+
+          {/* Info message (verify email prompt) */}
+          {infoMessage && (
+            <div className="text-sm text-center mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 font-medium animate-fadeIn">
+              {infoMessage}
+              {verifyEmailState?.verifyEmail && (
+                <button
+                  onClick={handleResendVerification}
+                  className="block mx-auto mt-2 text-xs text-honeybee-primary hover:underline font-bold"
+                >
+                  Didn't receive it? Resend Email
+                </button>
+              )}
+            </div>
+          )}
+
           {successMessage && (
             <div className="text-sm text-center mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-600">
               {successMessage}
