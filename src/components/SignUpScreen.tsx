@@ -14,7 +14,6 @@ const SignUpScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [emailSent, setEmailSent] = useState(false);
 
   const navigate = useNavigate();
   const { signUpWithEmail, signInWithGoogle } = useAuth();
@@ -43,13 +42,21 @@ const SignUpScreen = () => {
     }
 
     try {
-      await signUpWithEmail(validation.data.name, validation.data.email, validation.data.password);
-      // Success: show inline "Check your email" message
+      const newUser = await signUpWithEmail(validation.data.name, validation.data.email, validation.data.password);
+      // Success handling: Show message and redirect to verification pending page
       setLoading(false);
       localStorage.setItem('justSignedUp', 'true');
-      setSuccessMessage('Account created successfully!');
-      setEmailSent(true);
-      localStorage.removeItem('justSignedUp');
+      setSuccessMessage('Account created! Redirecting to email verification...');
+      setTimeout(() => {
+        localStorage.removeItem('justSignedUp');
+        navigate('/verify-email-pending', {
+          state: {
+            email: validation.data.email,
+            userId: newUser.id,
+            name: validation.data.name,
+          }
+        });
+      }, 1500);
     } catch (err: any) {
       console.error('Sign up error:', err);
       let errorMessage = 'Sign up failed. Please try again.';
@@ -181,14 +188,6 @@ const SignUpScreen = () => {
               </Button>
             </span>
           </div>
-
-          {/* Inline "Check your email" banner */}
-          {emailSent && (
-            <div className="mt-6 p-4 bg-gray-50 border-t border-gray-200 rounded-b-xl -mx-6 md:-mx-10 -mb-6 md:-mb-10 px-6 md:px-10 pb-6 md:pb-8">
-              <h3 className="font-bold text-honeybee-secondary text-base mb-1">Check your email</h3>
-              <p className="text-gray-500 text-sm">We sent you a verification link. Please confirm your email before signing in.</p>
-            </div>
-          )}
         </div>
         {/* Right side - animation */}
         <div className="hidden md:block md:w-1/2 relative rounded-r-3xl overflow-hidden border-8 border-white shadow-lg">
