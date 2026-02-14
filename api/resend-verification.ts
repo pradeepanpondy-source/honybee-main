@@ -1,23 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import * as jwt from 'jsonwebtoken';
-import * as nodemailer from 'nodemailer';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const jwtSecret = process.env.JWT_SECRET || '';
 const emailUser = process.env.EMAIL_USER || '';
 const emailPass = process.env.EMAIL_PASS || '';
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Simple in-memory rate limiter for resend
-const resendTimestamps: Record<string, number> = {};
-const RESEND_COOLDOWN_MS = 60 * 1000; // 60 seconds
-
-function generateVerificationEmail(_name: string, email: string, verifyUrl: string): string {
-    return `
+function generateVerificationEmail(email: string, verifyUrl: string): string {
+  return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -28,7 +23,7 @@ function generateVerificationEmail(_name: string, email: string, verifyUrl: stri
     <body style="margin:0;padding:0;background-color:#f4f4f4;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
       <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
         <div style="background:#1a1a2e;padding:32px 24px;text-align:center;">
-          <h1 style="color:#f5a623;margin:0;font-size:28px;font-weight:800;letter-spacing:1px;">🐝 BeeBridge</h1>
+          <h1 style="color:#f5a623;margin:0;font-size:28px;font-weight:800;letter-spacing:1px;">&#x1F41D; BeeBridge</h1>
         </div>
         <div style="padding:32px 24px;">
           <h2 style="color:#1a1a2e;margin:0 0 16px;font-size:22px;font-weight:700;">Confirm your email</h2>
@@ -60,85 +55,87 @@ function generateVerificationEmail(_name: string, email: string, verifyUrl: stri
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  try {
+    const { email, userId } = req.body;
+
+    if (!email || !userId) {
+      return res.status(400).json({ error: 'Email and userId are required' });
     }
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+    // Check if profile exists
+    const { data: existingProfile } = await supabase
+      .from('user_profiles')
+      .select('updated_at')
+      .eq('user_id', userId)
+      .single();
+
+    if (!existingProfile) {
+      return res.status(404).json({ error: 'User profile not found' });
     }
 
-    try {
-        const { email, userId, name } = req.body;
-
-        if (!email || !userId) {
-            return res.status(400).json({ error: 'Email and userId are required' });
-        }
-
-        // Rate limiting check
-        const lastResend = resendTimestamps[userId];
-        if (lastResend && Date.now() - lastResend < RESEND_COOLDOWN_MS) {
-            const waitSeconds = Math.ceil((RESEND_COOLDOWN_MS - (Date.now() - lastResend)) / 1000);
-            return res.status(429).json({
-                error: `Please wait ${waitSeconds} seconds before requesting another email.`,
-                retryAfter: waitSeconds
-            });
-        }
-
-        // Generate new JWT token
-        const token = jwt.sign(
-            { userId, email, purpose: 'email-verification' },
-            jwtSecret,
-            { expiresIn: '15m' }
-        );
-
-        const tokenExpiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-
-        // Update token in DB
-        const { error: updateError } = await supabase
-            .from('user_profiles')
-            .update({
-                verification_token: token,
-                token_expires_at: tokenExpiry,
-                updated_at: new Date().toISOString(),
-            })
-            .eq('user_id', userId);
-
-        if (updateError) {
-            console.error('Error updating verification token:', updateError);
-            return res.status(500).json({ error: 'Failed to update verification token' });
-        }
-
-        // Send email
-        const verifyUrl = `${appUrl}/verify-email?token=${token}`;
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: emailUser,
-                pass: emailPass,
-            },
+    // Rate limiting: check last update (60 second cooldown)
+    if (existingProfile.updated_at) {
+      const lastUpdate = new Date(existingProfile.updated_at).getTime();
+      const now = Date.now();
+      const cooldownMs = 60 * 1000;
+      if (now - lastUpdate < cooldownMs) {
+        const waitSeconds = Math.ceil((cooldownMs - (now - lastUpdate)) / 1000);
+        return res.status(429).json({
+          error: `Please wait ${waitSeconds} seconds before requesting another email.`,
+          retryAfter: waitSeconds,
         });
-
-        const mailOptions = {
-            from: `"BeeBridge" <${emailUser}>`,
-            to: email,
-            subject: 'Confirm your signup - BeeBridge',
-            html: generateVerificationEmail(name || 'there', email, verifyUrl),
-        };
-
-        await transporter.sendMail(mailOptions);
-
-        // Update rate limiter
-        resendTimestamps[userId] = Date.now();
-
-        return res.status(200).json({ success: true, message: 'Verification email resent successfully' });
-    } catch (error: any) {
-        console.error('Resend verification error:', error);
-        return res.status(500).json({ error: error.message || 'Internal server error' });
+      }
     }
+
+    // Generate new token
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenExpiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+    // Update token in DB
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .update({
+        verification_token: token,
+        token_expires_at: tokenExpiry,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId);
+
+    if (updateError) {
+      console.error('Error updating verification token:', updateError);
+      return res.status(500).json({ error: 'Failed to update verification token' });
+    }
+
+    // Send email
+    const verifyUrl = `${appUrl}/verify-email?token=${token}`;
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser,
+        pass: emailPass,
+      },
+    });
+
+    const mailOptions = {
+      from: `"BeeBridge" <${emailUser}>`,
+      to: email,
+      subject: 'Confirm your signup - BeeBridge',
+      html: generateVerificationEmail(email, verifyUrl),
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ success: true, message: 'Verification email resent successfully' });
+  } catch (error: any) {
+    console.error('Resend verification error:', error);
+    return res.status(500).json({ error: error.message || 'Internal server error' });
+  }
 }

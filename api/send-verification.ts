@@ -1,18 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import * as jwt from 'jsonwebtoken';
-import * as nodemailer from 'nodemailer';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const jwtSecret = process.env.JWT_SECRET || '';
 const emailUser = process.env.EMAIL_USER || '';
 const emailPass = process.env.EMAIL_PASS || '';
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-function generateVerificationEmail(_name: string, email: string, verifyUrl: string): string {
+function generateVerificationEmail(email: string, verifyUrl: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -23,11 +22,9 @@ function generateVerificationEmail(_name: string, email: string, verifyUrl: stri
     </head>
     <body style="margin:0;padding:0;background-color:#f4f4f4;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
       <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-        <!-- Header -->
         <div style="background:#1a1a2e;padding:32px 24px;text-align:center;">
-          <h1 style="color:#f5a623;margin:0;font-size:28px;font-weight:800;letter-spacing:1px;">🐝 BeeBridge</h1>
+          <h1 style="color:#f5a623;margin:0;font-size:28px;font-weight:800;letter-spacing:1px;">&#x1F41D; BeeBridge</h1>
         </div>
-        <!-- Body -->
         <div style="padding:32px 24px;">
           <h2 style="color:#1a1a2e;margin:0 0 16px;font-size:22px;font-weight:700;">Confirm your email</h2>
           <p style="color:#444;font-size:15px;line-height:1.6;margin:0 0 8px;">
@@ -48,7 +45,6 @@ function generateVerificationEmail(_name: string, email: string, verifyUrl: stri
             This link expires in 15 minutes.
           </p>
         </div>
-        <!-- Footer -->
         <div style="background:#f9f9f9;padding:16px 24px;text-align:center;border-top:1px solid #eee;">
           <p style="color:#aaa;font-size:11px;margin:0;">&copy; ${new Date().getFullYear()} BeeBridge. All rights reserved.</p>
         </div>
@@ -59,33 +55,22 @@ function generateVerificationEmail(_name: string, email: string, verifyUrl: stri
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { email, userId, name } = req.body;
+    const { email, userId } = req.body;
 
     if (!email || !userId) {
       return res.status(400).json({ error: 'Email and userId are required' });
     }
 
-    // Generate JWT verification token (15 min expiry)
-    const token = jwt.sign(
-      { userId, email, purpose: 'email-verification' },
-      jwtSecret,
-      { expiresIn: '15m' }
-    );
-
+    // Generate a secure random token (no JWT needed)
+    const token = crypto.randomBytes(32).toString('hex');
     const tokenExpiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     // Store token in user_profiles
@@ -120,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       from: `"BeeBridge" <${emailUser}>`,
       to: email,
       subject: 'Confirm your signup - BeeBridge',
-      html: generateVerificationEmail(name || 'there', email, verifyUrl),
+      html: generateVerificationEmail(email, verifyUrl),
     };
 
     await transporter.sendMail(mailOptions);
