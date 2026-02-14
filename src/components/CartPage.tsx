@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { useCart } from '../hooks/useCart';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 import Button from './Button';
 import confetti from 'canvas-confetti';
 
 const CartPage: React.FC = () => {
   const { cartItems, getTotal, removeFromCart } = useCart();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
-  const [contactInfo, setContactInfo] = useState({ email: '', signUp: false });
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [contactInfo, setContactInfo] = useState({ signUp: false });
   const [shippingAddress, setShippingAddress] = useState({
     firstName: '',
     lastName: '',
@@ -35,22 +39,52 @@ const CartPage: React.FC = () => {
     'OFFER': 0.10,
   };
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     const upperCoupon = coupon.toUpperCase();
-    if (validCoupons[upperCoupon]) {
-      setDiscount(validCoupons[upperCoupon]);
-      setCouponError('');
-      confetti({
-        particleCount: 400,
-        spread: 160,
-        origin: { y: 0.6 },
-        startVelocity: 60,
-        zIndex: 9999,
-      });
-    } else {
+
+    if (!validCoupons[upperCoupon]) {
       setDiscount(0);
       setCouponError('Invalid coupon code');
+      return;
     }
+
+    // Check if user has already used this coupon
+    if (user) {
+      try {
+        const { data: existingOrders, error } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('coupon', upperCoupon);
+
+        if (error) {
+          console.error('Error checking coupon usage:', error);
+          setCouponError('Error verifying coupon eligibility');
+          return;
+        }
+
+        if (existingOrders && existingOrders.length > 0) {
+          setCouponError('You have already used this coupon.');
+          setDiscount(0);
+          return;
+        }
+      } catch (err) {
+        console.error('Error in coupon check', err);
+        setCouponError('Error verifying coupon');
+        return;
+      }
+    }
+
+    setDiscount(validCoupons[upperCoupon]);
+    setCouponError('');
+    setCouponApplied(true);
+    confetti({
+      particleCount: 400,
+      spread: 160,
+      origin: { y: 0.6 },
+      startVelocity: 60,
+      zIndex: 9999,
+    });
   };
 
   const handlePlaceOrder = () => {
@@ -91,14 +125,16 @@ const CartPage: React.FC = () => {
   const renderContactInformation = () => (
     <div>
       <h3 className="font-semibold mb-2">Contact information</h3>
-      <input
-        type="email"
-        name="email"
-        value={contactInfo.email}
-        onChange={handleContactChange}
-        placeholder="Email"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
-      />
+      <div className="mb-2">
+        <input
+          type="email"
+          name="email"
+          value={user?.email || ''}
+          readOnly
+          className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+        />
+        <p className="text-xs text-gray-500 mt-1">Logged in as {user?.email}</p>
+      </div>
       <label className="inline-flex items-center text-sm mb-4">
         <input
           type="checkbox"
@@ -225,29 +261,36 @@ const CartPage: React.FC = () => {
       <h3 className="font-semibold mb-2">Payment</h3>
       <div className="mb-4">
         <label htmlFor="coupon" className="block font-semibold mb-1">Gift card or discount code</label>
-        <div className="flex space-x-2">
+        <div className="flex flex-col gap-2">
           <input
             id="coupon"
             type="text"
             value={coupon}
             onChange={(e) => setCoupon(e.target.value)}
+            disabled={couponApplied}
             placeholder="Enter coupon code"
-            className="flex-grow border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+            className={`flex-grow border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700 ${couponApplied ? 'bg-gray-100 cursor-not-allowed' : ''}`}
           />
-          <button onClick={handleApplyCoupon} className="bg-gray-300 px-4 rounded hover:bg-gray-400 transition">
-            Apply
-          </button>
+          {!couponApplied && (
+            <button onClick={handleApplyCoupon} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition w-full md:w-auto self-start">
+              Apply
+            </button>
+          )}
         </div>
         {couponError && <p className="text-red-600 mt-1">{couponError}</p>}
-        {discount > 0 && (
+        {couponApplied && discount > 0 && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
             <div className="flex items-center text-green-800 font-bold mb-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Coupon "{coupon.toUpperCase()}" Applied Successfully!
+              🎉 Offer Applied Successfully!
             </div>
             <div className="text-green-700 text-sm space-y-1">
+              <p className="flex justify-between">
+                <span>Coupon:</span>
+                <span className="font-bold">{coupon.toUpperCase()}</span>
+              </p>
               <p className="flex justify-between">
                 <span>Savings:</span>
                 <span className="font-bold">-₹{(total * discount).toFixed(2)}</span>

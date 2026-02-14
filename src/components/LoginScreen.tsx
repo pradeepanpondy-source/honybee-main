@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 import Button from './Button';
 import { Eye, EyeOff } from 'lucide-react';
 import { loginSchema, sanitizeInput } from '../utils/validation';
@@ -47,7 +48,27 @@ const LoginScreen: React.FC = () => {
     }
 
     try {
-      await signInWithEmail(validation.data.email, validation.data.password);
+      const loggedInUser = await signInWithEmail(validation.data.email, validation.data.password);
+
+      // Check email verification status for local (email+password) users
+      try {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('provider, is_verified')
+          .eq('user_id', loggedInUser.id)
+          .single();
+
+        if (profile && profile.provider === 'local' && !profile.is_verified) {
+          // Sign out unverified user immediately
+          await supabase.auth.signOut();
+          setError('Please verify your email before logging in. Check your inbox for the verification link.');
+          return;
+        }
+      } catch (profileErr) {
+        // If no profile found, allow login (backwards compatibility)
+        console.warn('Could not check verification status:', profileErr);
+      }
+
       // Show success message before navigating
       setSuccessMessage('Login successful! Redirecting...');
       setTimeout(() => navigate('/home'), 2000);

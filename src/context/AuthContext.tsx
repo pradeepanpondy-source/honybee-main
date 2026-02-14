@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for Supabase session
     const checkUser = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error: _sessionError } = await supabase.auth.getSession();
 
         if (session?.user) {
           setUser({
@@ -71,6 +71,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
             email: session.user.email || '',
           });
+
+          // For Google OAuth users: auto-create user_profiles with provider='google', is_verified=true
+          if (event === 'SIGNED_IN' && session.user.app_metadata?.provider === 'google') {
+            try {
+              await supabase.from('user_profiles').upsert({
+                user_id: session.user.id,
+                provider: 'google',
+                is_verified: true,
+              }, { onConflict: 'user_id' });
+            } catch (err) {
+              console.error('Error upserting Google user profile:', err);
+            }
+          }
         } else {
           setUser(null);
         }
@@ -116,6 +129,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (error) throw error;
 
+    const newUserId = data.user?.id || '';
+
+    // Create user_profiles record with provider='local', is_verified=false
+    if (newUserId) {
+      try {
+        await supabase.from('user_profiles').upsert({
+          user_id: newUserId,
+          provider: 'local',
+          is_verified: false,
+        }, { onConflict: 'user_id' });
+      } catch (profileError) {
+        console.error('Error creating user profile:', profileError);
+      }
+
+      // Send verification email via API
+      try {
+        await fetch('/api/send-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, userId: newUserId, name }),
+        });
+      } catch (emailError) {
+        console.error('Error sending verification email:', emailError);
+      }
+    }
+
     // Force explicit login flow: if Supabase auto-creates a session, sign out immediately.
     // This supports the requirement: Signup -> Go to Login -> Manual Login.
     if (data.session) {
@@ -123,7 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     return {
-      id: data.user?.id || '',
+      id: newUserId,
       name: name,
       email: data.user?.email || email,
     };
