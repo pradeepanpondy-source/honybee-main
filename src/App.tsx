@@ -24,6 +24,7 @@ import PageLayout from "./components/PageLayout";
 import LoginScreen from "./components/LoginScreen";
 import SignUpScreen from "./components/SignUpScreen";
 import VerifyEmail from "./components/VerifyEmail";
+import ResetPassword from "./components/ResetPassword";
 import { CartProvider } from "./context/CartContext";
 
 console.log("Fresh Code Loaded: v2 - Fixed Price Type");
@@ -57,6 +58,7 @@ function AppRoutes() {
       <Route path="/login" element={(!user || justLoggedOut) ? <LoginScreen /> : <Navigate to="/home" />} />
       <Route path="/signup" element={(user && !justSignedUp) ? <Navigate to="/home" /> : <SignUpScreen />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/home" element={user ? <PageLayout><HomeScreen /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/about" element={user ? <PageLayout><About /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/contact" element={user ? <PageLayout><Contact /></PageLayout> : <Navigate to="/login" />} />

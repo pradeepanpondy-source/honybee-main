@@ -18,7 +18,7 @@ const LoginScreen: React.FC = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { signInWithEmail, signInWithGoogle, resetPassword } = useAuth();
+  const { signInWithEmail, signInWithGoogle } = useAuth();
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState('');
 
@@ -124,12 +124,22 @@ const LoginScreen: React.FC = () => {
       return;
     }
     try {
-      await resetPassword(recoveryEmail);
-      setError('Password reset email sent! Check your inbox.');
-      setShowRecovery(false);
-      setRecoveryEmail('');
-    } catch (err) {
-      setError('Failed to send reset email. Please try again.');
+      const response = await fetch('/api/send-recovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: sanitizedEmail }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSuccessMessage('📧 Password reset email sent! Check your inbox.');
+        setError(null);
+        setShowRecovery(false);
+        setRecoveryEmail('');
+      } else {
+        setError(data.error || 'Failed to send reset email. Please try again.');
+      }
+    } catch {
+      setError('Network error. Please try again.');
     }
   };
 
