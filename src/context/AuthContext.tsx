@@ -33,6 +33,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session }, error: _sessionError } = await supabase.auth.getSession();
 
         if (session?.user) {
+          // Check verification status - block unverified local users
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('provider, is_verified')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (profile && profile.provider === 'local' && !profile.is_verified) {
+            // Unverified local user - sign out, don't allow access
+            await supabase.auth.signOut();
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+
           setUser({
             id: session.user.id,
             name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
@@ -73,12 +88,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (session?.user) {
-          setUser({
-            id: session.user.id,
-            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-            email: session.user.email || '',
-          });
-
           // For Google OAuth users: auto-create user_profiles with provider='google', is_verified=true
           if (event === 'SIGNED_IN' && session.user.app_metadata?.provider === 'google') {
             try {
@@ -91,6 +100,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               console.error('Error upserting Google user profile:', err);
             }
           }
+
+          // Check verification status - block unverified local users
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('provider, is_verified')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (profile && profile.provider === 'local' && !profile.is_verified) {
+            // Unverified local user - sign out, don't set user
+            await supabase.auth.signOut();
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+
+          setUser({
+            id: session.user.id,
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+            email: session.user.email || '',
+          });
         } else {
           setUser(null);
         }
