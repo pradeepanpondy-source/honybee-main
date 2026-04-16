@@ -70,7 +70,7 @@ const Settings = () => {
         return (
             <SellerLayout title="Settings">
                 <div className="flex justify-center items-center h-64">
-                    <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-purple-200 border-t-honeybee-primary rounded-full animate-spin"></div>
                 </div>
             </SellerLayout>
         );
@@ -100,7 +100,7 @@ const Settings = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                 />
                             </div>
                             <div>
@@ -111,7 +111,7 @@ const Settings = () => {
                                     value={formData.phone}
                                     onChange={handleChange}
                                     required
-                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                 />
                             </div>
                         </div>
@@ -124,7 +124,7 @@ const Settings = () => {
                                 onChange={handleChange}
                                 required
                                 rows={3}
-                                className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                             />
                         </div>
 
@@ -137,7 +137,7 @@ const Settings = () => {
                                     value={formData.city}
                                     onChange={handleChange}
                                     required
-                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                 />
                             </div>
                             <div>
@@ -148,7 +148,7 @@ const Settings = () => {
                                     value={formData.state}
                                     onChange={handleChange}
                                     required
-                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                 />
                             </div>
                             <div>
@@ -159,7 +159,7 @@ const Settings = () => {
                                     value={formData.zip}
                                     onChange={handleChange}
                                     required
-                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                 />
                             </div>
                         </div>
@@ -168,7 +168,7 @@ const Settings = () => {
                             <button
                                 type="submit"
                                 disabled={updating}
-                                className="w-full bg-purple-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
+                                className="w-full bg-honeybee-accent text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-honeybee-primary transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
                             >
                                 {updating ? 'Updating Store...' : 'Save Changes'}
                             </button>

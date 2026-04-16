@@ -65,7 +65,7 @@ const SellerAnalytics = () => {
         return (
             <SellerLayout title="Analytics">
                 <div className="flex justify-center items-center h-64">
-                    <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-purple-200 border-t-honeybee-primary rounded-full animate-spin"></div>
                 </div>
             </SellerLayout>
         );
@@ -83,7 +83,7 @@ const SellerAnalytics = () => {
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Customers</p>
                         <p className="text-3xl font-black text-gray-900">{stats.activeCustomers}</p>
-                        <div className="mt-2 text-xs font-bold text-purple-500">Loyal fan base</div>
+                        <div className="mt-2 text-xs font-bold text-honeybee-primary">Loyal fan base</div>
                     </div>
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Avg. Order Value</p>
@@ -105,7 +105,7 @@ const SellerAnalytics = () => {
                                 <div key={i} className="flex-1 space-y-2">
                                     <div
                                         style={{ height: `${val}%` }}
-                                        className="w-full bg-purple-600 rounded-lg shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all cursor-pointer group relative"
+                                        className="w-full bg-honeybee-accent rounded-lg shadow-lg shadow-purple-100 hover:bg-honeybee-primary transition-all cursor-pointer group relative"
                                     >
                                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                                             ₹{(val * 100).toFixed(0)}
@@ -123,7 +123,7 @@ const SellerAnalytics = () => {
                             {topProducts.length > 0 ? topProducts.map((p, i) => (
                                 <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100/50">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-black text-purple-600 text-[10px]">
+                                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-black text-honeybee-accent text-[10px]">
                                             {i + 1}
                                         </div>
                                         <p className="text-sm font-bold text-gray-900">{p.name}</p>

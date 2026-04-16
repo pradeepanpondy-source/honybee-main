@@ -194,7 +194,7 @@ const Applications = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-purple-200 border-t-honeybee-primary rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -237,7 +237,7 @@ const Applications = () => {
               </div>
               <button
                 onClick={() => setShowKycPopup(true)}
-                className="w-full sm:w-auto bg-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-100"
+                className="w-full sm:w-auto bg-honeybee-accent text-white px-8 py-3 rounded-xl font-bold hover:bg-honeybee-primary transition shadow-lg shadow-purple-100"
               >
                 Start Verification
               </button>
@@ -304,7 +304,7 @@ const Applications = () => {
             <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Orders</h3>
             <button
               onClick={() => navigate('/orders')}
-              className="text-xs font-bold text-purple-600 hover:text-purple-800 uppercase tracking-widest"
+              className="text-xs font-bold text-honeybee-accent hover:text-purple-800 uppercase tracking-widest"
             >
               View All →
             </button>
@@ -362,7 +362,7 @@ const Applications = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => navigate('/products')}
-                className="text-xs font-bold text-purple-600 hover:text-purple-800 uppercase tracking-widest"
+                className="text-xs font-bold text-honeybee-accent hover:text-purple-800 uppercase tracking-widest"
               >
                 Manage All →
               </button>
@@ -424,7 +424,7 @@ const Applications = () => {
 
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 text-honeybee-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
@@ -438,7 +438,7 @@ const Applications = () => {
                 <select
                   value={kycData.idType}
                   onChange={(e) => setKycData({ ...kycData, idType: e.target.value })}
-                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                 >
                   <option value="Adhaar">Adhaar Card</option>
                   <option value="Passport">Passport</option>
@@ -453,7 +453,7 @@ const Applications = () => {
                   onChange={(e) => setKycData({ ...kycData, idNumber: e.target.value })}
                   required
                   placeholder="e.g. 1234-5678-9012"
-                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                 />
               </div>
               <div>
@@ -463,14 +463,14 @@ const Applications = () => {
                   onChange={(e) => setKycData({ ...kycData, address: e.target.value })}
                   required
                   placeholder="Street, City, Zip..."
-                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                   rows={3}
                 />
               </div>
               <button
                 type="submit"
                 disabled={kycSubmitting}
-                className="w-full bg-purple-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
+                className="w-full bg-honeybee-accent text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-honeybee-primary transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
               >
                 {kycSubmitting ? 'Verifying...' : 'Submit Verification'}
               </button>
@@ -504,7 +504,7 @@ const Applications = () => {
                     onChange={(e) => setProductData({ ...productData, name: e.target.value })}
                     required
                     placeholder="e.g. Pure Wild Forest Honey"
-                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                   />
                 </div>
                 <div>
@@ -513,7 +513,7 @@ const Applications = () => {
                     value={productData.category}
                     onChange={(e) => setProductData({ ...productData, category: e.target.value })}
                     required
-                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                   >
                     <option value="">Select Category</option>
                     <option value="honey">Honey</option>
@@ -531,7 +531,7 @@ const Applications = () => {
                   onChange={(e) => setProductData({ ...productData, description: e.target.value })}
                   required
                   placeholder="Describe your product's unique features..."
-                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                   rows={4}
                 />
               </div>
@@ -545,7 +545,7 @@ const Applications = () => {
                     onChange={(e) => setProductData({ ...productData, price: e.target.value })}
                     required
                     placeholder="0.00"
-                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                   />
                 </div>
                 <div>
@@ -556,7 +556,7 @@ const Applications = () => {
                     onChange={(e) => setProductData({ ...productData, stock: e.target.value })}
                     required
                     placeholder="0"
-                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                   />
                 </div>
               </div>
@@ -568,14 +568,14 @@ const Applications = () => {
                   value={productData.image_url}
                   onChange={(e) => setProductData({ ...productData, image_url: e.target.value })}
                   placeholder="https://..."
-                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                  className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={productSubmitting}
-                className="w-full bg-purple-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
+                className="w-full bg-honeybee-accent text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-honeybee-primary transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
               >
                 {productSubmitting ? 'Adding Product...' : 'Confirm Listing'}
               </button>

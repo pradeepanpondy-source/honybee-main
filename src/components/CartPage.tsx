@@ -141,7 +141,7 @@ const CartPage: React.FC = () => {
           name="signUp"
           checked={contactInfo.signUp}
           onChange={handleContactChange}
-          className="form-checkbox text-purple-700"
+          className="form-checkbox text-honeybee-primary"
         />
         <span className="ml-2">Sign up for exclusive offers and news via text messages & email.</span>
       </label>
@@ -163,7 +163,7 @@ const CartPage: React.FC = () => {
           value={shippingAddress.firstName}
           onChange={handleShippingChange}
           placeholder="First name"
-          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
         />
         <input
           type="text"
@@ -171,7 +171,7 @@ const CartPage: React.FC = () => {
           value={shippingAddress.lastName}
           onChange={handleShippingChange}
           placeholder="Last name"
-          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
         />
       </div>
       <input
@@ -180,7 +180,7 @@ const CartPage: React.FC = () => {
         value={shippingAddress.company}
         onChange={handleShippingChange}
         placeholder="Company (optional)"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
       />
       <input
         type="text"
@@ -188,7 +188,7 @@ const CartPage: React.FC = () => {
         value={shippingAddress.address}
         onChange={handleShippingChange}
         placeholder="Address"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
       />
       <input
         type="text"
@@ -196,7 +196,7 @@ const CartPage: React.FC = () => {
         value={shippingAddress.apartment}
         onChange={handleShippingChange}
         placeholder="Apartment, suite, etc. (optional)"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
       />
       <input
         type="text"
@@ -204,14 +204,14 @@ const CartPage: React.FC = () => {
         value={shippingAddress.city}
         onChange={handleShippingChange}
         placeholder="City"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+        className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
       />
       <div className="grid grid-cols-3 gap-4 mb-2">
         <select
           name="country"
           value={shippingAddress.country}
           onChange={handleShippingChange}
-          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
         >
           <option value="">Country/region</option>
           <option value="United States">United States</option>
@@ -222,7 +222,7 @@ const CartPage: React.FC = () => {
           name="state"
           value={shippingAddress.state}
           onChange={handleShippingChange}
-          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
         >
           <option value="">State</option>
           <option value="State">State</option>
@@ -234,7 +234,7 @@ const CartPage: React.FC = () => {
           value={shippingAddress.zip}
           onChange={handleShippingChange}
           placeholder="ZIP code"
-          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700"
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
         />
       </div>
       <input
@@ -243,10 +243,10 @@ const CartPage: React.FC = () => {
         value={shippingAddress.phone}
         onChange={handleShippingChange}
         placeholder="Phone number for shipping updates and offers (optional)"
-        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-purple-700"
+        className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-honeybee-primary"
       />
       <div className="flex justify-between">
-        <button onClick={handleBack} className="underline text-purple-700">
+        <button onClick={handleBack} className="underline text-honeybee-primary">
           Return to cart
         </button>
         <button onClick={handleNext} className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition">
@@ -269,7 +269,7 @@ const CartPage: React.FC = () => {
             onChange={(e) => setCoupon(e.target.value)}
             disabled={couponApplied}
             placeholder="Enter coupon code"
-            className={`flex-grow border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-700 ${couponApplied ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            className={`flex-grow border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-honeybee-primary ${couponApplied ? 'bg-gray-100 cursor-not-allowed' : ''}`}
           />
           {!couponApplied && (
             <button onClick={handleApplyCoupon} className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition w-full md:w-auto self-start">

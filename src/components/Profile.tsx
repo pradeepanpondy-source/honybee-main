@@ -27,55 +27,47 @@ const Profile: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(true);
   const [tempProfile, setTempProfile] = useState<ProfileData>(profile);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (user) {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
+      if (!user) { setLoading(false); return; }
 
-          if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-            console.error('Error fetching profile:', error);
-            setIsEditing(true);
-          } else if (data) {
-            setProfile(data);
-            setTempProfile(data);
-            setIsEditing(false);
-          } else {
-            // Initialize with empty profile if no data exists
-            setProfile({
-              name: '',
-              age: '',
-              location: '',
-              address: '',
-              pincode: '',
-              email: '',
-              phone: '',
-            });
-            setTempProfile({
-              name: '',
-              age: '',
-              location: '',
-              address: '',
-              pincode: '',
-              email: '',
-              phone: '',
-            });
-            setIsEditing(true);
-          }
-        } catch (error) {
-          console.error('Error fetching profile:', error);
+      // 8-second hard timeout so Profile never hangs
+      const timeout = setTimeout(() => {
+        console.warn('[Profile] Fetch timed out');
+        setLoading(false);
+      }, 8000);
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        clearTimeout(timeout);
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('[Profile] Error fetching profile:', error);
+          setIsEditing(true);
+        } else if (data) {
+          setProfile(data);
+          setTempProfile(data);
+          setIsEditing(false);
+        } else {
           setIsEditing(true);
         }
+      } catch (e) {
+        clearTimeout(timeout);
+        console.error('[Profile] Fetch error:', e);
+        setIsEditing(true);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchProfile();
   }, [user]);
@@ -86,7 +78,8 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || saving) return;
+    setSaving(true);
     setMessage(null);
 
     try {
@@ -112,8 +105,10 @@ const Profile: React.FC = () => {
         setMessage({ type: 'success', text: 'Profile saved successfully!' });
       }
     } catch (error: unknown) {
-      console.error('Error saving profile:', error);
+      console.error('[Profile] Error saving:', error);
       setMessage({ type: 'error', text: 'Failed to save profile. Please try again.' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -128,7 +123,12 @@ const Profile: React.FC = () => {
   };
 
   if (loading) {
-    return <div>Loading profile...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
+        <div className="w-8 h-8 border-4 border-honeybee-primary/30 border-t-honeybee-primary rounded-full animate-spin" />
+        <p className="text-sm text-gray-500">Loading profile…</p>
+      </div>
+    );
   }
 
 
@@ -153,7 +153,7 @@ const Profile: React.FC = () => {
                   name="name"
                   value={tempProfile.name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white"
                   placeholder="Enter your name"
                 />
               </div>
@@ -165,7 +165,7 @@ const Profile: React.FC = () => {
                   name="age"
                   value={tempProfile.age}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white"
                   placeholder="Enter your age"
                 />
               </div>
@@ -177,7 +177,7 @@ const Profile: React.FC = () => {
                   name="location"
                   value={tempProfile.location}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white"
                   placeholder="Enter your location"
                 />
               </div>
@@ -189,7 +189,7 @@ const Profile: React.FC = () => {
                   name="pincode"
                   value={tempProfile.pincode}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white"
                   placeholder="Enter your pincode"
                 />
               </div>
@@ -201,7 +201,7 @@ const Profile: React.FC = () => {
                   name="email"
                   value={tempProfile.email}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white"
                   placeholder="Enter your email"
                 />
               </div>
@@ -213,7 +213,7 @@ const Profile: React.FC = () => {
                   name="phone"
                   value={tempProfile.phone}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white"
                   placeholder="Enter your phone number"
                 />
               </div>
@@ -225,7 +225,7 @@ const Profile: React.FC = () => {
                   value={tempProfile.address}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-honeybee-primary bg-white"
                   placeholder="Enter your full address"
                 />
               </div>
@@ -236,8 +236,9 @@ const Profile: React.FC = () => {
                 onClick={handleSave}
                 className="w-full"
                 variant="primary"
+                disabled={saving}
               >
-                Save Profile
+                {saving ? 'Saving…' : 'Save Profile'}
               </Button>
               <button
                 onClick={handleCancel}
@@ -282,7 +283,7 @@ const Profile: React.FC = () => {
           </div>
           <button
             onClick={handleEdit}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-honeybee-secondary hover:bg-black focus:outline-none transition-colors"
             aria-label="Edit Profile"
           >
             Edit Profile

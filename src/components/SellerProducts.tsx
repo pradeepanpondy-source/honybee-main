@@ -133,7 +133,7 @@ const SellerProducts = () => {
         return (
             <SellerLayout title="My Products">
                 <div className="flex justify-center items-center h-64">
-                    <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-purple-200 border-t-honeybee-primary rounded-full animate-spin"></div>
                 </div>
             </SellerLayout>
         );
@@ -153,7 +153,7 @@ const SellerProducts = () => {
                             setProductData({ name: '', description: '', price: '', category: '', stock: '', image_url: '' });
                             setShowProductForm(true);
                         }}
-                        className="bg-purple-600 text-white px-6 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-purple-700 transition shadow-lg shadow-purple-100 flex items-center gap-2"
+                        className="bg-honeybee-accent text-white px-6 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-honeybee-primary transition shadow-lg shadow-purple-100 flex items-center gap-2"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -200,7 +200,7 @@ const SellerProducts = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
                                                 <div className="flex gap-3">
-                                                    <button onClick={() => handleEditProduct(product)} className="text-purple-600 hover:text-purple-900">Edit</button>
+                                                    <button onClick={() => handleEditProduct(product)} className="text-honeybee-accent hover:text-purple-900">Edit</button>
                                                     <button onClick={() => handleDeleteProduct(product.id)} className="text-red-600 hover:text-red-900">Delete</button>
                                                 </div>
                                             </td>
@@ -246,7 +246,7 @@ const SellerProducts = () => {
                                         onChange={(e) => setProductData({ ...productData, name: e.target.value })}
                                         required
                                         placeholder="e.g. Pure Wild Forest Honey"
-                                        className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                        className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                     />
                                 </div>
                                 <div>
@@ -255,7 +255,7 @@ const SellerProducts = () => {
                                         value={productData.category}
                                         onChange={(e) => setProductData({ ...productData, category: e.target.value })}
                                         required
-                                        className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                        className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                     >
                                         <option value="">Select Category</option>
                                         <option value="honey">Honey</option>
@@ -273,7 +273,7 @@ const SellerProducts = () => {
                                     onChange={(e) => setProductData({ ...productData, description: e.target.value })}
                                     required
                                     placeholder="Describe your product's unique features..."
-                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                     rows={4}
                                 />
                             </div>
@@ -287,7 +287,7 @@ const SellerProducts = () => {
                                         onChange={(e) => setProductData({ ...productData, price: e.target.value })}
                                         required
                                         placeholder="0.00"
-                                        className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                        className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                     />
                                 </div>
                                 <div>
@@ -298,7 +298,7 @@ const SellerProducts = () => {
                                         onChange={(e) => setProductData({ ...productData, stock: e.target.value })}
                                         required
                                         placeholder="0"
-                                        className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                        className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                     />
                                 </div>
                             </div>
@@ -310,14 +310,14 @@ const SellerProducts = () => {
                                     value={productData.image_url}
                                     onChange={(e) => setProductData({ ...productData, image_url: e.target.value })}
                                     placeholder="https://..."
-                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 font-medium transition-all"
+                                    className="w-full rounded-xl border-gray-100 bg-gray-50/50 shadow-sm focus:border-honeybee-primary focus:ring-honeybee-primary p-3 font-medium transition-all"
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={productSubmitting}
-                                className="w-full bg-purple-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
+                                className="w-full bg-honeybee-accent text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-honeybee-primary transition-all shadow-xl shadow-purple-100 disabled:opacity-50"
                             >
                                 {productSubmitting ? 'Processing...' : editingProduct ? 'Update Listing' : 'Confirm Listing'}
                             </button>

@@ -57,7 +57,7 @@ const Seller = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-purple-200 border-t-honeybee-primary rounded-full animate-spin"></div>
           <p className="text-gray-500 font-medium">Verifying registration status...</p>
         </div>
       </div>
@@ -84,7 +84,7 @@ const Seller = () => {
           <div className="flex flex-col gap-3">
             <button
               onClick={() => navigate('/applications')}
-              className="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-700 transition"
+              className="w-full bg-honeybee-accent text-white font-semibold py-2 px-4 rounded-lg hover:bg-honeybee-primary transition"
             >
               Go to Dashboard
             </button>
@@ -302,12 +302,12 @@ const Seller = () => {
           return (
             <div key={label} className="flex flex-col items-center text-center flex-1 md:flex-none">
               <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isActive || isCompleted ? 'border-purple-700' : 'border-gray-300'
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isActive || isCompleted ? 'border-honeybee-primary' : 'border-gray-300'
                   }`}
               >
                 {isCompleted ? (
                   <svg
-                    className="w-4 h-4 text-purple-700"
+                    className="w-4 h-4 text-honeybee-primary"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="3"
@@ -318,13 +318,13 @@ const Seller = () => {
                   </svg>
                 ) : (
                   <div
-                    className={`w-3 h-3 rounded-full ${isActive ? 'bg-purple-700' : 'bg-gray-300'
+                    className={`w-3 h-3 rounded-full ${isActive ? 'bg-honeybee-primary' : 'bg-gray-300'
                       }`}
                   />
                 )}
               </div>
               <span
-                className={`mt-1 text-xs font-semibold ${isActive || isCompleted ? 'text-purple-700' : 'text-gray-400'
+                className={`mt-1 text-xs font-semibold ${isActive || isCompleted ? 'text-honeybee-primary' : 'text-gray-400'
                   }`}
               >
                 {label.split(' ').map((word, i) => (
@@ -432,7 +432,7 @@ const Seller = () => {
           checked={formData.acceptTerms}
           onChange={handleChange}
           // required
-          className="form-checkbox text-purple-700"
+          className="form-checkbox text-honeybee-primary"
         />
         <span className="ml-2 text-sm text-gray-700">I Accept Terms & Conditions</span>
       </label>
@@ -445,7 +445,7 @@ const Seller = () => {
             setStep(0);
             // Removed setSelectedOption call as it no longer exists
           }}
-          className="text-purple-700 underline"
+          className="text-honeybee-primary underline"
         >
           Back to Options
         </button>
@@ -506,7 +506,7 @@ const Seller = () => {
         <button
           type="button"
           onClick={prevStep}
-          className="text-purple-700 underline"
+          className="text-honeybee-primary underline"
         >
           Back
         </button>
@@ -561,7 +561,7 @@ const Seller = () => {
         <button
           type="button"
           onClick={prevStep}
-          className="text-purple-700 underline"
+          className="text-honeybee-primary underline"
         >
           Back
         </button>
@@ -643,7 +643,7 @@ const Seller = () => {
         <button
           type="button"
           onClick={prevStep}
-          className="text-purple-700 underline"
+          className="text-honeybee-primary underline"
         >
           Back
         </button>
@@ -674,7 +674,7 @@ const Seller = () => {
       </svg>
       <h2 className="text-2xl font-bold mb-2">Application Submitted</h2>
       <p className="mb-4">Your seller application has been submitted successfully. You will be redirected to your dashboard shortly.</p>
-      <button onClick={() => navigate('/applications')} className="text-purple-700 underline">
+      <button onClick={() => navigate('/applications')} className="text-honeybee-primary underline">
         Go to Dashboard
       </button>
     </div>

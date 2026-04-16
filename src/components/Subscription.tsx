@@ -52,7 +52,7 @@ const Subscription: React.FC = () => {
         <div className="group">
           <div className="bg-white rounded-lg shadow-lg animate-card-hover p-6 text-center">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">Premium</h3>
-            <p className="text-4xl font-bold text-honeybee-primary mb-4">₹1299</p>
+            <p className="text-4xl font-bold text-honeybee-primary mb-4">₹9,500</p>
             <ul className="text-left space-y-2 mb-6 text-gray-600">
               <li className="flex items-center"><CheckCircle className="w-5 h-5 text-green-500 mr-2" /> AI insights: best-selling flavors, demand trends by region</li>
               <li className="flex items-center"><CheckCircle className="w-5 h-5 text-green-500 mr-2" /> 5% per sale</li>
@@ -61,7 +61,7 @@ const Subscription: React.FC = () => {
               <li className="flex items-center"><CheckCircle className="w-5 h-5 text-green-500 mr-2" /> Can rent unlimited hive per month</li>
             </ul>
             <div className="group">
-              <Button onClick={() => handleChoosePlan('Premium', 1299)} className="px-8 py-3" variant="primary">Choose Plan</Button>
+              <Button onClick={() => handleChoosePlan('Premium', 9500)} className="px-8 py-3" variant="primary">Choose Plan</Button>
             </div>
           </div>
         </div>

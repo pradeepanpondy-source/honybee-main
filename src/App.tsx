@@ -24,11 +24,11 @@ import PageLayout from "./components/PageLayout";
 import LoginScreen from "./components/LoginScreen";
 import SignUpScreen from "./components/SignUpScreen";
 import VerifyEmail from "./components/VerifyEmail";
+import VerifyEmailPending from "./components/VerifyEmailPending";
 import ResetPassword from "./components/ResetPassword";
+import TermsAndConditions from "./components/TermsAndConditions";
+import PrivacyPolicy from "./components/PrivacyPolicy";
 import { CartProvider } from "./context/CartContext";
-
-console.log("Fresh Code Loaded: v2 - Fixed Price Type");
-
 import { useAuth } from "./hooks/useAuth";
 import LoadingSkeleton from "./components/LoadingSkeleton";
 import SellerGuard from "./components/SellerGuard";
@@ -38,14 +38,9 @@ const sellerBackground = 'https://media.istockphoto.com/id/1669258600/vector/ill
 function AppRoutes() {
   const { user, loading } = useAuth();
 
-  // Check if user just logged out OR just signed up - prevent auto-redirect
   const justLoggedOut = localStorage.getItem('justLoggedOut') === 'true';
-  const justSignedUp = localStorage.getItem('justSignedUp') === 'true';
   if (justLoggedOut && !user) {
     localStorage.removeItem('justLoggedOut');
-  }
-  if (justSignedUp) {
-    // Don't remove flag here - let signup screen handle navigation
   }
 
   if (loading) {
@@ -54,28 +49,49 @@ function AppRoutes() {
 
   return (
     <Routes>
+      {/* Root redirect */}
       <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
-      <Route path="/login" element={(!user || justLoggedOut) ? <LoginScreen /> : <Navigate to="/home" />} />
-      <Route path="/signup" element={(user && !justSignedUp) ? <Navigate to="/home" /> : <SignUpScreen />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/home" element={user ? <PageLayout><HomeScreen /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/about" element={user ? <PageLayout><About /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/contact" element={user ? <PageLayout><Contact /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/shop" element={user ? <PageLayout><Shop /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/cart" element={user ? <PageLayout><CartPage /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/checkout" element={user ? <PageLayout><Checkout /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/profile" element={user ? <PageLayout><Profile /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/seller" element={user ? <PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/applications" element={user ? <SellerGuard><Applications /></SellerGuard> : <Navigate to="/login" />} />
-      <Route path="/orders" element={user ? <SellerGuard><Orders /></SellerGuard> : <Navigate to="/login" />} />
-      <Route path="/subscription" element={user ? <PageLayout><Subscription /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/settings" element={user ? <SellerGuard><Settings /></SellerGuard> : <Navigate to="/login" />} />
-      {/* Protected Seller Routes */}
-      <Route path="/products" element={user ? <SellerGuard><SellerProducts /></SellerGuard> : <Navigate to="/login" />} />
-      <Route path="/product/beehive" element={user ? <PageLayout><ProductDetails /></PageLayout> : <Navigate to="/login" />} />
-      <Route path="/analytics" element={user ? <SellerGuard><SellerAnalytics /></SellerGuard> : <Navigate to="/login" />} />
-      <Route path="/earnings" element={user ? <SellerGuard><SellerEarnings /></SellerGuard> : <Navigate to="/login" />} />
+
+      {/* ── Public / Auth routes ───────────────────────────────── */}
+      <Route
+        path="/login"
+        element={(!user || justLoggedOut) ? <LoginScreen /> : <Navigate to="/home" />}
+      />
+      <Route
+        path="/signup"
+        element={user ? <Navigate to="/home" /> : <SignUpScreen />}
+      />
+      {/* Email verification — always public (link comes from email) */}
+      <Route path="/verify-email"         element={<VerifyEmail />} />
+      <Route path="/verify-email-pending" element={<VerifyEmailPending />} />
+      <Route path="/reset-password"       element={<ResetPassword />} />
+
+      {/* Legal pages — public, no auth required */}
+      <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+      <Route path="/privacy-policy"       element={<PrivacyPolicy />} />
+
+      {/* ── Protected routes (require login) ──────────────────── */}
+      <Route path="/home"         element={user ? <PageLayout><HomeScreen /></PageLayout>            : <Navigate to="/login" />} />
+      <Route path="/about"        element={user ? <PageLayout><About /></PageLayout>                 : <Navigate to="/login" />} />
+      <Route path="/contact"      element={user ? <PageLayout><Contact /></PageLayout>               : <Navigate to="/login" />} />
+      <Route path="/shop"         element={user ? <PageLayout><Shop /></PageLayout>                  : <Navigate to="/login" />} />
+      <Route path="/cart"         element={user ? <PageLayout><CartPage /></PageLayout>              : <Navigate to="/login" />} />
+      <Route path="/checkout"     element={user ? <PageLayout><Checkout /></PageLayout>              : <Navigate to="/login" />} />
+      <Route path="/profile"      element={user ? <PageLayout><Profile /></PageLayout>               : <Navigate to="/login" />} />
+      <Route path="/subscription" element={user ? <PageLayout><Subscription /></PageLayout>          : <Navigate to="/login" />} />
+      <Route path="/seller"       element={user ? <PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout> : <Navigate to="/login" />} />
+      <Route path="/product/beehive" element={user ? <PageLayout><ProductDetails /></PageLayout>    : <Navigate to="/login" />} />
+
+      {/* ── Seller-guarded routes ─────────────────────────────── */}
+      <Route path="/applications" element={user ? <SellerGuard><Applications /></SellerGuard>   : <Navigate to="/login" />} />
+      <Route path="/orders"       element={user ? <SellerGuard><Orders /></SellerGuard>          : <Navigate to="/login" />} />
+      <Route path="/settings"     element={user ? <SellerGuard><Settings /></SellerGuard>        : <Navigate to="/login" />} />
+      <Route path="/products"     element={user ? <SellerGuard><SellerProducts /></SellerGuard>  : <Navigate to="/login" />} />
+      <Route path="/analytics"    element={user ? <SellerGuard><SellerAnalytics /></SellerGuard> : <Navigate to="/login" />} />
+      <Route path="/earnings"     element={user ? <SellerGuard><SellerEarnings /></SellerGuard>  : <Navigate to="/login" />} />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to={user ? "/home" : "/login"} replace />} />
     </Routes>
   );
 }

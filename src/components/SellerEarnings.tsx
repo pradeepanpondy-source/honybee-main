@@ -67,7 +67,7 @@ const SellerEarnings = () => {
         return (
             <SellerLayout title="Earnings">
                 <div className="flex justify-center items-center h-64">
-                    <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-purple-200 border-t-honeybee-primary rounded-full animate-spin"></div>
                 </div>
             </SellerLayout>
         );
@@ -79,7 +79,7 @@ const SellerEarnings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between overflow-hidden relative group">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                            <svg className="w-12 h-12 text-purple-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z" /></svg>
+                            <svg className="w-12 h-12 text-honeybee-accent" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z" /></svg>
                         </div>
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
                         <p className="text-4xl font-black text-gray-900 leading-none">₹{totalEarnings.toFixed(2)}</p>
@@ -99,13 +99,13 @@ const SellerEarnings = () => {
                         </div>
                     </div>
 
-                    <div className="bg-purple-600 p-8 rounded-2xl shadow-xl shadow-purple-100 flex flex-col justify-between overflow-hidden relative group">
+                    <div className="bg-honeybee-accent p-8 rounded-2xl shadow-xl shadow-purple-100 flex flex-col justify-between overflow-hidden relative group">
                         <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:scale-110 transition-transform">
                             <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
                         </div>
                         <p className="text-[10px] font-black text-purple-200 uppercase tracking-widest mb-1">Available for Withdrawal</p>
                         <p className="text-4xl font-black text-white leading-none">₹{totalEarnings.toFixed(2)}</p>
-                        <button className="mt-4 w-full bg-white text-purple-600 font-black uppercase tracking-widest text-[10px] py-3 rounded-xl hover:bg-purple-50 transition-colors">
+                        <button className="mt-4 w-full bg-white text-honeybee-accent font-black uppercase tracking-widest text-[10px] py-3 rounded-xl hover:bg-purple-50 transition-colors">
                             Withdraw Now
                         </button>
                     </div>
@@ -114,7 +114,7 @@ const SellerEarnings = () => {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/20">
                         <h3 className="text-lg font-black text-gray-900 tracking-tight">Recent Transactions</h3>
-                        <button className="text-xs font-bold text-purple-600 uppercase tracking-widest">Download Report</button>
+                        <button className="text-xs font-bold text-honeybee-accent uppercase tracking-widest">Download Report</button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="min-w-full">

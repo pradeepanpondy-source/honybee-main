@@ -20,11 +20,11 @@ export default function NameCollection({ onNameSubmit }: NameCollectionProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center p-4 relative">
+    <div className="min-h-screen bg-gradient-to-br from-honeybee-primary to-pink-500 flex items-center justify-center p-4 relative">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-2xl mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-honeybee-accent rounded-2xl mb-4 shadow-lg">
             <User className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Welcome!</h1>
@@ -51,7 +51,7 @@ export default function NameCollection({ onNameSubmit }: NameCollectionProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-honeybee-primary focus:border-honeybee-primary transition-colors"
                   required
                   disabled={isSubmitting}
                 />

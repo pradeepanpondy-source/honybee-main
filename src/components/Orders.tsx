@@ -85,7 +85,7 @@ const Orders = () => {
         return (
             <SellerLayout title="Orders">
                 <div className="flex justify-center items-center h-64">
-                    <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-purple-200 border-t-honeybee-primary rounded-full animate-spin"></div>
                 </div>
             </SellerLayout>
         );
@@ -106,7 +106,7 @@ const Orders = () => {
                                 key={status}
                                 onClick={() => setFilterStatus(status)}
                                 className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${filterStatus === status
-                                    ? 'bg-purple-600 text-white shadow-md'
+                                    ? 'bg-honeybee-accent text-white shadow-md'
                                     : 'text-gray-400 hover:text-gray-600'
                                     }`}
                             >
@@ -123,7 +123,7 @@ const Orders = () => {
                                 <div className="p-6 border-b border-gray-50 flex flex-wrap justify-between items-center gap-4 bg-gray-50/20">
                                     <div className="flex items-center gap-4">
                                         <div className="bg-purple-100 p-2 rounded-lg">
-                                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-6 h-6 text-honeybee-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                             </svg>
                                         </div>
@@ -140,7 +140,7 @@ const Orders = () => {
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Total</p>
-                                            <p className="text-sm font-black text-purple-600">₹{order.total.toFixed(2)}</p>
+                                            <p className="text-sm font-black text-honeybee-accent">₹{order.total.toFixed(2)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -175,7 +175,7 @@ const Orders = () => {
                                                 <select
                                                     value={order.status}
                                                     onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                                                    className="flex-1 rounded-xl border-gray-100 bg-gray-50/50 p-3 text-xs font-black uppercase tracking-widest focus:ring-purple-500 focus:border-purple-500"
+                                                    className="flex-1 rounded-xl border-gray-100 bg-gray-50/50 p-3 text-xs font-black uppercase tracking-widest focus:ring-honeybee-primary focus:border-honeybee-primary"
                                                 >
                                                     <option value="pending">Pending</option>
                                                     <option value="processing">Processing</option>

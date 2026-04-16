@@ -21,7 +21,7 @@ export interface Seller {
     created_at: string;
 }
 
-export type SellerProfile = Seller; // Backwards compatibility if needed
+export type SellerProfile = Seller;
 
 export const useSeller = () => {
     const { user } = useAuth();
@@ -30,11 +30,20 @@ export const useSeller = () => {
     const [error, setError] = useState<Error | null>(null);
 
     const fetchSeller = useCallback(async () => {
-        if (!user) {
+        if (!user?.id) {
             setSeller(null);
             setLoading(false);
             return;
         }
+
+        setLoading(true);
+
+        // 8-second hard timeout — prevents "Verifying registration status…" infinite loop
+        const timer = setTimeout(() => {
+            console.warn('[useSeller] Fetch timed out — stopping loading');
+            setSeller(null);
+            setLoading(false);
+        }, 8000);
 
         try {
             const { data, error } = await supabase
@@ -43,27 +52,33 @@ export const useSeller = () => {
                 .eq('user_id', user.id)
                 .single();
 
+            clearTimeout(timer);
+
             if (error) {
                 if (error.code === 'PGRST116') {
-                    // Not found is not an error in strict sense, just means not a seller
+                    // "Not found" → not a seller yet, that's fine
                     setSeller(null);
                 } else {
+                    console.error('[useSeller] DB error:', error);
                     throw error;
                 }
             } else {
                 setSeller(data);
             }
         } catch (err: any) {
-            console.error('Error fetching seller:', err);
+            clearTimeout(timer);
+            console.error('[useSeller] Fetch error:', err);
             setError(err);
+            setSeller(null);
         } finally {
+            clearTimeout(timer);
             setLoading(false);
         }
-    }, [user]);
+    }, [user?.id]);
 
     useEffect(() => {
         fetchSeller();
-    }, [fetchSeller]);
+    }, [user?.id, fetchSeller]);
 
     return { seller, loading, error, refreshSeller: fetchSeller };
 };

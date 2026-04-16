@@ -38,27 +38,40 @@ const Shop: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchProducts = async () => {
+      // 8-second safety timeout — falls back to defaults so shop never hangs
+      const timeoutId = setTimeout(() => {
+        if (!cancelled) {
+          console.warn('[Shop] Product fetch timed out — falling back to defaults');
+          setProducts(defaultHoneyProducts);
+          setLoading(false);
+        }
+      }, 8000);
+
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('products')
-          .select('*');
+        const { data, error } = await supabase.from('products').select('*');
+        clearTimeout(timeoutId);
 
-        if (error) {
-          throw error;
-        }
-
+        if (cancelled) return;
+        if (error) throw error;
         setProducts(data && data.length > 0 ? data : defaultHoneyProducts);
       } catch (err: unknown) {
+        clearTimeout(timeoutId);
+        if (cancelled) return;
+        console.error('[Shop] Error fetching products:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch products.');
-        console.error('Error fetching products:', err);
+        setProducts(defaultHoneyProducts); // show defaults rather than blank screen
       } finally {
-        setLoading(false);
+        clearTimeout(timeoutId);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchProducts();
+    return () => { cancelled = true; };
   }, []);
 
   const handleAddToCart = (product: Product) => {
