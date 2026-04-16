@@ -28,10 +28,15 @@ const VerifyEmailPending: React.FC = () => {
     setResendMessage('');
 
     try {
-      const response = await fetch('/api/resend-verification', {
+      const response = await fetch('/api/send-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, userId, name }),
+        body: JSON.stringify({ 
+          email, 
+          userId, 
+          name,
+          isResend: true 
+        }),
       });
 
       const data = await response.json();

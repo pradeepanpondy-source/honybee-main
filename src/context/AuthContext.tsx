@@ -239,29 +239,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Fire-and-forget background tasks
         (async () => {
           try {
-            // 1. Create unverified profile row
-            const { error: profileError } = await supabase.from('user_profiles').upsert(
-              { user_id: newUserId, provider: 'local', is_verified: false },
-              { onConflict: 'user_id' }
-            );
-            if (profileError) console.error('[Auth] Profile upsert error:', profileError);
-
-            // 2. Trigger custom verification email
+            // 1. Trigger custom verification email
+            // (Note: The API route now handles the user_profile upsert internally)
             const controller = new AbortController();
-            const fetchTimeout = setTimeout(() => controller.abort(), 4000);
+            const fetchTimeout = setTimeout(() => controller.abort(), 5000);
             
             await fetch('/api/send-verification', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email, userId: newUserId, name }),
+              body: JSON.stringify({ 
+                email, 
+                userId: newUserId, 
+                name,
+                isResend: false 
+              }),
               signal: controller.signal
             });
             clearTimeout(fetchTimeout);
 
-            // 3. Force sign-out (session is created by default on signup)
+            // 2. Force sign-out (session is created by default on signup)
             await supabase.auth.signOut();
           } catch (e) {
-            console.error('[Auth] Background signup tasks failed:', e);
+            console.error('[Auth] Background signup email trigger failed:', e);
           }
         })();
       }

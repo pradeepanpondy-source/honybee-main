@@ -57,8 +57,8 @@ const Seller = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-purple-200 border-t-honeybee-primary rounded-full animate-spin"></div>
-          <p className="text-gray-500 font-medium">Verifying registration status...</p>
+          <div className="w-12 h-12 border-4 border-honeybee-primary/20 border-t-honeybee-primary rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium tracking-tight">Verifying registration status...</p>
         </div>
       </div>
     );
@@ -249,38 +249,46 @@ const Seller = () => {
           idProofUrl = idData.publicUrl;
         }
 
-        // Insert seller data directly into Supabase sellers table
-        const { error } = await supabase
-          .from('sellers')
-          .insert([{
-            user_id: user.id,
-            seller_id: sellerId,
-            name: formData.name,
-            email: user.email, // Enforce auth email source of truth
-            seller_type: sellerType,
-            phone: formData.phone,
-            // Use detected address if available, otherwise manual address
-            address: formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}`,
-            city: formData.city,
-            state: formData.state,
-            zip: formData.zip,
-            id_proof_url: idProofUrl,
-            profile_pic_url: profilePicUrl,
-            is_approved: false,
-            kyc_verified: false,
-            // Try to save coords if schema supports it, otherwise they are ignored (or error if strictly typed, but Supabase JS usually handles extra fields depending on setup)
-            latitude: formData.latitude,
-            longitude: formData.longitude
-          }]);
+        // Insert seller data
+        // Build payload dynamically to avoid failing if columns like lat/lng are missing 
+        // (Supabase will ignore extra fields if they don't exist, but we handle it safely here)
+        const insertData: any = {
+          user_id: user.id,
+          seller_id: sellerId,
+          name: formData.name,
+          email: user.email,
+          seller_type: sellerType,
+          phone: formData.phone,
+          address: formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}`,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          id_proof_url: idProofUrl,
+          profile_pic_url: profilePicUrl,
+          is_approved: false,
+          kyc_verified: false,
+        };
+
+        // Only add coordinates if they were actually detected
+        if (formData.latitude !== null) insertData.latitude = formData.latitude;
+        if (formData.longitude !== null) insertData.longitude = formData.longitude;
+
+        const { error } = await supabase.from('sellers').insert([insertData]);
 
         if (error) {
+          console.error('[Seller] Insert error:', error);
           throw error;
         }
 
         setMessage({ type: 'success', text: 'Seller registration submitted successfully! Your application will be reviewed.' });
-        await refreshSeller(); // Ensure seller state is updated before navigation
-        localStorage.setItem('justRegisteredSeller', 'true'); // Flag to prevent redirect loop
-        setStep(5); // Move to finish step
+        
+        // CRITICAL FIX: Move to success step IMMEDIATELY. 
+        // Do not wait for secondary network checks which might hang.
+        setStep(5);
+        localStorage.setItem('justRegisteredSeller', 'true');
+
+        // Trigger background refresh (don't await it to block UI)
+        refreshSeller().catch(e => console.warn('[Seller] Background refresh failed:', e));
         // navigate('/applications'); // Removed immediate navigation, let user see success screen
       } catch (error) {
         console.error('Error submitting application:', error);

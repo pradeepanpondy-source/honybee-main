@@ -54,7 +54,12 @@ function generateVerificationEmail(email: string, verifyUrl: string): string {
   `;
 }
 
+/**
+ * Single robust handler for sending verification emails.
+ * Handles both initial signup and manual resends.
+ */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -63,18 +68,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { email, userId } = req.body;
+    const { email, userId, isResend } = req.body;
 
     if (!email || !userId) {
       return res.status(400).json({ error: 'Email and userId are required' });
     }
 
-    // Generate a secure random token (no JWT needed)
+    // 1. Check or update profile
     const token = crypto.randomBytes(32).toString('hex');
     const tokenExpiry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    // Store token in user_profiles
-    const { error: upsertError } = await supabase
+    // Use upsert to handle both creation and update logic in one go
+    // This is the source of truth for verification state
+    const { error: dbError } = await supabase
       .from('user_profiles')
       .upsert({
         user_id: userId,
@@ -85,13 +91,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
 
-    if (upsertError) {
-      console.error('Error storing verification token:', upsertError);
-      return res.status(500).json({ error: 'Failed to store verification token' });
+    if (dbError) {
+      console.error('[API Send] DB Upsert error:', dbError);
+      return res.status(500).json({ error: 'Failed to update user profile with verification data' });
     }
 
-    // Send verification email
+    // 2. Prepare Email
     const verifyUrl = `${appUrl}/verify-email?token=${token}`;
+
+    if (!emailUser || !emailPass) {
+      console.error('[API Send] SMTP credentials missing');
+      return res.status(500).json({ error: 'Email service configuration missing on server' });
+    }
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -104,15 +115,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const mailOptions = {
       from: `"BeeBridge" <${emailUser}>`,
       to: email,
-      subject: 'Confirm your signup - BeeBridge',
+      subject: isResend ? 'Resend: Confirm your signup - BeeBridge' : 'Confirm your signup - BeeBridge',
       html: generateVerificationEmail(email, verifyUrl),
     };
 
+    // 3. Send and Resolve
     await transporter.sendMail(mailOptions);
 
-    return res.status(200).json({ success: true, message: 'Verification email sent' });
+    console.log(`[API Send] Email successfully sent to ${email} (isResend: ${!!isResend})`);
+    return res.status(200).json({ 
+      success: true, 
+      message: isResend ? 'Verification email resent' : 'Verification email sent' 
+    });
+
   } catch (error: any) {
-    console.error('Send verification error:', error);
-    return res.status(500).json({ error: error.message || 'Internal server error' });
+    console.error('[API Send] Global error:', error);
+    return res.status(500).json({ error: error.message || 'Internal server error while sending email' });
   }
 }
