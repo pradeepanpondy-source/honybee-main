@@ -48,7 +48,9 @@ const Seller = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  // Removed unused selectedOption state to fix eslint error
+  // Location state — must be at top level (Rules of Hooks: no hooks after early returns)
+  const [locationState, setLocationState] = useState<'idle' | 'requesting' | 'denied'>('idle');
+  const [locationError, setLocationError] = useState('');
   const { user } = useAuth();
   const { seller, loading: sellerLoading, refreshSeller } = useSeller();
   const navigate = useNavigate();
@@ -597,9 +599,6 @@ const Seller = () => {
       </div>
     </form>
   );
-
-  const [locationState, setLocationState] = useState<'idle' | 'requesting' | 'denied'>('idle');
-  const [locationError, setLocationError] = useState('');
 
   const handleDetectLocation = () => {
     if (!navigator.geolocation) {
