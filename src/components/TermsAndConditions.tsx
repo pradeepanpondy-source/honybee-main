@@ -1,9 +1,60 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 
+/**
+ * TermsAndConditions — single centralized source for all T&C content.
+ *
+ * Navigation context is communicated via the `?from=` query parameter:
+ *   /terms-and-conditions?from=seller  → back to /seller
+ *   /terms-and-conditions?from=login   → back to /login
+ *   /terms-and-conditions?from=signup  → back to /signup (default)
+ *   /terms-and-conditions (no param)   → navigate(-1) with /signup fallback
+ */
 const TermsAndConditions: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get('from');
+
+  /** Determines the correct back destination based on context. */
+  const handleBack = () => {
+    if (from === 'seller') {
+      navigate('/seller');
+    } else if (from === 'login') {
+      navigate('/login');
+    } else if (from === 'signup') {
+      navigate('/signup');
+    } else if (from === 'checkout') {
+      navigate('/checkout');
+    } else {
+      // No explicit context — use browser history if available, else /signup
+      if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/signup');
+      }
+    }
+  };
+
+  /** Label for the back button based on context. */
+  const backLabel =
+    from === 'seller' ? 'Back to Registration' :
+    from === 'login'  ? 'Back to Login' :
+    from === 'checkout' ? 'Back to Checkout' :
+    'Back to Sign Up';
+
+  /** Primary CTA in the footer based on context. */
+  const handleFooterAction = () => {
+    if (from === 'seller') {
+      navigate('/seller');
+    } else {
+      navigate('/signup');
+    }
+  };
+
+  const footerActionLabel =
+    from === 'seller' ? 'I Understand — Continue Registration' :
+    'I Understand — Create Account';
 
   const sections = [
     {
@@ -126,13 +177,16 @@ Our total liability for any claim arising from these Terms or your use of BeeBri
       {/* Header */}
       <div className="bg-honeybee-secondary text-white py-12 px-4">
         <div className="max-w-4xl mx-auto">
+          {/* Smart back button */}
           <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm mb-6"
+            onClick={handleBack}
+            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm mb-6 group"
+            aria-label={backLabel}
           >
-            <ArrowLeft className="h-4 w-4" />
-            Go Back
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            {backLabel}
           </button>
+
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-honeybee-primary rounded-2xl flex items-center justify-center flex-shrink-0">
               <Shield className="h-7 w-7 text-white" />
@@ -153,7 +207,7 @@ Our total liability for any claim arising from these Terms or your use of BeeBri
       <div className="bg-amber-50 border-b border-amber-200">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <p className="text-sm text-amber-800 font-medium">
-            📋 Please read these Terms carefully before using BeeBridge. By creating an account, you agree to these terms.
+            📋 Please read these Terms carefully before using BeeBridge. By creating an account or registering as a seller, you agree to these terms.
           </p>
         </div>
       </div>
@@ -176,18 +230,26 @@ Our total liability for any claim arising from these Terms or your use of BeeBri
           ))}
         </div>
 
-        {/* Footer */}
+        {/* Footer CTA — context-aware */}
         <div className="mt-10 bg-honeybee-secondary rounded-2xl p-6 text-center text-white">
           <p className="font-bold text-lg mb-1">🐝 BeeBridge</p>
           <p className="text-white/70 text-sm">
             Farm-to-Home Honey Marketplace · Terms effective April 2026
           </p>
-          <button
-            onClick={() => navigate('/signup')}
-            className="mt-4 bg-honeybee-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:brightness-110 transition-all"
-          >
-            I Understand — Create Account
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
+            <button
+              onClick={handleBack}
+              className="bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-all"
+            >
+              {backLabel}
+            </button>
+            <button
+              onClick={handleFooterAction}
+              className="bg-honeybee-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:brightness-110 transition-all"
+            >
+              {footerActionLabel}
+            </button>
+          </div>
         </div>
       </div>
     </div>

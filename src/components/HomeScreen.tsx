@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import fndImage from '../assets/fnd.png';
 import heroBg from '../assets/hero-bg.png';
 import LetterWave from './LetterWave';
+import Testimonials from './Testimonials';
 import { X, Clock } from 'lucide-react';
 
 export default function HomeScreen() {
@@ -147,47 +148,8 @@ export default function HomeScreen() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl font-bold text-honeybee-dark mb-6">What Our Customers Say</h2>
-            <p className="text-base sm:text-lg text-gray-600">Hear from farmers, beekeepers, and honey lovers who trust Bee Bridge</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            <div className="bg-honeybee-light p-4 sm:p-6 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-honeybee-primary rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">JD</div>
-                <div className="ml-3 sm:ml-4">
-                  <h4 className="font-semibold text-honeybee-dark text-sm sm:text-base">John Doe</h4>
-                  <p className="text-xs sm:text-sm text-gray-600">Organic Farmer</p>
-                </div>
-              </div>
-              <p className="text-gray-700 italic text-sm sm:text-base">"Bee Bridge has revolutionized how I sell my honey. The platform is easy to use and connects me directly with consumers who appreciate quality."</p>
-            </div>
-            <div className="bg-honeybee-light p-4 sm:p-6 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-honeybee-primary rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">SM</div>
-                <div className="ml-3 sm:ml-4">
-                  <h4 className="font-semibold text-honeybee-dark text-sm sm:text-base">Sarah Miller</h4>
-                  <p className="text-xs sm:text-sm text-gray-600">Home Chef</p>
-                </div>
-              </div>
-              <p className="text-gray-700 italic text-sm sm:text-base">"The honey from Bee Bridge is pure and delicious. I love knowing it's sourced sustainably and supports local beekeepers."</p>
-            </div>
-            <div className="bg-honeybee-light p-4 sm:p-6 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-honeybee-primary rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">RB</div>
-                <div className="ml-3 sm:ml-4">
-                  <h4 className="font-semibold text-honeybee-dark text-sm sm:text-base">Robert Brown</h4>
-                  <p className="text-xs sm:text-sm text-gray-600">Beekeeper</p>
-                </div>
-              </div>
-              <p className="text-gray-700 italic text-sm sm:text-base">"Partnering with Bee Bridge has allowed me to focus on beekeeping while they handle the marketplace. It's a win-win for everyone."</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Testimonials — infinite scroll carousel */}
+      <Testimonials />
     </div>
   );
 }

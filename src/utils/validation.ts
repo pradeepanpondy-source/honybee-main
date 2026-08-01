@@ -43,7 +43,7 @@ export const sellerRegistrationSchema = z.object({
     email: z.string().email().transform(sanitizeInput),
     seller_type: z.enum(['honey', 'beehive']),
     phone: z.string().regex(/^\+?[\d\s-]{10,}$/, 'Invalid phone number').transform(sanitizeInput),
-    address: z.string().min(5).max(200).transform(sanitizeInput),
+    address: z.string().min(5).max(1000).transform(sanitizeInput),
     city: z.string().min(2).max(50).transform(sanitizeInput),
     state: z.string().min(2).max(50).transform(sanitizeInput),
     zip: z.string().regex(/^\d{5,6}$/, 'Invalid zip code').transform(sanitizeInput),

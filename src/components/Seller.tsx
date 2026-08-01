@@ -167,37 +167,29 @@ const Seller = () => {
     // Step 4: Location & Final Submit
     if (step === 4 && !formData.detectedAddress) {
       setMessage({ type: 'error', text: 'Please detect your location before submitting.' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     if (step === 4) {
-      // Final submission logic
       if (!user) {
         setMessage({ type: 'error', text: 'Please sign in to submit the application.' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         setTimeout(() => navigate('/login'), 2000);
         return;
       }
 
-      // Ensure session is active
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        setMessage({ type: 'error', text: 'Session expired. Please sign in again.' });
-        setTimeout(() => navigate('/login'), 2000);
-        return;
-      }
-
-      // const isValid = validateStep(1) && validateStep(2) && validateStep(3); // Re-validate all?
-      // Simpler: assume previous steps good if we are here.
+      setIsSubmitting(true);
+      setMessage(null);
 
       try {
-        setIsSubmitting(true); // Start loading
+        const effectiveSellerType = sellerType || 'honey';
 
-        // 1. Strict Input Validation & Sanitization
+        // 1. Validation
         const validationData = {
-          // ... existing validation construction
           name: sanitizeInput(formData.name),
           email: user.email,
-          seller_type: sellerType as 'honey' | 'beehive',
+          seller_type: effectiveSellerType as 'honey' | 'beehive',
           phone: sanitizeInput(formData.phone),
           address: sanitizeInput(formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}`),
           city: sanitizeInput(formData.city),
@@ -207,7 +199,9 @@ const Seller = () => {
 
         const validation = sellerRegistrationSchema.safeParse(validationData);
         if (!validation.success) {
-          setMessage({ type: 'error', text: validation.error.issues[0].message });
+          const errMsg = validation.error.issues[0]?.message || 'Validation failed. Please check your inputs.';
+          setMessage({ type: 'error', text: errMsg });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
           setIsSubmitting(false);
           return;
         }
@@ -216,48 +210,57 @@ const Seller = () => {
         let profilePicUrl = '';
         let idProofUrl = '';
 
-        // Upload profile picture to Supabase storage
+        // Upload profile picture to Supabase storage (graceful fallback)
         if (formData.profilePic) {
-          // Path: email/seller_id/data/filename
-          const profileFileName = `${user.email}/${sellerId}/data/profile_${Date.now()}.${formData.profilePic.name.split('.').pop()}`;
-          const { error: profileError } = await supabase.storage
-            .from('sellerid_details')
-            .upload(profileFileName, formData.profilePic);
+          try {
+            const ext = formData.profilePic.name.split('.').pop() || 'jpg';
+            const profileFileName = `${user.email}/${sellerId}/profile_${Date.now()}.${ext}`;
+            const { error: profileError } = await supabase.storage
+              .from('sellerid_details')
+              .upload(profileFileName, formData.profilePic, { upsert: true });
 
-          if (profileError) throw profileError;
-
-          const { data: profileData } = supabase.storage
-            .from('sellerid_details')
-            .getPublicUrl(profileFileName);
-
-          profilePicUrl = profileData.publicUrl;
+            if (!profileError) {
+              const { data: profileData } = supabase.storage
+                .from('sellerid_details')
+                .getPublicUrl(profileFileName);
+              profilePicUrl = profileData.publicUrl;
+            } else {
+              console.warn('[Seller] Profile pic upload warning:', profileError);
+            }
+          } catch (err) {
+            console.warn('[Seller] Profile pic upload catch:', err);
+          }
         }
 
-        // Upload ID proof to Supabase storage
+        // Upload ID proof to Supabase storage (graceful fallback)
         if (formData.idProof) {
-          const idFileName = `${user.email}/${sellerId}/data/id_${Date.now()}.${formData.idProof.name.split('.').pop()}`;
-          const { error: idError } = await supabase.storage
-            .from('sellerid_details')
-            .upload(idFileName, formData.idProof);
+          try {
+            const ext = formData.idProof.name.split('.').pop() || 'pdf';
+            const idFileName = `${user.email}/${sellerId}/id_${Date.now()}.${ext}`;
+            const { error: idError } = await supabase.storage
+              .from('sellerid_details')
+              .upload(idFileName, formData.idProof, { upsert: true });
 
-          if (idError) throw idError;
-
-          const { data: idData } = supabase.storage
-            .from('sellerid_details')
-            .getPublicUrl(idFileName);
-
-          idProofUrl = idData.publicUrl;
+            if (!idError) {
+              const { data: idData } = supabase.storage
+                .from('sellerid_details')
+                .getPublicUrl(idFileName);
+              idProofUrl = idData.publicUrl;
+            } else {
+              console.warn('[Seller] ID proof upload warning:', idError);
+            }
+          } catch (err) {
+            console.warn('[Seller] ID proof upload catch:', err);
+          }
         }
 
-        // Insert seller data
-        // Build payload dynamically to avoid failing if columns like lat/lng are missing 
-        // (Supabase will ignore extra fields if they don't exist, but we handle it safely here)
+        // Insert seller data into Supabase
         const insertData: any = {
           user_id: user.id,
           seller_id: sellerId,
           name: formData.name,
           email: user.email,
-          seller_type: sellerType,
+          seller_type: effectiveSellerType,
           phone: formData.phone,
           address: formData.detectedAddress || `${formData.city}, ${formData.state}, ${formData.zip}`,
           city: formData.city,
@@ -269,32 +272,26 @@ const Seller = () => {
           kyc_verified: false,
         };
 
-        // Only add coordinates if they were actually detected
         if (formData.latitude !== null) insertData.latitude = formData.latitude;
         if (formData.longitude !== null) insertData.longitude = formData.longitude;
 
-        const { error } = await supabase.from('sellers').insert([insertData]);
+        const { error: insertError } = await supabase.from('sellers').insert([insertData]);
 
-        if (error) {
-          console.error('[Seller] Insert error:', error);
-          throw error;
+        if (insertError) {
+          console.error('[Seller] Insert error:', insertError);
+          throw insertError;
         }
 
-        setMessage({ type: 'success', text: 'Seller registration submitted successfully! Your application will be reviewed.' });
-        
-        // CRITICAL FIX: Move to success step IMMEDIATELY. 
-        // Do not wait for secondary network checks which might hang.
+        setMessage({ type: 'success', text: 'Seller registration submitted successfully!' });
         setStep(5);
         localStorage.setItem('justRegisteredSeller', 'true');
-
-        // Trigger background refresh (don't await it to block UI)
         refreshSeller().catch(e => console.warn('[Seller] Background refresh failed:', e));
-        // navigate('/applications'); // Removed immediate navigation, let user see success screen
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error submitting application:', error);
-        setMessage({ type: 'error', text: `Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}` });
+        setMessage({ type: 'error', text: `Registration failed: ${error?.message || 'Unknown error'}` });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } finally {
-        setIsSubmitting(false); // Stop loading
+        setIsSubmitting(false);
       }
     }
   };
@@ -433,16 +430,26 @@ const Seller = () => {
           </p>
         )
       }
-      <label className="inline-flex items-center mb-4">
+      <label className="inline-flex items-start gap-2 mb-4 cursor-pointer">
         <input
           type="checkbox"
           name="acceptTerms"
           checked={formData.acceptTerms}
           onChange={handleChange}
-          // required
-          className="form-checkbox text-honeybee-primary"
+          className="form-checkbox text-honeybee-primary mt-0.5 flex-shrink-0"
         />
-        <span className="ml-2 text-sm text-gray-700">I Accept Terms & Conditions</span>
+        <span className="text-sm text-gray-700">
+          I accept the{' '}
+          <a
+            href="/terms-and-conditions?from=seller"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-honeybee-primary underline underline-offset-2 hover:text-honeybee-secondary transition-colors font-semibold"
+          >
+            Terms &amp; Conditions
+          </a>
+          {' '}of BeeBridge
+        </span>
       </label>
       {errors.acceptTerms && <p className="text-red-500 text-xs mb-4">{errors.acceptTerms}</p>}
 
@@ -591,82 +598,133 @@ const Seller = () => {
     </form>
   );
 
+  const [locationState, setLocationState] = useState<'idle' | 'requesting' | 'denied'>('idle');
+  const [locationError, setLocationError] = useState('');
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Your browser does not support geolocation. Please enter your address manually above.');
+      setLocationState('denied');
+      return;
+    }
+    setLocationState('requesting');
+    // Delay the native popup so the loading buffer renders first
+    setTimeout(() => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await response.json();
+            setFormData(prev => ({ ...prev, latitude, longitude, detectedAddress: data.display_name }));
+            setLocationState('idle');
+          } catch {
+            setLocationError('Could not detect address. Your coordinates were captured — you may proceed.');
+            setFormData(prev => ({ ...prev, latitude, longitude, detectedAddress: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` }));
+            setLocationState('idle');
+          }
+        },
+        (err) => {
+          let msg = 'Location access denied.';
+          if (err.code === err.PERMISSION_DENIED) msg = 'Location access denied. Please enable location in your browser settings or enter your address manually above.';
+          else if (err.code === err.POSITION_UNAVAILABLE) msg = 'Location information is unavailable. Please try again.';
+          else if (err.code === err.TIMEOUT) msg = 'Location request timed out. Please try again.';
+          setLocationError(msg);
+          setLocationState('denied');
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    }, 350);
+  };
+
   const renderLocation = () => (
     <div className="max-w-md mx-auto bg-white p-6 rounded shadow text-center">
       <h2 className="text-xl font-bold mb-4">Location Access</h2>
-      <p className="mb-6 text-gray-600">Please allow location access to verify your selling region and improve customer discovery.</p>
+      <p className="mb-6 text-gray-600 text-sm">
+        Allow location access to verify your selling region and improve customer discovery.
+      </p>
 
-      {!formData.detectedAddress ? (
-        <Button
-          onClick={() => {
-            if ("geolocation" in navigator) {
-              navigator.geolocation.getCurrentPosition(async (position) => {
-                const { latitude, longitude } = position.coords;
-                try {
-                  // Reverse geocoding implementation
-                  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-                  const data = await response.json();
-                  const address = data.display_name; // Or construct a shorter one
+      {/* Loading buffer — shown before browser popup appears */}
+      {locationState === 'requesting' && (
+        <div className="flex flex-col items-center gap-4 py-6 animate-fadeIn" role="status" aria-live="polite">
+          <div className="relative flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full border-4 border-honeybee-primary/20 border-t-honeybee-primary animate-spin" />
+            <svg className="absolute w-6 h-6 text-honeybee-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <p className="text-honeybee-secondary font-bold">Preparing location services…</p>
+          <p className="text-gray-500 text-sm">Your browser will ask for permission shortly.</p>
+          <div className="w-full space-y-2 opacity-40 mt-2">
+            <div className="h-2 bg-gray-200 rounded-full w-3/4 mx-auto animate-pulse" />
+            <div className="h-2 bg-gray-200 rounded-full w-1/2 mx-auto animate-pulse" />
+          </div>
+        </div>
+      )}
 
-                  setFormData(prev => ({
-                    ...prev,
-                    latitude,
-                    longitude,
-                    detectedAddress: address
-                  }));
+      {/* Denied state */}
+      {locationState === 'denied' && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-left animate-fadeIn">
+          <p className="text-red-700 font-semibold text-sm mb-1">⚠ Location Access Failed</p>
+          <p className="text-red-600 text-xs leading-relaxed">{locationError}</p>
+          <button
+            type="button"
+            onClick={() => { setLocationState('idle'); setLocationError(''); }}
+            className="mt-3 text-xs text-honeybee-primary underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
 
-                  // Auto-submit after detection
-                  // handleSubmit(new Event('submit') as any); // Trigger submit
-                } catch (error) {
-                  console.error("Geocoding error:", error);
-                  alert("Could not detect address. Please try again.");
-                }
-              }, (error) => {
-                console.error("Location error:", error);
-                alert("Location access denied. You can proceed without it.");
-              });
-            } else {
-              alert("Geolocation is not supported by your browser.");
-            }
-          }}
-          variant="primary"
-          className="w-full flex justify-center items-center gap-2 mb-4"
+      {/* Success — location detected */}
+      {!formData.detectedAddress && locationState === 'idle' && (
+        <button
+          type="button"
+          onClick={handleDetectLocation}
+          className="w-full bg-honeybee-primary text-white py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-honeybee-primary/90 transition-colors mb-4"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           Detect My Location
-        </Button>
-      ) : (
-        <div className="animate-fade-in">
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4">
-            <p className="text-green-800 font-semibold mb-1">Location Detected!</p>
-            <p className="text-gray-700 text-sm">{formData.detectedAddress}</p>
-          </div>
+        </button>
+      )}
+
+      {formData.detectedAddress && (
+        <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-4 text-left animate-fadeIn">
+          <p className="text-green-800 font-semibold mb-1">✓ Location Detected!</p>
+          <p className="text-gray-700 text-sm break-words">{formData.detectedAddress}</p>
+          <button
+            type="button"
+            onClick={() => { setFormData(prev => ({ ...prev, detectedAddress: '', latitude: null, longitude: null })); setLocationState('idle'); }}
+            className="mt-2 text-xs text-gray-500 underline"
+          >
+            Detect again
+          </button>
         </div>
       )}
 
       <div className="flex justify-between items-center gap-4 mt-4">
-        <button
-          type="button"
-          onClick={prevStep}
-          className="text-honeybee-primary underline"
-        >
+        <button type="button" onClick={prevStep} className="text-honeybee-primary underline text-sm">
           Back
         </button>
         <Button
           onClick={handleSubmit}
           variant="primary"
           className="flex-1"
-          disabled={isSubmitting} // Disable when submitting
+          disabled={isSubmitting || locationState === 'requesting'}
         >
-          {isSubmitting ? 'Processing...' : 'Complete Registration'}
+          {isSubmitting ? 'Processing…' : 'Complete Registration'}
         </Button>
       </div>
-
     </div>
   );
+
 
   const renderFinish = () => (
     <div className="max-w-md mx-auto bg-white p-8 rounded shadow text-center">

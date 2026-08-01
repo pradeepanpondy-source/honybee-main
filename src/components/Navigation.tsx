@@ -40,8 +40,9 @@ export default function Navigation() {
       }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 md:h-16">
+          {/* Logo — non-clickable branding element */}
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center group">
+            <div className="flex-shrink-0 flex items-center select-none" aria-label="Bee Bridge">
               <motion.div
                 initial="initial"
                 animate="animate"
@@ -71,7 +72,7 @@ export default function Navigation() {
                   Bridge
                 </motion.span>
               </motion.div>
-            </Link>
+            </div>
           </div>
 
           {/* Desktop menu */}

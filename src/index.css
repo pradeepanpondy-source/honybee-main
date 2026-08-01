@@ -95,6 +95,10 @@ h6 {
   filter: drop-shadow(0 0 8px rgba(233, 184, 36, 0.6));
 }
 
+.honey-gradient {
+  background: linear-gradient(135deg, #EAB308 0%, #f7be1d 100%);
+}
+
 /* Dripping Honey Animations */
 @keyframes wave {
 

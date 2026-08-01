@@ -18,7 +18,9 @@ export const supabase = createClient(
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+      storageKey: 'beebridge_auth_token',
     }
   }
 )

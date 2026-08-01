@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase';
 import { useSeller } from '../hooks/useSeller';
 import { Order } from '../types/order';
 import SellerLayout from './SellerLayout';
+import OrderReceipt, { ReceiptData } from './OrderReceipt';
+import { X, Receipt } from 'lucide-react';
 
 const Orders = () => {
     const { user } = useAuth();
@@ -23,10 +25,20 @@ const Orders = () => {
           id,
           user_id,
           total,
+          discount,
+          discounted_total,
+          coupon,
           status,
           created_at,
           customer_email,
           customer_name,
+          payment_method,
+          payment_status,
+          receipt_number,
+          shipping_address,
+          estimated_delivery,
+          tax,
+          shipping_charge,
           order_items ( id, product_id, name, price, quantity )
         `)
                 .eq('seller_id', sellerProfile.id)
@@ -43,6 +55,16 @@ const Orders = () => {
                 createdAt: new Date(order.created_at),
                 customerEmail: order.customer_email,
                 customerName: order.customer_name,
+                // Extra fields for receipt
+                discount: order.discounted_total ? order.total - order.discounted_total : 0,
+                coupon: order.coupon,
+                paymentMethod: order.payment_method || 'COD',
+                paymentStatus: order.payment_status || 'pending',
+                receiptNumber: order.receipt_number || `BB-${order.id.split('-')[0].toUpperCase()}`,
+                shippingAddress: order.shipping_address,
+                estimatedDelivery: order.estimated_delivery,
+                tax: order.tax || 0,
+                shippingCharge: order.shipping_charge || 0,
             }));
 
             setOrders(transformedOrders);
@@ -80,6 +102,30 @@ const Orders = () => {
     const filteredOrders = filterStatus === 'all'
         ? orders
         : orders.filter(o => o.status === filterStatus);
+
+    const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
+
+    const openReceipt = (order: any) => {
+        setSelectedReceipt({
+            orderId: order.id,
+            receiptNumber: order.receiptNumber,
+            orderDate: order.createdAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }),
+            customerName: order.customerName || 'Customer',
+            customerEmail: order.customerEmail || '',
+            items: order.items,
+            subtotal: order.total,
+            discount: order.discount || 0,
+            couponCode: order.coupon,
+            tax: order.tax || 0,
+            shippingCharge: order.shippingCharge || 0,
+            grandTotal: order.total - (order.discount || 0) + (order.tax || 0) + (order.shippingCharge || 0),
+            paymentMethod: order.paymentMethod,
+            paymentStatus: order.paymentStatus,
+            orderStatus: order.status,
+            shippingAddress: order.shippingAddress,
+            estimatedDelivery: order.estimatedDelivery ? new Date(order.estimatedDelivery).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : undefined,
+        });
+    };
 
     if (loading) {
         return (
@@ -140,8 +186,15 @@ const Orders = () => {
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Total</p>
-                                            <p className="text-sm font-black text-honeybee-accent">₹{order.total.toFixed(2)}</p>
+                                            <p className="text-sm font-black text-honeybee-accent">₹{((order.total - (order.discount || 0))).toFixed(2)}</p>
                                         </div>
+                                        <button
+                                            onClick={() => openReceipt(order)}
+                                            className="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors shadow-sm"
+                                        >
+                                            <Receipt className="w-3.5 h-3.5" />
+                                            View Receipt
+                                        </button>
                                     </div>
                                 </div>
 
@@ -206,6 +259,21 @@ const Orders = () => {
                     )}
                 </div>
             </div>
+
+            {/* Receipt Modal */}
+            {selectedReceipt && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                    <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl my-auto">
+                        <button
+                            onClick={() => setSelectedReceipt(null)}
+                            className="absolute top-4 right-4 z-10 p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors no-print"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <OrderReceipt data={selectedReceipt} />
+                    </div>
+                </div>
+            )}
         </SellerLayout>
     );
 };

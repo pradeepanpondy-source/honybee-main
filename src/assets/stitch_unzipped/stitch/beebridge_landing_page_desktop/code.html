@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BeeBridge | Bridge the Gap</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "surface-container-low": "#f5f4ec",
+                "outline-variant": "#d3c5ac",
+                "on-secondary-fixed": "#2c160e",
+                "tertiary-fixed": "#e9e2d0",
+                "on-surface-variant": "#4f4633",
+                "surface-container-high": "#eae8e0",
+                "surface-container-highest": "#e4e3db",
+                "tertiary-fixed-dim": "#ccc6b4",
+                "primary-fixed": "#ffdf9a",
+                "on-tertiary-fixed-variant": "#4a4739",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#f7be1d",
+                "on-secondary-fixed-variant": "#5d4037",
+                "on-surface": "#1b1c17",
+                "surface-container-lowest": "#ffffff",
+                "on-primary-container": "#604700",
+                "on-error": "#ffffff",
+                "on-primary-fixed-variant": "#5a4300",
+                "on-primary-fixed": "#251a00",
+                "on-secondary-container": "#795950",
+                "outline": "#817660",
+                "secondary-container": "#fed3c7",
+                "surface-dim": "#dcdad2",
+                "surface-bright": "#fbf9f1",
+                "secondary-fixed-dim": "#e7bdb1",
+                "inverse-surface": "#30312c",
+                "primary-container": "#eab308",
+                "secondary": "#77574d",
+                "on-tertiary-fixed": "#1e1c10",
+                "inverse-primary": "#f7be1d",
+                "tertiary": "#625e50",
+                "surface-variant": "#e4e3db",
+                "inverse-on-surface": "#f3f1e9",
+                "primary": "#785a00",
+                "surface-container": "#f0eee6",
+                "secondary-fixed": "#ffdbd0",
+                "on-primary": "#ffffff",
+                "on-secondary": "#ffffff",
+                "on-error-container": "#93000a",
+                "surface": "#fbf9f1",
+                "on-tertiary": "#ffffff",
+                "error-container": "#ffdad6",
+                "background": "#fbf9f1",
+                "on-background": "#1b1c17",
+                "on-tertiary-container": "#4e4b3d",
+                "tertiary-container": "#c1bbaa",
+                "surface-tint": "#785a00"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "1.5rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Noto Serif"],
+                "body": ["Plus Jakarta Sans"],
+                "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fbf9f1; color: #1b1c17; }
+        .font-serif { font-family: 'Noto Serif', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .honey-gradient { background: linear-gradient(135deg, #EAB308 0%, #f7be1d 100%); }
+    </style>
+</head>
+<body class="bg-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-stone-50/70 backdrop-blur-xl shadow-sm h-20">
+<div class="flex justify-between items-center max-w-7xl mx-auto px-8 h-full">
+<div class="text-2xl font-serif italic text-amber-600">BeeBridge</div>
+<div class="hidden md:flex items-center gap-10">
+<a class="text-amber-600 border-b-2 border-amber-500 pb-1 font-semibold text-sm tracking-wide" href="#">Home</a>
+<a class="text-stone-600 hover:text-stone-900 transition-colors text-sm tracking-wide" href="#">Features</a>
+<a class="text-stone-600 hover:text-stone-900 transition-colors text-sm tracking-wide" href="#">Sign In</a>
+</div>
+<button class="honey-gradient text-on-primary-fixed px-6 py-2.5 rounded-full font-semibold text-sm transition-all hover:opacity-90">
+                Join Sanctuary
+            </button>
+</div>
+</nav>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+<!-- Background Decorative Element (Subtle Asymmetry) -->
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-surface-container-low rounded-full opacity-50 blur-3xl"></div>
+<div class="absolute bottom-24 -left-24 w-[32rem] h-[32rem] bg-surface-container-high rounded-full opacity-30 blur-3xl"></div>
+<div class="relative z-10 max-w-4xl mx-auto">
+<h1 class="font-serif text-6xl md:text-8xl text-on-surface leading-[1.1] mb-8">
+                    Bridge the <span class="italic text-primary">Gap.</span>
+</h1>
+<p class="font-body text-lg md:text-xl text-on-surface-variant max-w-xl mx-auto mb-12 leading-relaxed">
+                    Seamless connections, simple solutions. We curate space for growth and meaningful integration in an artisanal digital sanctuary.
+                </p>
+<div class="flex flex-col md:flex-row items-center justify-center gap-6">
+<button class="honey-gradient text-on-primary-fixed px-10 py-4 rounded-full font-bold text-lg shadow-xl shadow-primary-container/10 transition-transform hover:-translate-y-1">
+                        Get Started
+                    </button>
+<button class="text-on-surface-variant font-semibold text-base px-8 py-4 rounded-full hover:bg-surface-container-low transition-colors">
+                        Explore Features
+                    </button>
+</div>
+</div>
+</section>
+<!-- Artisanal Content Block: Asymmetric Layout -->
+<section class="py-24 bg-surface">
+<div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center gap-20">
+<div class="w-full md:w-1/2 relative">
+<div class="aspect-[4/5] bg-surface-container-highest rounded-2xl overflow-hidden shadow-2xl">
+<img alt="Professional minimalist office space" class="w-full h-full object-cover" data-alt="Modern minimalist home office with natural wood desk, warm golden hour sunlight streaming through window, cream colored walls and artisanal pottery" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9qKHEb4iu2ymH3XgLQ5_atMdFdMBWfWymnSbRMap7SbLh7xfq3c5aBOXXTsnG0x3vZRBJbvtnqgE2mMFpxMiWBA117MLczCIAlP_kHm3dvADuNkzI_CuLUNUGsgz858iW2ahTXzt_ubfk0RxGJA7bhagRlKdGIs5cHZazZxnE1pu1MwUt4AgQoCn6nRATvXfoj3YIGzd2FjOuCKUdSMf2IGWveNNKquJC-pkQ181-_zFrm14y_xE7McEKtJB57eM0PiVsA4EF1cdr"/>
+</div>
+<!-- Overlapping Chip -->
+<div class="absolute -bottom-6 -right-6 bg-surface-container-lowest p-8 rounded-xl shadow-lg border border-outline-variant/10 max-w-xs">
+<span class="material-symbols-outlined text-primary text-4xl mb-4" data-icon="filter_vintage">filter_vintage</span>
+<p class="font-serif text-lg leading-snug text-on-surface">"Crafted with the patience of nature itself."</p>
+</div>
+</div>
+<div class="w-full md:w-1/2">
+<span class="text-primary font-bold tracking-widest text-xs uppercase mb-4 block">The Philosophy</span>
+<h2 class="font-serif text-4xl md:text-5xl text-on-surface mb-8 leading-tight">Connections aren't built; they're nurtured.</h2>
+<div class="space-y-6 text-on-surface-variant leading-relaxed text-lg">
+<p>We've stripped away the noise of traditional platforms to leave only what matters. Our interface is designed to breathe, giving your goals the space they need to thrive.</p>
+<div class="italic border-l-4 border-primary-fixed pl-6 py-2 headline-sm font-serif">
+                            "Technology should feel like a well-crafted tool, not a constant distraction."
+                        </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Simple Solutions -->
+<section class="py-32 bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-8">
+<div class="mb-20">
+<h2 class="font-serif text-4xl text-on-surface">Simple Solutions.</h2>
+<p class="text-on-surface-variant mt-2">Three pillars of our artisanal approach.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Feature 1 -->
+<div class="md:col-span-8 bg-surface-container-lowest p-12 rounded-3xl flex flex-col justify-between group hover:shadow-2xl transition-all duration-500">
+<div>
+<div class="w-12 h-12 bg-primary-container/20 rounded-xl flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-primary" data-icon="hub">hub</span>
+</div>
+<h3 class="font-serif text-3xl mb-4">Unified Network</h3>
+<p class="text-on-surface-variant text-lg max-w-md">Connect all your fragmented channels into a single, cohesive stream of productivity without the clutter.</p>
+</div>
+<div class="mt-12 overflow-hidden rounded-xl h-48">
+<img alt="Abstract connection" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Abstract macro photography of golden honeycomb patterns with soft depth of field and warm ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCtUAtqwDDqjI_GfqRSr49hrxfSvf9Za5Rcx_QW25zhcYSt7CNbpr8ZhqVNWFaVYNjRuDJGUIBy4XLJM1yNPLyyXsHPgkfE_K273rqB-6x5rfxEYf6VCWg0TYv7mOgDVHQm-XmHd9DznEko4PvdRJXqaZ2VfdmTMspdOqynNpJy_XSaPe4NFdIVB9mtSJaha9zfSMEuGsDQdmPSudIXAbj6Rcom6JYMAoz99PvKBbW4qUVpjY392L1cziZe1xpB5EUfHlkjnG0RJR2"/>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="md:col-span-4 bg-primary text-on-primary p-12 rounded-3xl flex flex-col">
+<div class="w-12 h-12 bg-on-primary/10 rounded-xl flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<h3 class="font-serif text-3xl mb-4">Pure Intent</h3>
+<p class="text-primary-fixed/80 text-lg">Automated tasks that respect your focus. We handle the bridge while you walk across it.</p>
+<div class="mt-auto pt-12">
+<button class="bg-surface-container-lowest text-primary px-6 py-3 rounded-full font-bold text-sm">Learn More</button>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="md:col-span-12 bg-surface-container-highest p-12 rounded-3xl flex flex-col md:flex-row items-center gap-12">
+<div class="w-full md:w-1/2">
+<h3 class="font-serif text-3xl mb-4">Quiet Confidence</h3>
+<p class="text-on-surface-variant text-lg">Our security is silent but absolute. Encrypted at the source, curated for your peace of mind.</p>
+<div class="flex gap-4 mt-8">
+<span class="bg-surface-container-high px-4 py-2 rounded-md text-sm font-medium text-on-surface">Encrypted</span>
+<span class="bg-surface-container-high px-4 py-2 rounded-md text-sm font-medium text-on-surface">Private</span>
+<span class="bg-surface-container-high px-4 py-2 rounded-md text-sm font-medium text-on-surface">Secure</span>
+</div>
+</div>
+<div class="w-full md:w-1/2 grid grid-cols-2 gap-4">
+<div class="aspect-square rounded-2xl bg-surface-container-low"></div>
+<div class="aspect-square rounded-2xl bg-surface-container-low translate-y-8"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-32 bg-surface">
+<div class="max-w-5xl mx-auto px-8 text-center">
+<h2 class="font-serif text-5xl text-on-surface mb-8">Ready to cross?</h2>
+<p class="text-xl text-on-surface-variant mb-12 max-w-2xl mx-auto">Join the sanctuary today and experience the difference of a platform built with patience and intent.</p>
+<button class="honey-gradient text-on-primary-fixed px-12 py-5 rounded-full font-bold text-xl transition-all hover:scale-105 active:scale-95 shadow-xl shadow-primary-container/20">
+                    Get Started Now
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 border-t border-stone-200/30 bg-stone-100">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto px-8 gap-6">
+<div class="font-serif text-lg text-stone-800">BeeBridge</div>
+<p class="font-sans text-sm tracking-wide text-stone-500">© 2024 BeeBridge. Crafted with patience.</p>
+<div class="flex gap-8">
+<a class="text-stone-400 hover:text-amber-500 transition-all hover:underline decoration-amber-500/30 text-sm" href="#">Privacy</a>
+<a class="text-stone-400 hover:text-amber-500 transition-all hover:underline decoration-amber-500/30 text-sm" href="#">Terms</a>
+<a class="text-stone-400 hover:text-amber-500 transition-all hover:underline decoration-amber-500/30 text-sm" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</body></html>

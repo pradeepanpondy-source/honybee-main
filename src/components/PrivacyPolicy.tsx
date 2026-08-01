@@ -1,9 +1,35 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Lock } from 'lucide-react';
 
 const PrivacyPolicy: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get('from');
+
+  /** Navigate back with proper fallback — prevents blank screen on direct URL visit. */
+  const handleBack = () => {
+    if (from === 'seller') {
+      navigate('/seller');
+    } else if (from === 'login') {
+      navigate('/login');
+    } else if (from === 'signup') {
+      navigate('/signup');
+    } else {
+      // Use browser history when available; graceful fallback otherwise
+      if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/signup');
+      }
+    }
+  };
+
+  const backLabel =
+    from === 'seller' ? 'Back to Registration' :
+    from === 'login'  ? 'Back to Login' :
+    'Back to Sign Up';
+
 
   const sections = [
     {
@@ -179,11 +205,12 @@ We are committed to resolving privacy concerns promptly and transparently.`,
       <div className="bg-honeybee-secondary text-white py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm mb-6"
+            onClick={handleBack}
+            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm mb-6 group"
+            aria-label={backLabel}
           >
-            <ArrowLeft className="h-4 w-4" />
-            Go Back
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            {backLabel}
           </button>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-honeybee-primary rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -242,10 +269,10 @@ We are committed to resolving privacy concerns promptly and transparently.`,
               Terms &amp; Conditions
             </button>
             <button
-              onClick={() => navigate('/signup')}
+              onClick={handleBack}
               className="bg-honeybee-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:brightness-110 transition-all"
             >
-              Create Account
+              {backLabel}
             </button>
           </div>
         </div>
