@@ -179,16 +179,13 @@ const Testimonials: React.FC = () => {
       <div
         className="relative w-full select-none"
         onMouseEnter={pause}
-        onMouseLeave={isDragging ? undefined : resume}
+        onMouseLeave={() => { endDrag(); if (!isDragging) resume(); }}
         onFocus={pause}
         onBlur={resume}
         onWheel={handleWheel}
-        // Mouse drag
         onMouseDown={(e) => startDrag(e.clientX)}
         onMouseMove={(e) => moveDrag(e.clientX)}
         onMouseUp={endDrag}
-        onMouseLeave={endDrag}
-        // Touch drag
         onTouchStart={(e) => startDrag(e.touches[0].clientX)}
         onTouchMove={(e) => moveDrag(e.touches[0].clientX)}
         onTouchEnd={endDrag}
