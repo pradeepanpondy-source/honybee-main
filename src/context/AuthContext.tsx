@@ -38,7 +38,7 @@ const toUser = (u: { id: string; email?: string | null; user_metadata?: Record<s
 });
 
 // ── Helper: wait for supabase.auth.getSession() with a timeout ─────────────
-const getSessionWithTimeout = async (ms = 6000) => {
+const getSessionWithTimeout = async (ms = 12000) => {
   const timeoutPromise = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new Error('getSession timed out')), ms)
   );
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const restoreSession = useCallback(async () => {
     console.debug('[Auth] Restoring session…');
     try {
-      const { data: { session } } = await getSessionWithTimeout(6000) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
+      const { data: { session } } = await getSessionWithTimeout(12000) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
 
       if (session?.user) {
         console.debug('[Auth] Session found for', session.user.email);
@@ -100,12 +100,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
       }
     } catch (err) {
-      console.warn('[Auth] Session restore error:', err);
-      setUser(null);
+      console.warn('[Auth] Session restore fallback:', err);
+      // Fallback: check local storage token directly so users stay logged in even if network is slow
+      try {
+        const rawToken = localStorage.getItem('beebridge_auth_token') || localStorage.getItem('sb-uigjzcwdyfulrmmeyeys-auth-token');
+        if (rawToken) {
+          const parsed = JSON.parse(rawToken);
+          if (parsed?.user) {
+            setUser(toUser(parsed.user));
+          }
+        }
+      } catch (e) {
+        // Ignored
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setUser]);
 
   useEffect(() => {
     // Hard upper-bound timeout so the app never hangs indefinitely
@@ -139,28 +150,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const u = session.user;
+        const loggedInUser = toUser(u);
 
-        // Auto-create profile for Google sign-ins detected by listener
-        if (event === 'SIGNED_IN' && u.app_metadata?.provider === 'google') {
-          try {
-            await supabase.from('user_profiles').upsert(
-              { user_id: u.id, provider: 'google', is_verified: true },
-              { onConflict: 'user_id' }
-            );
-          } catch (e) {
-            console.error('[Auth] Error upserting Google profile:', e);
-          }
-        }
-
-        const verified = await isEmailVerified(u.id);
-        if (!verified) {
-          console.debug('[Auth] Listener: user not verified — signing out');
-          await supabase.auth.signOut();
-          setUser(null);
-        } else {
-          setUser(toUser(u));
-        }
+        // Update user state immediately to avoid UI hanging on login screen
+        setUser(loggedInUser);
         setLoading(false);
+
+        // Handle Google user profile sync in background
+        (async () => {
+          const isGoogle = u.app_metadata?.provider === 'google' || u.app_metadata?.providers?.includes('google');
+          if (isGoogle) {
+            try {
+              await supabase.from('user_profiles').upsert(
+                { user_id: u.id, provider: 'google', is_verified: true },
+                { onConflict: 'user_id' }
+              );
+            } catch (e) {
+              console.error('[Auth] Error upserting Google profile:', e);
+            }
+          }
+
+          const verified = await isEmailVerified(u.id);
+          if (!verified) {
+            console.debug('[Auth] Listener: user not verified — signing out');
+            await supabase.auth.signOut();
+            setUser(null);
+          }
+        })();
       }
     );
 
@@ -168,7 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
       clearTimeout(safetyTimer);
     };
-  }, [restoreSession]);
+  }, [restoreSession, setUser]);
 
   // ── signInWithEmail ───────────────────────────────────────────────────────
   const signInWithEmail = async (email: string, password: string): Promise<User> => {
@@ -239,8 +255,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Fire-and-forget background tasks
         (async () => {
           try {
-            // 1. Trigger custom verification email
-            // (Note: The API route now handles the user_profile upsert internally)
             const controller = new AbortController();
             const fetchTimeout = setTimeout(() => controller.abort(), 5000);
             
@@ -257,7 +271,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             clearTimeout(fetchTimeout);
 
-            // 2. Force sign-out (session is created by default on signup)
+            // Force sign-out
             await supabase.auth.signOut();
           } catch (e) {
             console.error('[Auth] Background signup email trigger failed:', e);
@@ -274,7 +288,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // ── Google OAuth ──────────────────────────────────────────────────────────
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/home`,
+      },
+    });
     if (error) throw error;
   };
 
