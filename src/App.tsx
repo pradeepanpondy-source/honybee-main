@@ -14,6 +14,7 @@ import Profile from "./components/Profile";
 import Seller from "./components/Seller";
 import Applications from "./components/Applications";
 import Orders from './components/Orders';
+import MyOrders from './components/MyOrders';
 import Subscription from "./components/Subscription";
 import Settings from './components/Settings';
 import SellerProducts from './components/SellerProducts';
@@ -78,6 +79,7 @@ function AppRoutes() {
       <Route path="/cart"         element={user ? <PageLayout><CartPage /></PageLayout>              : <Navigate to="/login" />} />
       <Route path="/checkout"     element={user ? <PageLayout><Checkout /></PageLayout>              : <Navigate to="/login" />} />
       <Route path="/profile"      element={user ? <PageLayout><Profile /></PageLayout>               : <Navigate to="/login" />} />
+      <Route path="/my-orders"    element={user ? <PageLayout><MyOrders /></PageLayout>              : <Navigate to="/login" />} />
       <Route path="/subscription" element={user ? <PageLayout><Subscription /></PageLayout>          : <Navigate to="/login" />} />
       <Route path="/seller"       element={user ? <PageLayout backgroundImage={sellerBackground}><Seller /></PageLayout> : <Navigate to="/login" />} />
       <Route path="/product/beehive" element={user ? <PageLayout><ProductDetails /></PageLayout>    : <Navigate to="/login" />} />

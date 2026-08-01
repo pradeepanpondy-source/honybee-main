@@ -135,6 +135,13 @@ export default function Navigation() {
                       transition={{ duration: 0.3, ease: "easeOut" }}
                       className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-honeybee-primary/5 overflow-hidden z-[100]"
                     >
+                      <Link
+                        to="/my-orders"
+                        className="block w-full text-left px-6 py-4 text-sm font-black uppercase tracking-widest text-honeybee-secondary hover:bg-honeybee-primary hover:text-white transition-all duration-300 hover:pl-8 active:scale-95 border-b border-gray-100"
+                        onClick={() => setIsSettingsOpen(false)}
+                      >
+                        My Orders
+                      </Link>
                       <button
                         className="block w-full text-left px-6 py-4 text-sm font-black uppercase tracking-widest text-honeybee-secondary hover:bg-honeybee-primary hover:text-white transition-all duration-300 hover:pl-8 active:scale-95"
                         onClick={async (e) => {
@@ -182,6 +189,7 @@ export default function Navigation() {
                 { name: 'Seller', path: '/seller' },
                 { name: 'Contact', path: '/contact' },
                 { name: 'Subscription', path: '/subscription' },
+                { name: 'My Orders', path: '/my-orders' },
                 { name: 'Settings', path: '/settings' },
               ].map((link) => (
                 <Link

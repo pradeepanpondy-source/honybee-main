@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import Button from './Button';
@@ -24,6 +25,7 @@ const generateReceiptNumber = () => {
 const Checkout: React.FC = () => {
   const { cartItems, getTotal, clearCart } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [coupon, setCoupon]         = useState('');
   const [discount, setDiscount]     = useState(0);
@@ -149,6 +151,7 @@ const Checkout: React.FC = () => {
 
     try {
       const createdOrderIds: string[] = [];
+      const customerName = user.name || user.email?.split('@')[0] || 'Customer';
 
       for (const sellerId in ordersBySeller) {
         const sellerItems  = ordersBySeller[sellerId];
@@ -167,7 +170,7 @@ const Checkout: React.FC = () => {
             discount:         discount > 0 ? sellerDisc / sellerTotal : undefined,
             status:           'pending',
             customer_email:   user.email,
-            customer_name:    (user as any)?.user_metadata?.name || user.email?.split('@')[0] || 'Customer',
+            customer_name:    customerName,
             payment_method:   'COD',
             payment_status:   'pending',
             receipt_number:   receiptNumber,
@@ -194,7 +197,6 @@ const Checkout: React.FC = () => {
       }
 
       // Build receipt data for display
-      const customerName = (user as any)?.user_metadata?.name || user.email?.split('@')[0] || 'Customer';
       const receipt: ReceiptData = {
         receiptNumber,
         orderId:          createdOrderIds.join(', '),
@@ -257,6 +259,7 @@ const Checkout: React.FC = () => {
 
         <OrderReceipt
           data={receiptData}
+          onClose={() => navigate('/my-orders')}
           onEmailResend={() => sendReceiptEmail(receiptData)}
           emailSending={emailSending}
         />
