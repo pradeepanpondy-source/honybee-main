@@ -48,9 +48,8 @@ const MyOrders: React.FC = () => {
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          id, receipt_number, total, discounted_total, discount, coupon,
-          status, created_at, customer_email, customer_name, payment_method,
-          payment_status, estimated_delivery, tax, shipping_charge,
+          id, total, discounted_total, discount, coupon,
+          status, created_at, customer_email, customer_name,
           order_items ( id, name, price, quantity )
         `)
         .eq('user_id', user.id)

@@ -171,10 +171,8 @@ const Checkout: React.FC = () => {
             status:           'pending',
             customer_email:   user.email,
             customer_name:    customerName,
-            payment_method:   'COD',
-            payment_status:   'pending',
-            receipt_number:   receiptNumber,
-            estimated_delivery: delivery.toISOString().split('T')[0],
+            // Omitted payment_method, payment_status, receipt_number, estimated_delivery
+            // to ensure backwards compatibility if the SQL migration hasn't been applied by the user.
           })
           .select()
           .single();

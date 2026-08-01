@@ -32,13 +32,6 @@ const Orders = () => {
           created_at,
           customer_email,
           customer_name,
-          payment_method,
-          payment_status,
-          receipt_number,
-          shipping_address,
-          estimated_delivery,
-          tax,
-          shipping_charge,
           order_items ( id, product_id, name, price, quantity )
         `)
                 .eq('seller_id', sellerProfile.id)
