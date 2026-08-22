@@ -30,6 +30,8 @@ const Button: React.FC<ButtonProps> = ({
   const [rippleStyle, setRippleStyle] = useState({});
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (props.disabled) return;                 // honour disabled prop
+
     const button = e.currentTarget;
     const rect = button.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height);

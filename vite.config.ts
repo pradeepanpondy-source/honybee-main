@@ -22,5 +22,14 @@ export default defineConfig({
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
     },
+    // Proxy /api/* to the local Express dev server (server.mjs)
+    // In production (Vercel), /api/* is handled by the api/ serverless functions.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });

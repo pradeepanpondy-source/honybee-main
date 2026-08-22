@@ -36,6 +36,10 @@ const Checkout: React.FC = () => {
   const [emailSending, setEmailSending] = useState(false);
   const [emailStatus, setEmailStatus]   = useState<'idle' | 'sent' | 'error'>('idle');
 
+  // Payment processing guard — prevents double-click
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+
   const total           = getTotal();
   const discountAmount  = total * discount;
   const discountedTotal = total - discountAmount;
@@ -113,6 +117,7 @@ const Checkout: React.FC = () => {
 
   // ── Place order ────────────────────────────────────────────
   const handlePlaceOrder = async () => {
+    if (isProcessing) return;                        // double-click guard
     if (!user) { alert('Please log in to place an order.'); return; }
     if (cartItems.length === 0) { alert('Your cart is empty.'); return; }
 
@@ -129,6 +134,93 @@ const Checkout: React.FC = () => {
       }
     }
 
+    const amountInPaise = Math.round(discountedTotal * 100);
+    if (amountInPaise < 100) {
+      alert('Order amount must be at least ₹1.00');
+      return;
+    }
+
+    const receiptNumber = generateReceiptNumber();
+    setIsProcessing(true);
+    setPaymentError('');
+
+    try {
+      // STEP 1 — Create Razorpay order on backend
+      const res = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: amountInPaise, currency: 'INR', receipt: receiptNumber }),
+      });
+      const orderDataApi = await res.json();
+
+      if (!res.ok) {
+        throw new Error(orderDataApi.error || 'Failed to create payment order.');
+      }
+
+      // STEP 2 — Open Razorpay checkout modal
+      const options = {
+        key:         import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount:      orderDataApi.amount,
+        currency:    orderDataApi.currency,
+        name:        'Bee Bridge',
+        description: 'Pure Honey Order',
+        order_id:    orderDataApi.order_id,
+        handler: async function (response: any) {
+          // STEP 3 — Verify signature on backend
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id:   response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature:  response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+
+            if (!verifyRes.ok) {
+              setPaymentError(`Payment verification failed: ${verifyData.error}`);
+              setIsProcessing(false);
+              return;
+            }
+
+            // STEP 4 — Signature valid → save order & show receipt
+            await saveOrderToDatabase(receiptNumber, response.razorpay_payment_id);
+          } catch (err: any) {
+            console.error('[Checkout] Verification error:', err);
+            setPaymentError('Payment verification encountered an error. Please contact support.');
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name:  user.name || user.email?.split('@')[0] || 'Customer',
+          email: user.email ?? '',
+        },
+        theme: { color: '#f5a623' },
+        modal: {
+          ondismiss: () => {
+            setPaymentError('Payment was cancelled. You can try again anytime.');
+            setIsProcessing(false);
+          },
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', (response: any) => {
+        setPaymentError(`Payment failed: ${response.error.description}`);
+        setIsProcessing(false);
+      });
+      rzp.open();
+
+    } catch (error: any) {
+      console.error('[Checkout] Error initiating payment:', error);
+      setPaymentError(error.message || 'Something went wrong. Please try again.');
+      setIsProcessing(false);
+    }
+  };
+
+  const saveOrderToDatabase = async (receiptNumber: string, paymentId: string) => {
     // Group by seller
     const ordersBySeller = cartItems.reduce((acc, item) => {
       const sid = item.seller_id;
@@ -137,7 +229,6 @@ const Checkout: React.FC = () => {
       return acc;
     }, {} as Record<string, CartItem[]>);
 
-    const receiptNumber = generateReceiptNumber();
     const orderDate = new Date().toLocaleDateString('en-IN', {
       day: '2-digit', month: 'long', year: 'numeric',
     });
@@ -151,7 +242,7 @@ const Checkout: React.FC = () => {
 
     try {
       const createdOrderIds: string[] = [];
-      const customerName = user.name || user.email?.split('@')[0] || 'Customer';
+      const customerName = user?.name || user?.email?.split('@')[0] || 'Customer';
 
       for (const sellerId in ordersBySeller) {
         const sellerItems  = ordersBySeller[sellerId];
@@ -162,17 +253,15 @@ const Checkout: React.FC = () => {
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
           .insert({
-            user_id:          user.id,
+            user_id:          user?.id,
             seller_id:        sellerId,
             total:            sellerTotal,
             discounted_total: discount > 0 ? sellerFinal : undefined,
             coupon:           discount > 0 ? coupon.toUpperCase() : undefined,
             discount:         discount > 0 ? sellerDisc / sellerTotal : undefined,
-            status:           'pending',
-            customer_email:   user.email,
+            status:           'paid',
+            customer_email:   user?.email,
             customer_name:    customerName,
-            // Omitted payment_method, payment_status, receipt_number, estimated_delivery
-            // to ensure backwards compatibility if the SQL migration hasn't been applied by the user.
           })
           .select()
           .single();
@@ -200,7 +289,7 @@ const Checkout: React.FC = () => {
         orderId:          createdOrderIds.join(', '),
         orderDate,
         customerName,
-        customerEmail:    user.email ?? '',
+        customerEmail:    user?.email ?? '',
         items:            cartItems.map(i => ({ name: i.name, price: i.price, quantity: i.quantity })),
         subtotal:         total,
         discount:         discountAmount,
@@ -208,15 +297,16 @@ const Checkout: React.FC = () => {
         tax:              0,
         shippingCharge:   0,
         grandTotal:       discountedTotal,
-        paymentMethod:    'Cash on Delivery',
-        paymentStatus:    'pending',
-        orderStatus:      'pending',
+        paymentMethod:    'Razorpay Online',
+        paymentStatus:    'paid',
+        orderStatus:      'paid',
         estimatedDelivery,
       };
 
       clearCart();
       setReceiptData(receipt);
       setOrderPlaced(true);
+      setIsProcessing(false);
 
       // Confetti celebration
       const end = Date.now() + 3000;
@@ -234,8 +324,9 @@ const Checkout: React.FC = () => {
       sendReceiptEmail(receipt);
 
     } catch (error: any) {
-      console.error('Error placing order:', error);
-      alert(`Failed to place order: ${error.message}`);
+      console.error('[Checkout] DB save error:', error);
+      setPaymentError(`Payment was successful but order save failed: ${error.message}. Please contact support with payment ID: ${paymentId}`);
+      setIsProcessing(false);
     }
   };
 
@@ -355,8 +446,19 @@ const Checkout: React.FC = () => {
         </div>
 
         {/* Place Order */}
-        <Button onClick={handlePlaceOrder} variant="primary" className="w-full py-3 text-base">
-          Place Order
+        {paymentError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-2">
+            <span className="text-red-500 mt-0.5">⚠</span>
+            <span>{paymentError}</span>
+          </div>
+        )}
+        <Button
+          onClick={handlePlaceOrder}
+          variant="primary"
+          className={`w-full py-3 text-base ${isProcessing ? 'opacity-60 cursor-not-allowed' : ''}`}
+          disabled={isProcessing}
+        >
+          {isProcessing ? '⏳ Processing Payment…' : '🔒 Pay with Razorpay'}
         </Button>
         <p className="text-xs text-gray-400 text-center mt-2">
           A receipt will be emailed to {user?.email} after order confirmation.

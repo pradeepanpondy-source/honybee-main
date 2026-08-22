@@ -4,15 +4,21 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Button from './Button';
 import confetti from 'canvas-confetti';
+import { useNavigate } from 'react-router-dom';
+import { CartItem } from '../context/CartContext';
 
 const CartPage: React.FC = () => {
-  const { cartItems, getTotal, removeFromCart } = useCart();
+  const { cartItems, getTotal, removeFromCart, clearCart } = useCart();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [coupon, setCoupon] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
+  // Payment processing guard — prevents double-click
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
   const [contactInfo, setContactInfo] = useState({ signUp: false });
   const [shippingAddress, setShippingAddress] = useState({
     firstName: '',
@@ -87,9 +93,194 @@ const CartPage: React.FC = () => {
     });
   };
 
-  const handlePlaceOrder = () => {
-    // Here you would handle order placement logic
-    // Removed setOrderPlaced call as state was removed
+  const handlePlaceOrder = async () => {
+    console.log('[CartPage] handlePlaceOrder initialized');
+    if (isProcessing) {
+      console.log('[CartPage] Already processing payment, ignoring duplicate click');
+      return;
+    }
+    if (!user) {
+      console.warn('[CartPage] Place order failed: user not logged in');
+      alert('Please log in to place an order.');
+      return;
+    }
+    if (cartItems.length === 0) {
+      console.warn('[CartPage] Place order failed: cart is empty');
+      alert('Your cart is empty.');
+      return;
+    }
+
+    const amountInPaise = Math.round(discountedTotal * 100);
+    if (amountInPaise < 100) {
+      console.warn('[CartPage] Place order failed: amount below minimum (₹1)', amountInPaise);
+      alert('Order amount must be at least ₹1.00');
+      return;
+    }
+
+    // Generate receipt number
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    const rand = Math.floor(Math.random() * 99999).toString().padStart(5, '0');
+    const receiptNumber = `BB-${dateStr}-${rand}`;
+
+    setIsProcessing(true);
+    setPaymentError('');
+
+    console.log('[CartPage] Initiating backend order creation...', { amountInPaise, receiptNumber });
+
+    try {
+      // STEP 1 — Create Razorpay order on backend
+      const res = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: amountInPaise, currency: 'INR', receipt: receiptNumber }),
+      });
+      const orderDataApi = await res.json();
+
+      console.log('[CartPage] Backend order creation response:', orderDataApi);
+
+      if (!res.ok) {
+        throw new Error(orderDataApi.error || 'Failed to create order');
+      }
+
+
+      // STEP 2 — Open Razorpay checkout modal
+      const options = {
+        key:         import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount:      orderDataApi.amount,
+        currency:    orderDataApi.currency,
+        name:        'Bee Bridge',
+        description: 'Pure Honey Order',
+        order_id:    orderDataApi.order_id,
+        handler: async function (response: any) {
+          // STEP 3 — Verify signature on backend
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id:   response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature:  response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+
+            if (!verifyRes.ok) {
+              setPaymentError(`Payment verification failed: ${verifyData.error}`);
+              setIsProcessing(false);
+              return;
+            }
+
+            // STEP 4 — Signature valid → save order
+            await saveOrderToDatabase(receiptNumber, response.razorpay_payment_id);
+          } catch (err: any) {
+            console.error('[CartPage] Verification error:', err);
+            setPaymentError('Payment verification encountered an error. Please contact support.');
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name:    user.name || user.email?.split('@')[0] || 'Customer',
+          email:   user.email ?? '',
+          contact: shippingAddress.phone || '',
+        },
+        theme: { color: '#f5a623' },
+        modal: {
+          ondismiss: () => {
+            setPaymentError('Payment was cancelled. You can try again anytime.');
+            setIsProcessing(false);
+          },
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', (response: any) => {
+        setPaymentError(`Payment failed: ${response.error.description}`);
+        setIsProcessing(false);
+      });
+      rzp.open();
+
+    } catch (error: any) {
+      console.error('[CartPage] Error initiating payment:', error);
+      setPaymentError(error.message || 'Something went wrong. Please try again.');
+      setIsProcessing(false);
+    }
+  };
+
+  const saveOrderToDatabase = async (receiptNumber: string, paymentId: string) => {
+    // Group by seller
+    const ordersBySeller = cartItems.reduce((acc, item) => {
+      const sid = item.seller_id;
+      if (!acc[sid]) acc[sid] = [];
+      acc[sid].push(item);
+      return acc;
+    }, {} as Record<string, CartItem[]>);
+
+    // Estimate delivery: 5–7 business days
+    const delivery = new Date();
+    delivery.setDate(delivery.getDate() + 7);
+    const estimatedDelivery = delivery.toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'long', year: 'numeric',
+    });
+
+    try {
+      const customerName = shippingAddress.firstName 
+        ? `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim() 
+        : (user?.name || user?.email?.split('@')[0] || 'Customer');
+
+      const discountAmount = total * discount;
+
+      for (const sellerId in ordersBySeller) {
+        const sellerItems  = ordersBySeller[sellerId];
+        const sellerTotal  = sellerItems.reduce((s, i) => s + i.price * i.quantity, 0);
+        const sellerDisc   = (sellerTotal / total) * discountAmount;
+        const sellerFinal  = sellerTotal - sellerDisc;
+
+        const { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            user_id:          user?.id,
+            seller_id:        sellerId,
+            total:            sellerTotal,
+            discounted_total: discount > 0 ? sellerFinal : undefined,
+            coupon:           discount > 0 ? coupon.toUpperCase() : undefined,
+            discount:         discount > 0 ? sellerDisc / sellerTotal : undefined,
+            status:           'paid', // Mark as paid since Razorpay succeeded
+            customer_email:   user?.email,
+            customer_name:    customerName,
+          })
+          .select()
+          .single();
+
+        if (orderError) throw orderError;
+
+        // Insert order items
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(sellerItems.map(item => ({
+            order_id:   orderData.id,
+            product_id: item.id,
+            name:       item.name,
+            price:      item.price,
+            quantity:   item.quantity,
+          })));
+
+        if (itemsError) throw itemsError;
+      }
+
+      clearCart();
+
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+      setIsProcessing(false);
+      navigate('/my-orders');
+
+    } catch (error: any) {
+      console.error('[CartPage] DB save error:', error);
+      setPaymentError(`Payment successful but order save failed: ${error.message}. Contact support with payment ID: ${paymentId}`);
+      setIsProcessing(false);
+    }
   };
 
   const handleNext = () => {
@@ -319,18 +510,33 @@ const CartPage: React.FC = () => {
         </p>
       </div>
       <div className="flex justify-center mb-4">
-        <button className="bg-white border border-gray-300 rounded flex items-center justify-center py-3 px-6 hover:bg-gray-100 transition">
+        <button
+          onClick={handlePlaceOrder}
+          disabled={isProcessing}
+          className={`bg-white border border-gray-300 rounded flex items-center justify-center py-3 px-6 hover:bg-gray-100 transition w-full ${isProcessing ? 'opacity-65 cursor-not-allowed' : ''}`}
+        >
           <img src="https://5.imimg.com/data5/SELLER/Default/2023/9/348603242/KE/OR/XP/29083784/razorpay-software-250x250.png" alt="Razorpay" className="h-16 w-auto" />
         </button>
       </div>
-      <Button onClick={handlePlaceOrder} variant="primary" className="w-full">
-        Place Order
+      {paymentError && (
+        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-2">
+          <span className="text-red-500 mt-0.5">⚠</span>
+          <span>{paymentError}</span>
+        </div>
+      )}
+      <Button
+        onClick={handlePlaceOrder}
+        variant="primary"
+        className={`w-full ${isProcessing ? 'opacity-60 cursor-not-allowed' : ''}`}
+        disabled={isProcessing}
+      >
+        {isProcessing ? '⏳ Processing Payment…' : '🔒 Pay with Razorpay'}
       </Button>
       <div className="mt-4 text-xs text-gray-500">
         <p>Refund policy</p>
         <p>Shipping policy</p>
         <p>
-          I consent to receive recurring automated marketing by text message through an automatic telephone dialing system. Consent is not a condition to purchase. STOP to cancel. HELP for help. Message and Data rates may apply. View Privacy Policy & TOS
+          I consent to receive recurring automated marketing by text message through an automatic telephone dialing system. Consent is not a condition to purchase. STOP to cancel. HELP for help. Message and Data rates may apply. View Privacy Policy &amp; TOS
         </p>
         <p>Terms of service</p>
       </div>
