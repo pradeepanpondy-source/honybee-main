@@ -267,6 +267,7 @@ const Checkout: React.FC = () => {
             status:           'paid',
             customer_email:   user?.email,
             customer_name:    customerName,
+            order_data:       sellerItems,
           })
           .select()
           .single();

@@ -254,6 +254,7 @@ const CartPage: React.FC = () => {
             status:           'paid', // Mark as paid since Razorpay succeeded
             customer_email:   user?.email,
             customer_name:    customerName,
+            order_data:       sellerItems,
           })
           .select()
           .single();
