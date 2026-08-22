@@ -1,8 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
 
-const key_secret = process.env.RAZORPAY_KEY_SECRET;
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -17,6 +15,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ error: 'Missing required payment fields' });
     }
+
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!key_secret) {
       console.error('[verify-payment] Razorpay secret missing');
