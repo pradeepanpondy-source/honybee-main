@@ -237,11 +237,16 @@ const CartPage: React.FC = () => {
         const sellerDisc   = (sellerTotal / total) * discountAmount;
         const sellerFinal  = sellerTotal - sellerDisc;
 
+        const validSellerId =
+          sellerId && sellerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+            ? sellerId
+            : null;
+
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
           .insert({
             user_id:          user?.id,
-            seller_id:        sellerId,
+            seller_id:        validSellerId,
             total:            sellerTotal,
             discounted_total: discount > 0 ? sellerFinal : undefined,
             coupon:           discount > 0 ? coupon.toUpperCase() : undefined,
@@ -267,6 +272,32 @@ const CartPage: React.FC = () => {
           })));
 
         if (itemsError) throw itemsError;
+      }
+
+      // Decrement stock for valid products in Supabase
+      for (const item of cartItems) {
+        if (!item.id.startsWith('default-') && item.id !== 'beehive-starter-kit') {
+          // Fire and forget stock update (might be restricted by RLS but we try)
+          supabase
+            .rpc('decrement_stock', { p_id: item.id, qty: item.quantity })
+            .then(({ error }) => {
+              if (error) {
+                 // Fallback to direct update if RPC doesn't exist
+                 supabase.from('products')
+                   .select('stock')
+                   .eq('id', item.id)
+                   .single()
+                   .then(({ data }) => {
+                     if (data) {
+                       supabase.from('products')
+                         .update({ stock: Math.max(0, data.stock - item.quantity) })
+                         .eq('id', item.id)
+                         .then();
+                     }
+                   });
+              }
+            });
+        }
       }
 
       clearCart();
