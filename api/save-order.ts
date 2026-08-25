@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import nodemailer from 'nodemailer';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -271,6 +272,105 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     console.log('[save-order] Orders created:', createdOrders.map(o => o.id));
+
+    // ── 6. Auto-send receipt email (fire-and-forget) ─────────────────
+    const emailUser = process.env.EMAIL_USER || '';
+    const emailPass = process.env.EMAIL_PASS || '';
+    if (emailUser && emailPass && user_email) {
+      try {
+        const firstOrder = createdOrders[0];
+        const deliveryDateStr = new Date(Date.now() + 7 * 86400000)
+          .toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+        const orderDateStr = new Date()
+          .toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+        const receiptNum = receipt_number || firstOrder?.receipt_number || `BB-${Date.now()}`;
+        const allItems = cart_items.map((i: any) => ({
+          name: i.name,
+          price: Number(i.price) || 0,
+          quantity: Number(i.quantity) || 1,
+        }));
+        const inr = (amt: number) =>
+          new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(amt);
+
+        const itemRows = allItems.map((item: any) => `
+          <tr>
+            <td style="padding:10px 16px;border-bottom:1px solid #f3f4f6;color:#374151;font-size:14px;">${item.name}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid #f3f4f6;text-align:center;color:#6b7280;font-size:14px;">${item.quantity}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid #f3f4f6;text-align:right;color:#6b7280;font-size:14px;">${inr(item.price)}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;color:#1a1a2e;font-size:14px;">${inr(item.price * item.quantity)}</td>
+          </tr>`).join('');
+
+        const discountRow = (discount_amount || 0) > 0
+          ? `<tr><td colspan="3" style="padding:6px 16px;text-align:right;color:#16a34a;font-size:13px;">Discount${coupon ? ` (${coupon})` : ''}</td><td style="padding:6px 16px;text-align:right;color:#16a34a;font-weight:700;font-size:13px;">−${inr(discount_amount)}</td></tr>`
+          : '';
+
+        const shippingRow = `<tr><td colspan="3" style="padding:6px 16px;text-align:right;color:#6b7280;font-size:13px;">Shipping</td><td style="padding:6px 16px;text-align:right;font-weight:700;font-size:13px;color:#16a34a;">FREE</td></tr>`;
+
+        const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Order Receipt – Bee Bridge</title></head>
+<body style="margin:0;padding:0;background:#f9fafb;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:#1a1a2e;padding:32px 32px 24px;text-align:center;">
+      <div style="margin-bottom:6px;"><span style="font-size:26px;font-weight:900;color:#f5a623;">Bee</span><span style="font-size:26px;font-weight:900;color:#ffffff;">Bridge</span></div>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0;letter-spacing:1px;text-transform:uppercase;">Farm-to-Home Honey Marketplace</p>
+    </div>
+    <div style="background:#f0fdf4;border-bottom:1px solid #bbf7d0;padding:14px 32px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:18px;">✅</span>
+      <div><p style="margin:0;color:#15803d;font-weight:700;font-size:14px;">Order Confirmed!</p><p style="margin:2px 0 0;color:#166534;font-size:12px;">Receipt #${receiptNum} · ${orderDateStr}</p></div>
+    </div>
+    <div style="padding:28px 32px;">
+      <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 20px;">Hi <strong>${customer_name || 'there'}</strong>,<br>Thank you for your order! Here's your official receipt from Bee Bridge. We're preparing your honey with care. 🍯</p>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;"><tr>
+        <td style="padding:8px 12px;background:#f9fafb;border:1px solid #f3f4f6;"><p style="margin:0;font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Order ID</p><p style="margin:4px 0 0;font-size:13px;color:#1a1a2e;font-weight:700;">${firstOrder?.id || 'N/A'}</p></td>
+        <td style="padding:8px 12px;background:#f9fafb;border:1px solid #f3f4f6;"><p style="margin:0;font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Payment</p><p style="margin:4px 0 0;font-size:13px;color:#1a1a2e;font-weight:700;">Razorpay Online</p></td>
+        <td style="padding:8px 12px;background:#f9fafb;border:1px solid #f3f4f6;"><p style="margin:0;font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Status</p><p style="margin:4px 0 0;font-size:13px;color:#15803d;font-weight:700;">Paid</p></td>
+      </tr></table>
+      <h3 style="color:#1a1a2e;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px;">Items Ordered</h3>
+      <table style="width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;border:1px solid #f3f4f6;">
+        <thead><tr style="background:#f9fafb;"><th style="padding:10px 16px;text-align:left;font-size:11px;color:#9ca3af;font-weight:700;">Product</th><th style="padding:10px 16px;text-align:center;font-size:11px;color:#9ca3af;font-weight:700;">Qty</th><th style="padding:10px 16px;text-align:right;font-size:11px;color:#9ca3af;font-weight:700;">Price</th><th style="padding:10px 16px;text-align:right;font-size:11px;color:#9ca3af;font-weight:700;">Total</th></tr></thead>
+        <tbody>${itemRows}</tbody>
+        <tfoot>
+          <tr><td colspan="3" style="padding:10px 16px;text-align:right;color:#6b7280;font-size:13px;border-top:1px solid #f3f4f6;">Subtotal</td><td style="padding:10px 16px;text-align:right;font-weight:700;font-size:13px;color:#374151;border-top:1px solid #f3f4f6;">${inr(subtotal)}</td></tr>
+          ${discountRow}
+          ${shippingRow}
+          <tr style="background:#fefce8;"><td colspan="3" style="padding:12px 16px;text-align:right;font-weight:800;color:#1a1a2e;font-size:15px;border-top:2px solid #f3f4f6;">Grand Total</td><td style="padding:12px 16px;text-align:right;font-weight:900;color:#f5a623;font-size:18px;border-top:2px solid #f3f4f6;">${inr(grand_total)}</td></tr>
+        </tfoot>
+      </table>
+      <div style="margin-top:20px;padding:14px 16px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">🚚</span><p style="margin:0;color:#9a3412;font-size:13px;">Estimated delivery: <strong>${deliveryDateStr}</strong></p>
+      </div>
+      <div style="margin-top:24px;padding:16px;background:#f9fafb;border-radius:10px;border:1px solid #f3f4f6;">
+        <p style="margin:0 0 6px;font-size:12px;color:#374151;font-weight:700;">Need help with your order?</p>
+        <p style="margin:0;font-size:12px;color:#6b7280;line-height:1.6;">📧 <a href="mailto:support@beebridge.vercel.app" style="color:#f5a623;text-decoration:none;">support@beebridge.vercel.app</a><br>🕒 Mon–Sat, 9 AM – 6 PM IST<br>🔄 7-day returns for quality issues</p>
+      </div>
+    </div>
+    <div style="background:#1a1a2e;padding:20px 32px;text-align:center;">
+      <p style="margin:0 0 4px;color:#f5a623;font-weight:800;font-size:14px;">🐝 Thank you for choosing Bee Bridge!</p>
+      <p style="margin:0;color:rgba(255,255,255,0.4);font-size:11px;">Pure honey. Verified farmers. Delivered to your door.<br>© ${new Date().getFullYear()} Bee Bridge · This is a computer-generated receipt.</p>
+    </div>
+  </div>
+</body></html>`;
+
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: { user: emailUser, pass: emailPass },
+        });
+
+        // Fire-and-forget — don't await, don't block the response
+        transporter.sendMail({
+          from: `"Bee Bridge" <${emailUser}>`,
+          to: user_email,
+          subject: `Your Bee Bridge Order Receipt #${receiptNum}`,
+          html,
+        }).then(() => {
+          console.log(`[save-order] ✅ Receipt auto-emailed to ${user_email}`);
+        }).catch((emailErr: any) => {
+          console.warn(`[save-order] ⚠ Failed to auto-email receipt to ${user_email}:`, emailErr.message);
+        });
+      } catch (emailBuildErr: any) {
+        console.warn('[save-order] ⚠ Receipt email build error (non-fatal):', emailBuildErr.message);
+      }
+    }
+
     return res.status(200).json({
       success:  true,
       order:    createdOrders[0],

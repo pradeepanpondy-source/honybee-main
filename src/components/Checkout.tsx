@@ -46,8 +46,6 @@ const Checkout: React.FC = () => {
   // ── UI state ─────────────────────────────────────────────
   const [orderPlaced,   setOrderPlaced]  = useState(false);
   const [receiptData,   setReceiptData]  = useState<ReceiptData | null>(null);
-  const [emailSending,  setEmailSending] = useState(false);
-  const [emailStatus,   setEmailStatus]  = useState<'idle' | 'sent' | 'error'>('idle');
   const [isProcessing,  setIsProcessing] = useState(false);
   const [paymentError,  setPaymentError] = useState('');
 
@@ -78,28 +76,6 @@ const Checkout: React.FC = () => {
     setDiscount(validCoupons[upper]);
     setCouponError('');
     confetti({ particleCount: 400, spread: 160, origin: { y: 0.6 }, startVelocity: 60, zIndex: 9999 });
-  };
-
-  // ── Send receipt email ───────────────────────────────────
-  const sendReceiptEmail = async (receipt: ReceiptData) => {
-    setEmailSending(true);
-    try {
-      const res = await fetch('/api/send-receipt', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId: receipt.orderId, receiptNumber: receipt.receiptNumber,
-          orderDate: receipt.orderDate, customerName: receipt.customerName,
-          customerEmail: receipt.customerEmail, items: receipt.items,
-          subtotal: receipt.subtotal, discount: receipt.discount,
-          couponCode: receipt.couponCode, tax: receipt.tax,
-          shippingCharge: receipt.shippingCharge, grandTotal: receipt.grandTotal,
-          paymentMethod: receipt.paymentMethod, orderStatus: receipt.orderStatus,
-          estimatedDelivery: receipt.estimatedDelivery,
-        }),
-      });
-      setEmailStatus(res.ok ? 'sent' : 'error');
-    } catch { setEmailStatus('error'); }
-    finally { setEmailSending(false); }
   };
 
   // ── Place order (main flow) ──────────────────────────────
@@ -233,8 +209,6 @@ const Checkout: React.FC = () => {
               confetti({ ...defs, particleCount: pc, origin: { x: rnd(0.1, 0.3), y: Math.random() - 0.2 } });
               confetti({ ...defs, particleCount: pc, origin: { x: rnd(0.7, 0.9), y: Math.random() - 0.2 } });
             }, 250);
-
-            sendReceiptEmail(receipt);
           } catch (err: any) {
             console.error('[Checkout] save-order error:', err);
             setPaymentError('Payment successful but an error occurred saving your order. Please contact support.');
@@ -260,22 +234,9 @@ const Checkout: React.FC = () => {
   // ── Receipt screen ───────────────────────────────────────
   if (orderPlaced && receiptData) {
     return (
-      <>
-        {emailStatus === 'sent' && (
-          <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold">
-            ✅ Receipt emailed to {receiptData.customerEmail}
-          </div>
-        )}
-        {emailStatus === 'error' && (
-          <div className="fixed top-4 right-4 z-50 bg-red-600 text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold">
-            ⚠ Email delivery failed — use the button below to resend.
-          </div>
-        )}
         <OrderReceipt
           data={receiptData}
           onClose={() => navigate('/my-orders')}
-          onEmailResend={() => sendReceiptEmail(receiptData)}
-          emailSending={emailSending}
         />
       </>
     );

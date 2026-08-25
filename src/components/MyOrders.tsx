@@ -46,8 +46,6 @@ const MyOrders: React.FC = () => {
   const [loading,         setLoading]        = useState(true);
   const [error,           setError]          = useState<string | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
-  const [emailSending,    setEmailSending]   = useState(false);
-  const [emailStatus,     setEmailStatus]    = useState<'idle' | 'sent' | 'error'>('idle');
 
   const fetchOrders = useCallback(async () => {
     if (!user) return;
@@ -118,19 +116,6 @@ const MyOrders: React.FC = () => {
       razorpayPaymentId: order.razorpay_payment_id ?? undefined,
       razorpayOrderId:   order.razorpay_order_id   ?? undefined,
     });
-    setEmailStatus('idle');
-  };
-
-  const sendReceiptEmail = async (receipt: ReceiptData) => {
-    setEmailSending(true);
-    try {
-      const res = await fetch('/api/send-receipt', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(receipt),
-      });
-      setEmailStatus(res.ok ? 'sent' : 'error');
-    } catch { setEmailStatus('error'); }
-    finally { setEmailSending(false); }
   };
 
   if (loading) {
@@ -155,18 +140,6 @@ const MyOrders: React.FC = () => {
           <p className="text-sm text-gray-500">View and download your order receipts</p>
         </div>
       </div>
-
-      {/* Email toasts */}
-      {emailStatus === 'sent' && (
-        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold">
-          ✅ Receipt emailed to {selectedReceipt?.customerEmail}
-        </div>
-      )}
-      {emailStatus === 'error' && (
-        <div className="fixed top-4 right-4 z-50 bg-red-600 text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold">
-          ⚠ Email failed — try the "Email Receipt" button again.
-        </div>
-      )}
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
@@ -271,16 +244,14 @@ const MyOrders: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
           <div className="relative w-full max-w-4xl rounded-2xl bg-white shadow-2xl my-8">
             <button
-              onClick={() => { setSelectedReceipt(null); setEmailStatus('idle'); }}
+              onClick={() => { setSelectedReceipt(null); }}
               className="absolute top-4 right-4 z-10 p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors no-print"
             >
               <X className="w-5 h-5" />
             </button>
             <OrderReceipt
               data={selectedReceipt}
-              onClose={() => { setSelectedReceipt(null); setEmailStatus('idle'); }}
-              onEmailResend={() => sendReceiptEmail(selectedReceipt)}
-              emailSending={emailSending}
+              onClose={() => { setSelectedReceipt(null); }}
             />
           </div>
         </div>
