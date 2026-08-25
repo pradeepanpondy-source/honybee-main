@@ -31,6 +31,8 @@ export interface ReceiptData {
   paymentStatus: string;
   orderStatus: string;
   estimatedDelivery?: string;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
 }
 
 interface OrderReceiptProps {
@@ -307,6 +309,24 @@ const OrderReceipt: React.FC<OrderReceiptProps> = ({
               </span>
             </div>
           </div>
+
+          {/* Razorpay Transaction IDs */}
+          {(data.razorpayPaymentId || data.razorpayOrderId) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data.razorpayPaymentId && (
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Razorpay Payment ID</p>
+                  <p className="text-honeybee-secondary font-mono text-xs break-all">{data.razorpayPaymentId}</p>
+                </div>
+              )}
+              {data.razorpayOrderId && (
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Razorpay Order ID</p>
+                  <p className="text-honeybee-secondary font-mono text-xs break-all">{data.razorpayOrderId}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Delivery banner */}
           <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-xl p-4">

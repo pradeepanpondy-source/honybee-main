@@ -4,9 +4,11 @@ import { supabase } from '../lib/supabase';
 import OrderReceipt, { ReceiptData } from './OrderReceipt';
 import { ShoppingBag, X, Download, Eye } from 'lucide-react';
 
+interface OrderItem { id: string; name: string; price: number; quantity: number; }
+
 interface CustomerOrder {
   id: string;
-  receipt_number: string;
+  receipt_number: string | null;
   total: number;
   discounted_total: number | null;
   discount: number | null;
@@ -15,84 +17,95 @@ interface CustomerOrder {
   created_at: string;
   customer_email: string;
   customer_name: string;
-  payment_method: string;
-  payment_status: string;
+  customer_phone: string | null;
+  shipping_address: string | null;
+  payment_method: string | null;
+  payment_status: string | null;
   estimated_delivery: string | null;
   tax: number | null;
   shipping_charge: number | null;
-  order_items: { id: string; name: string; price: number; quantity: number }[];
+  razorpay_payment_id: string | null;
+  razorpay_order_id: string | null;
+  order_items: OrderItem[];
 }
 
 const statusColor = (status: string) => {
-  switch (status.toLowerCase()) {
+  switch (status?.toLowerCase()) {
     case 'delivered': return 'bg-green-100 text-green-700';
     case 'shipped':   return 'bg-blue-100 text-blue-700';
     case 'processing': return 'bg-amber-100 text-amber-700';
     case 'cancelled': return 'bg-red-100 text-red-700';
+    case 'paid':      return 'bg-green-100 text-green-700';
     default:          return 'bg-gray-100 text-gray-600';
   }
 };
 
 const MyOrders: React.FC = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<CustomerOrder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [orders,          setOrders]         = useState<CustomerOrder[]>([]);
+  const [loading,         setLoading]        = useState(true);
+  const [error,           setError]          = useState<string | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
-  const [emailSending, setEmailSending] = useState(false);
-  const [emailStatus, setEmailStatus] = useState<'idle' | 'sent' | 'error'>('idle');
+  const [emailSending,    setEmailSending]   = useState(false);
+  const [emailStatus,     setEmailStatus]    = useState<'idle' | 'sent' | 'error'>('idle');
 
   const fetchOrders = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchErr } = await supabase
         .from('orders')
         .select(`
-          id, total, discounted_total, discount, coupon,
-          status, created_at, customer_email, customer_name,
+          id, receipt_number, total, discounted_total, discount, coupon,
+          status, created_at, customer_email, customer_name, customer_phone,
+          shipping_address, payment_method, payment_status, estimated_delivery,
+          tax, shipping_charge, razorpay_payment_id, razorpay_order_id,
           order_items ( id, name, price, quantity )
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (fetchErr) throw fetchErr;
       setOrders((data as CustomerOrder[]) || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('[MyOrders] fetch error:', err);
+      setError('Failed to load orders. Please refresh the page.');
     } finally {
       setLoading(false);
     }
   }, [user]);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const openReceipt = (order: CustomerOrder) => {
-    const grandTotal = order.discounted_total ?? order.total;
+    const grandTotal = order.discounted_total != null
+      ? order.discounted_total + (order.shipping_charge || 0)
+      : order.total + (order.shipping_charge || 0);
+
     setSelectedReceipt({
-      orderId: order.id,
-      receiptNumber: order.receipt_number || `BB-${order.id.split('-')[0].toUpperCase()}`,
-      orderDate: new Date(order.created_at).toLocaleDateString('en-IN', {
-        day: '2-digit', month: 'long', year: 'numeric',
-      }),
-      customerName: order.customer_name || user?.name || 'Customer',
-      customerEmail: order.customer_email || user?.email || '',
-      items: order.order_items || [],
-      subtotal: order.total,
-      discount: order.discount ? order.total * order.discount : 0,
-      couponCode: order.coupon ?? undefined,
-      tax: order.tax || 0,
-      shippingCharge: order.shipping_charge || 0,
+      orderId:           order.id,
+      receiptNumber:     order.receipt_number || `BB-${order.id.split('-')[0].toUpperCase()}`,
+      orderDate:         new Date(order.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }),
+      customerName:      order.customer_name  || user?.name || 'Customer',
+      customerEmail:     order.customer_email || user?.email || '',
+      customerPhone:     order.customer_phone ?? undefined,
+      shippingAddress:   order.shipping_address ?? undefined,
+      items:             order.order_items || [],
+      subtotal:          order.total,
+      discount:          order.discount ? order.total * order.discount : 0,
+      couponCode:        order.coupon ?? undefined,
+      tax:               order.tax || 0,
+      shippingCharge:    order.shipping_charge || 0,
       grandTotal,
-      paymentMethod: order.payment_method || 'Cash on Delivery',
-      paymentStatus: order.payment_status || 'pending',
-      orderStatus: order.status,
+      paymentMethod:     order.payment_method  || 'Razorpay Online',
+      paymentStatus:     order.payment_status  || 'paid',
+      orderStatus:       order.status,
       estimatedDelivery: order.estimated_delivery
-        ? new Date(order.estimated_delivery).toLocaleDateString('en-IN', {
-            day: '2-digit', month: 'long', year: 'numeric',
-          })
+        ? new Date(order.estimated_delivery).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
         : undefined,
+      razorpayPaymentId: order.razorpay_payment_id ?? undefined,
+      razorpayOrderId:   order.razorpay_order_id   ?? undefined,
     });
     setEmailStatus('idle');
   };
@@ -101,16 +114,12 @@ const MyOrders: React.FC = () => {
     setEmailSending(true);
     try {
       const res = await fetch('/api/send-receipt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(receipt),
       });
       setEmailStatus(res.ok ? 'sent' : 'error');
-    } catch {
-      setEmailStatus('error');
-    } finally {
-      setEmailSending(false);
-    }
+    } catch { setEmailStatus('error'); }
+    finally { setEmailSending(false); }
   };
 
   if (loading) {
@@ -136,19 +145,26 @@ const MyOrders: React.FC = () => {
         </div>
       </div>
 
-      {/* Email status toast */}
+      {/* Email toasts */}
       {emailStatus === 'sent' && (
-        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold animate-fadeIn">
+        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold">
           ✅ Receipt emailed to {selectedReceipt?.customerEmail}
         </div>
       )}
       {emailStatus === 'error' && (
-        <div className="fixed top-4 right-4 z-50 bg-red-600 text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold animate-fadeIn">
+        <div className="fixed top-4 right-4 z-50 bg-red-600 text-white px-5 py-3 rounded-xl shadow-xl text-sm font-semibold">
           ⚠ Email failed — try the "Email Receipt" button again.
         </div>
       )}
 
-      {orders.length === 0 ? (
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          {error}
+          <button onClick={fetchOrders} className="ml-3 underline font-semibold">Retry</button>
+        </div>
+      )}
+
+      {orders.length === 0 && !error ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-16 text-center shadow-sm">
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <ShoppingBag className="w-8 h-8 text-gray-300" />
@@ -158,17 +174,16 @@ const MyOrders: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => {
-            const grandTotal = order.discounted_total ?? order.total;
+          {orders.map(order => {
+            const grandTotal = order.discounted_total != null
+              ? order.discounted_total + (order.shipping_charge || 0)
+              : order.total + (order.shipping_charge || 0);
             const date = new Date(order.created_at).toLocaleDateString('en-IN', {
               day: '2-digit', month: 'short', year: 'numeric',
             });
             return (
-              <div
-                key={order.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
-              >
-                {/* Order Header */}
+              <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4 p-5 border-b border-gray-50 bg-gray-50/40">
                   <div className="flex items-center gap-4">
                     <div className="bg-honeybee-primary/10 p-2.5 rounded-xl">
@@ -199,13 +214,21 @@ const MyOrders: React.FC = () => {
                 {/* Items */}
                 <div className="p-5">
                   <div className="space-y-2 mb-4">
-                    {order.order_items?.map((item) => (
-                      <div key={item.id} className="flex justify-between text-sm text-gray-700">
+                    {order.order_items?.map((item, i) => (
+                      <div key={item.id || i} className="flex justify-between text-sm text-gray-700">
                         <span>{item.name} <span className="text-gray-400">× {item.quantity}</span></span>
                         <span className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
+
+                  {/* Shipping info line */}
+                  {(order.shipping_charge || 0) > 0 && (
+                    <div className="flex justify-between text-xs text-gray-500 mb-3">
+                      <span>+ Shipping</span>
+                      <span>₹{(order.shipping_charge || 0).toFixed(2)}</span>
+                    </div>
+                  )}
 
                   {/* Actions */}
                   <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
@@ -213,19 +236,13 @@ const MyOrders: React.FC = () => {
                       onClick={() => openReceipt(order)}
                       className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors shadow-sm"
                     >
-                      <Eye className="w-3.5 h-3.5" />
-                      View Receipt
+                      <Eye className="w-3.5 h-3.5" /> View Receipt
                     </button>
                     <button
-                      onClick={() => {
-                        openReceipt(order);
-                        // Trigger print after state update
-                        setTimeout(() => window.print(), 300);
-                      }}
+                      onClick={() => { openReceipt(order); setTimeout(() => window.print(), 300); }}
                       className="flex items-center gap-2 px-4 py-2 bg-honeybee-secondary text-white rounded-xl text-xs font-bold hover:bg-black transition-colors shadow-sm"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      Download PDF
+                      <Download className="w-3.5 h-3.5" /> Download PDF
                     </button>
                   </div>
                 </div>
