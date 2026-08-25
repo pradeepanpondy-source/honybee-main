@@ -71,6 +71,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true, order: existingOrder, duplicate: true });
     }
 
+    // ── 3b. Verify user_id exists in auth.users ─────────────────────────
+    console.log('[save-order] Verifying user_id:', user_id);
+    const { data: authUser, error: authErr } = await supabase.auth.admin.getUserById(user_id);
+    if (authErr || !authUser?.user) {
+      console.error('[save-order] user_id NOT FOUND in auth.users:', user_id, authErr?.message);
+      
+      // Try to look up the user by email as a fallback
+      if (user_email) {
+        console.log('[save-order] Attempting email lookup for:', user_email);
+        const { data: userList, error: listErr } = await supabase.auth.admin.listUsers();
+        if (!listErr && userList?.users) {
+          const matchedUser = userList.users.find(
+            (u: any) => u.email?.toLowerCase() === user_email.toLowerCase()
+          );
+          if (matchedUser) {
+            console.log('[save-order] Found user by email. Correct user_id:', matchedUser.id, 'Received user_id:', user_id);
+            // Use the correct user_id from the email match
+            (req.body as any)._corrected_user_id = matchedUser.id;
+          }
+        }
+      }
+      
+      // If we found a corrected user_id, use it; otherwise return error
+      if (!(req.body as any)._corrected_user_id) {
+        return res.status(400).json({
+          error: `User account not found (id: ${user_id?.substring(0, 8)}…). Please log out, log back in, and try again.`,
+        });
+      }
+    }
+    
+    // Use corrected user_id if available, otherwise use the original
+    const finalUserId = (req.body as any)._corrected_user_id || user_id;
+    console.log('[save-order] Using final user_id:', finalUserId);
+
     // ── 4. Group cart items by seller ─────────────────────────────────
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const ordersBySeller: Record<string, any[]> = {};
@@ -97,7 +131,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data: orderRow, error: orderErr } = await supabase
         .from('orders')
         .insert({
-          user_id,
+          user_id: finalUserId,
           seller_id:          validSellerId,
           receipt_number:     receipt_number || `BB-${Date.now()}`,
           total:              sellerSubtotal,
