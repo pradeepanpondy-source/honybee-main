@@ -460,7 +460,7 @@ const CartPage: React.FC = () => {
         </p>
         <p className="flex justify-between font-semibold">
           <span>Shipping</span>
-          <span>Calculated at next step</span>
+          <span className="text-green-600 font-bold">FREE (₹0.00)</span>
         </p>
         <p className="flex justify-between font-bold text-lg">
           <span>Total</span>
@@ -537,7 +537,7 @@ const CartPage: React.FC = () => {
           </div>
           <div className="flex justify-between font-semibold border-t border-gray-300 pt-2">
             <span>Shipping</span>
-            <span>Calculated at next step</span>
+            <span className="text-green-600 font-bold">FREE (₹0.00)</span>
           </div>
           <div className="flex justify-between font-bold text-lg border-t border-gray-300 pt-2">
             <span>Total</span>

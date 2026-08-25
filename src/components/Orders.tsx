@@ -32,6 +32,7 @@ const Orders = () => {
           created_at,
           customer_email,
           customer_name,
+          order_data,
           order_items ( id, product_id, name, price, quantity )
         `)
                 .eq('seller_id', sellerProfile.id)
@@ -42,7 +43,9 @@ const Orders = () => {
             const transformedOrders: Order[] = (data || []).map((order: any) => ({
                 id: order.id,
                 userId: order.user_id,
-                items: order.order_items || [],
+                items: (order.order_items && order.order_items.length > 0)
+                  ? order.order_items
+                  : (Array.isArray(order.order_data) ? order.order_data : []),
                 total: order.total,
                 status: order.status,
                 createdAt: new Date(order.created_at),

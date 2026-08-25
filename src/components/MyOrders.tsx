@@ -58,9 +58,9 @@ const MyOrders: React.FC = () => {
         .from('orders')
         .select(`
           id, receipt_number, total, discounted_total, discount, coupon,
-          status, created_at, customer_email, customer_name, customer_phone,
+          grand_total, status, created_at, customer_email, customer_name, customer_phone,
           shipping_address, payment_method, payment_status, estimated_delivery,
-          tax, shipping_charge, razorpay_payment_id, razorpay_order_id,
+          tax, shipping_charge, razorpay_payment_id, razorpay_order_id, order_data,
           order_items ( id, name, price, quantity )
         `)
         .eq('user_id', user.id)
@@ -78,10 +78,21 @@ const MyOrders: React.FC = () => {
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const openReceipt = (order: CustomerOrder) => {
-    const grandTotal = order.discounted_total != null
-      ? order.discounted_total + (order.shipping_charge || 0)
-      : order.total + (order.shipping_charge || 0);
+  const openReceipt = (order: any) => {
+    const rawItems = (order.order_items && order.order_items.length > 0)
+      ? order.order_items
+      : (Array.isArray(order.order_data) ? order.order_data : []);
+    const items = rawItems.map((i: any) => ({
+      name: i.name,
+      price: Number(i.price) || 0,
+      quantity: Number(i.quantity) || 1,
+    }));
+
+    const grandTotal = order.grand_total != null
+      ? Number(order.grand_total)
+      : (order.discounted_total != null
+        ? Number(order.discounted_total) + (Number(order.shipping_charge) || 0)
+        : Number(order.total) + (Number(order.shipping_charge) || 0));
 
     setSelectedReceipt({
       orderId:           order.id,
@@ -91,12 +102,12 @@ const MyOrders: React.FC = () => {
       customerEmail:     order.customer_email || user?.email || '',
       customerPhone:     order.customer_phone ?? undefined,
       shippingAddress:   order.shipping_address ?? undefined,
-      items:             order.order_items || [],
-      subtotal:          order.total,
-      discount:          order.discount ? order.total * order.discount : 0,
+      items,
+      subtotal:          Number(order.total) || 0,
+      discount:          order.discount ? Number(order.total) * Number(order.discount) : 0,
       couponCode:        order.coupon ?? undefined,
-      tax:               order.tax || 0,
-      shippingCharge:    order.shipping_charge || 0,
+      tax:               Number(order.tax) || 0,
+      shippingCharge:    Number(order.shipping_charge) || 0,
       grandTotal,
       paymentMethod:     order.payment_method  || 'Razorpay Online',
       paymentStatus:     order.payment_status  || 'paid',
@@ -214,10 +225,13 @@ const MyOrders: React.FC = () => {
                 {/* Items */}
                 <div className="p-5">
                   <div className="space-y-2 mb-4">
-                    {order.order_items?.map((item, i) => (
+                    {((order.order_items && order.order_items.length > 0)
+                      ? order.order_items
+                      : (Array.isArray(order.order_data) ? order.order_data : [])
+                    ).map((item: any, i: number) => (
                       <div key={item.id || i} className="flex justify-between text-sm text-gray-700">
                         <span>{item.name} <span className="text-gray-400">× {item.quantity}</span></span>
-                        <span className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="font-semibold">₹{(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
