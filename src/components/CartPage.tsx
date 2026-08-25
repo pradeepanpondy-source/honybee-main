@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
 import Button from './Button';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
-import { CartItem } from '../context/CartContext';
+
 
 const CartPage: React.FC = () => {
   const { cartItems, getTotal, removeFromCart, clearCart } = useCart();
@@ -123,6 +122,19 @@ const CartPage: React.FC = () => {
     const rand = Math.floor(Math.random() * 99999).toString().padStart(5, '0');
     const receiptNumber = `BB-${dateStr}-${rand}`;
 
+    // Capture user details now (before Razorpay modal opens) so they survive session changes
+    const userId    = user.id;
+    const userEmail = user.email;
+    const userName  = shippingAddress.firstName
+      ? `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim()
+      : (user.name || user.email?.split('@')[0] || 'Customer');
+    const userPhone = shippingAddress.phone || '';
+    const fullAddress = [
+      shippingAddress.address, shippingAddress.apartment,
+      shippingAddress.city, shippingAddress.state,
+      shippingAddress.zip, shippingAddress.country,
+    ].filter(Boolean).join(', ');
+
     setIsProcessing(true);
     setPaymentError('');
 
@@ -143,6 +155,7 @@ const CartPage: React.FC = () => {
         throw new Error(orderDataApi.error || 'Failed to create order');
       }
 
+      const discountAmount = total * discount;
 
       // STEP 2 — Open Razorpay checkout modal
       const options = {
@@ -153,37 +166,57 @@ const CartPage: React.FC = () => {
         description: 'Pure Honey Order',
         order_id:    orderDataApi.order_id,
         handler: async function (response: any) {
-          // STEP 3 — Verify signature on backend
+          // STEP 3 — Save order via server-side API (uses service_role, bypasses RLS)
           try {
-            const verifyRes = await fetch('/api/verify-payment', {
+            const saveRes = await fetch('/api/save-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 razorpay_order_id:   response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature:  response.razorpay_signature,
+                user_id:             userId,
+                user_email:          userEmail,
+                customer_name:       userName,
+                customer_phone:      userPhone,
+                shipping_address:    fullAddress,
+                cart_items:          cartItems,
+                subtotal:            total,
+                shipping_charge:     0,
+                discount_amount:     discountAmount,
+                coupon:              discount > 0 ? coupon.toUpperCase() : null,
+                grand_total:         discountedTotal,
+                receipt_number:      receiptNumber,
               }),
             });
-            const verifyData = await verifyRes.json();
+            const saveData = await saveRes.json();
 
-            if (!verifyRes.ok) {
-              setPaymentError(`Payment verification failed: ${verifyData.error}`);
+            if (!saveRes.ok || !saveData.success) {
+              setPaymentError(
+                `Payment successful but order save failed: ${saveData.error || 'Unknown error'}. ` +
+                `Contact support with payment ID: ${response.razorpay_payment_id}`
+              );
               setIsProcessing(false);
               return;
             }
 
-            // STEP 4 — Signature valid → save order
-            await saveOrderToDatabase(receiptNumber, response.razorpay_payment_id);
+            clearCart();
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            setIsProcessing(false);
+            navigate('/my-orders');
           } catch (err: any) {
-            console.error('[CartPage] Verification error:', err);
-            setPaymentError('Payment verification encountered an error. Please contact support.');
+            console.error('[CartPage] save-order error:', err);
+            setPaymentError(
+              `Payment successful but an error occurred saving your order. ` +
+              `Contact support with payment ID: ${response.razorpay_payment_id}`
+            );
             setIsProcessing(false);
           }
         },
         prefill: {
-          name:    user.name || user.email?.split('@')[0] || 'Customer',
-          email:   user.email ?? '',
-          contact: shippingAddress.phone || '',
+          name:    userName,
+          email:   userEmail ?? '',
+          contact: userPhone,
         },
         theme: { color: '#f5a623' },
         modal: {
@@ -204,113 +237,6 @@ const CartPage: React.FC = () => {
     } catch (error: any) {
       console.error('[CartPage] Error initiating payment:', error);
       setPaymentError(error.message || 'Something went wrong. Please try again.');
-      setIsProcessing(false);
-    }
-  };
-
-  const saveOrderToDatabase = async (receiptNumber: string, paymentId: string) => {
-    // Group by seller
-    const ordersBySeller = cartItems.reduce((acc, item) => {
-      const sid = item.seller_id;
-      if (!acc[sid]) acc[sid] = [];
-      acc[sid].push(item);
-      return acc;
-    }, {} as Record<string, CartItem[]>);
-
-    // Estimate delivery: 5–7 business days
-    const delivery = new Date();
-    delivery.setDate(delivery.getDate() + 7);
-    const estimatedDelivery = delivery.toLocaleDateString('en-IN', {
-      day: '2-digit', month: 'long', year: 'numeric',
-    });
-
-    try {
-      const customerName = shippingAddress.firstName 
-        ? `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim() 
-        : (user?.name || user?.email?.split('@')[0] || 'Customer');
-
-      const discountAmount = total * discount;
-
-      for (const sellerId in ordersBySeller) {
-        const sellerItems  = ordersBySeller[sellerId];
-        const sellerTotal  = sellerItems.reduce((s, i) => s + i.price * i.quantity, 0);
-        const sellerDisc   = (sellerTotal / total) * discountAmount;
-        const sellerFinal  = sellerTotal - sellerDisc;
-
-        const validSellerId =
-          sellerId && sellerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
-            ? sellerId
-            : null;
-
-        const { data: orderData, error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            user_id:          user?.id,
-            seller_id:        validSellerId,
-            total:            sellerTotal,
-            discounted_total: discount > 0 ? sellerFinal : undefined,
-            coupon:           discount > 0 ? coupon.toUpperCase() : undefined,
-            discount:         discount > 0 ? sellerDisc / sellerTotal : undefined,
-            status:           'paid', // Mark as paid since Razorpay succeeded
-            customer_email:   user?.email,
-            customer_name:    customerName,
-            order_data:       sellerItems,
-          })
-          .select()
-          .single();
-
-        if (orderError) throw orderError;
-
-        // Insert order items
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(sellerItems.map(item => ({
-            order_id:   orderData.id,
-            product_id: item.id,
-            name:       item.name,
-            price:      item.price,
-            quantity:   item.quantity,
-          })));
-
-        if (itemsError) throw itemsError;
-      }
-
-      // Decrement stock for valid products in Supabase
-      for (const item of cartItems) {
-        if (!item.id.startsWith('default-') && item.id !== 'beehive-starter-kit') {
-          // Fire and forget stock update (might be restricted by RLS but we try)
-          supabase
-            .rpc('decrement_stock', { p_id: item.id, qty: item.quantity })
-            .then(({ error }) => {
-              if (error) {
-                 // Fallback to direct update if RPC doesn't exist
-                 supabase.from('products')
-                   .select('stock')
-                   .eq('id', item.id)
-                   .single()
-                   .then(({ data }) => {
-                     if (data) {
-                       supabase.from('products')
-                         .update({ stock: Math.max(0, data.stock - item.quantity) })
-                         .eq('id', item.id)
-                         .then();
-                     }
-                   });
-              }
-            });
-        }
-      }
-
-      clearCart();
-
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-
-      setIsProcessing(false);
-      navigate('/my-orders');
-
-    } catch (error: any) {
-      console.error('[CartPage] DB save error:', error);
-      setPaymentError(`Payment successful but order save failed: ${error.message}. Contact support with payment ID: ${paymentId}`);
       setIsProcessing(false);
     }
   };
