@@ -195,20 +195,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         throw new Error(`Order insert failed: ${orderErr.message} (code: ${orderErr.code})`);
       }
 
-      // Insert order_items rows
-      const { error: itemsErr } = await supabase
-        .from('order_items')
-        .insert(sellerItems.map((item: any) => ({
-          order_id:   orderRow.id,
-          product_id: item.id,
-          name:       item.name,
-          price:      item.price,
-          quantity:   item.quantity,
-        })));
+      // Insert order_items rows — only for items with valid UUID product IDs.
+      // Static products (id = "default-1", "beehive-starter-kit", etc.) are
+      // already stored in orders.order_data so skipping them here is safe.
+      const uuidItems = sellerItems.filter((item: any) => UUID_RE.test(item.id));
+      if (uuidItems.length > 0) {
+        const { error: itemsErr } = await supabase
+          .from('order_items')
+          .insert(uuidItems.map((item: any) => ({
+            order_id:   orderRow.id,
+            product_id: item.id,
+            name:       item.name,
+            price:      item.price,
+            quantity:   item.quantity,
+          })));
 
-      if (itemsErr) {
-        console.error('[save-order] Order items insert error:', itemsErr);
-        throw new Error(`Order items insert failed: ${itemsErr.message}`);
+        if (itemsErr) {
+          console.error('[save-order] Order items insert error:', itemsErr);
+          throw new Error(`Order items insert failed: ${itemsErr.message}`);
+        }
+      }
+      
+      // Also record static (non-UUID) items without a product_id reference.
+      // Only attempt this if the product_id column is nullable in your DB.
+      // (Run once in Supabase SQL editor: ALTER TABLE order_items ALTER COLUMN product_id DROP NOT NULL;)
+      const staticItems = sellerItems.filter((item: any) => !UUID_RE.test(item.id));
+      if (staticItems.length > 0) {
+        const { error: staticItemsErr } = await supabase
+          .from('order_items')
+          .insert(staticItems.map((item: any) => ({
+            order_id:   orderRow.id,
+            product_id: null,
+            name:       item.name,
+            price:      item.price,
+            quantity:   item.quantity,
+          })));
+        if (staticItemsErr) {
+          // Non-fatal — static items are already in orders.order_data
+          console.warn('[save-order] Could not insert static order_items (non-fatal):', staticItemsErr.message);
+        }
       }
 
       // Decrement stock — awaited (not fire-and-forget)
