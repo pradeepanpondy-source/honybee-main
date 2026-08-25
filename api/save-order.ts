@@ -112,24 +112,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const uName = customer_name || user_email.split('@')[0];
       // Upsert into public.users
-      await supabase.from('users').upsert({
+      const { error: usersErr } = await supabase.from('users').upsert({
         id: finalUserId,
         email: user_email,
         name: uName,
-        full_name: uName,
         password: 'legacy_auth_bypassed' // Satisfy not-null constraint
       }, { onConflict: 'id' }).select('id').maybeSingle();
       
+      if (usersErr) {
+        console.warn('[save-order] Error syncing user to public.users (non-fatal):', usersErr.message);
+      }
+      
       // Upsert into user_profiles just in case there's a constraint there too
-      await supabase.from('user_profiles').upsert({
+      const { error: profileErr } = await supabase.from('user_profiles').upsert({
         user_id: finalUserId,
         provider: 'local',
         is_verified: true
       }, { onConflict: 'user_id' }).select('id').maybeSingle();
       
+      if (profileErr) {
+        console.warn('[save-order] Error syncing user to user_profiles (non-fatal):', profileErr.message);
+      }
+      
       console.log('[save-order] Synced user to public tables successfully');
     } catch (syncErr: any) {
-      console.warn('[save-order] Error syncing user to public tables (non-fatal):', syncErr.message);
+      console.warn('[save-order] Exception syncing user to public tables (non-fatal):', syncErr.message);
     }
 
     // ── 4. Group cart items by seller ─────────────────────────────────
