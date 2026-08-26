@@ -234,11 +234,10 @@ const Checkout: React.FC = () => {
   // ── Receipt screen ───────────────────────────────────────
   if (orderPlaced && receiptData) {
     return (
-        <OrderReceipt
-          data={receiptData}
-          onClose={() => navigate('/my-orders')}
-        />
-      </>
+      <OrderReceipt
+        data={receiptData}
+        onClose={() => navigate('/my-orders')}
+      />
     );
   }
 
